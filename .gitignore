@@ -1,0 +1,9 @@
+data/*
+!data/README.md
+!data/SHA256SUMS.txt
+!data/SHA256SUMS-core.txt
+!data/SHA256SUMS-preevent.txt
+dist/
+.venv/
+__pycache__/
+*.pyc

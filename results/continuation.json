@@ -1,0 +1,75 @@
+{
+  "tag": "165_082_D_20260719",
+  "window": "2026-07-19\u21922026-08-12",
+  "interpretation": "fraction of the co-event best-fit dike pattern after 19 July",
+  "n_blocks": 1004,
+  "radius_m": 25000.0,
+  "prediction_min_m": 0.01,
+  "pattern_fraction": 0.10732005148037956,
+  "pattern_fraction_cluster_wild_95": [
+    0.08568571775380814,
+    0.12920045209504613
+  ],
+  "pattern_fraction_processing_envelope": [
+    0.10049270672303058,
+    0.12256102991257974
+  ],
+  "processing_sensitivity": [
+    {
+      "variant": "0.96 km blocks",
+      "pattern_fraction": 0.10615096688012778,
+      "n_blocks": 1759
+    },
+    {
+      "variant": "1.92 km blocks",
+      "pattern_fraction": 0.1045396160017077,
+      "n_blocks": 450
+    },
+    {
+      "variant": "25 km far field",
+      "pattern_fraction": 0.10644742991511817,
+      "n_blocks": 1004
+    },
+    {
+      "variant": "32 km far field",
+      "pattern_fraction": 0.10863034606598747,
+      "n_blocks": 1004
+    },
+    {
+      "variant": "fit within 20 km",
+      "pattern_fraction": 0.10049270672303058,
+      "n_blocks": 657
+    },
+    {
+      "variant": "fit within 30 km",
+      "pattern_fraction": 0.12256102991257974,
+      "n_blocks": 1360
+    },
+    {
+      "variant": "prediction >0.5 cm",
+      "pattern_fraction": 0.10788268192737682,
+      "n_blocks": 1035
+    },
+    {
+      "variant": "prediction >2 cm",
+      "pattern_fraction": 0.10562126501280841,
+      "n_blocks": 849
+    }
+  ],
+  "zero_intercept_pattern_fraction": 0.18039195439632535,
+  "offset_m": 0.032840080067292436,
+  "correlation": 0.6291239373558026,
+  "rms_m": 0.017166687612178374,
+  "probe_means_cm": {
+    "EAST": 1.3199278604174347,
+    "WEST": 12.379095498470084,
+    "SOUTH": 7.615754960777554
+  },
+  "bootstrap": {
+    "method": "wild sign bootstrap on 5-km spatial clusters",
+    "samples": 2000,
+    "seed": 20260818,
+    "clusters": 87,
+    "caveat": "conditional heuristic, not a full InSAR covariance model"
+  }
+}

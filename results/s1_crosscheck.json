@@ -1,0 +1,13 @@
+{
+  "frame": "014A_07688_131313",
+  "pair": "20260712_20260718",
+  "n_pixels": 47075,
+  "coherence_min": 0.25,
+  "subsample": 3,
+  "prediction_min_m": 0.005,
+  "regression_slope_observed_on_predicted": -0.8819679657676434,
+  "applied_observation_sign": -1.0,
+  "correlation": 0.9535243339498103,
+  "amplitude_ratio": 0.8819679657676434,
+  "rms_m": 0.022606485032492133
+}

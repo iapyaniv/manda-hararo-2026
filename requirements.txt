@@ -1,0 +1,11 @@
+# Minimum supported versions are listed below. Committed results were generated
+# with Python 3.12 and numpy 2.5.2, scipy 1.18.0, matplotlib 3.11.1, h5py 3.16.0,
+# pyrocko 2026.6.2, rasterio 1.5.1, pyproj 3.7.2, and earthaccess 0.18.0.
+numpy>=2.0
+scipy>=1.14
+matplotlib>=3.9
+h5py>=3.11
+pyrocko>=2025.1
+rasterio>=1.4
+pyproj>=3.6
+earthaccess>=0.11   # only needed for mh26.fetch (rebuilding data from ASF)

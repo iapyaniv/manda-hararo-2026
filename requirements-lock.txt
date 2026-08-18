@@ -1,0 +1,10 @@
+# Exact environment used to regenerate and validate the committed results on
+# 2026-08-18. Python 3.12.3; install with `python3 -m pip install -r`.
+numpy==2.5.2
+scipy==1.18.0
+matplotlib==3.11.1
+h5py==3.16.0
+pyrocko==2026.6.2
+rasterio==1.5.1
+pyproj==3.7.2
+earthaccess==0.18.0

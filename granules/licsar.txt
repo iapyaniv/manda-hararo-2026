@@ -1,0 +1,17 @@
+# COMET-LiCSAR inputs used for the independent Sentinel-1 cross-check
+# Retrieved 2026-08-16 UTC from the public COMET-LiCSAR product tree.
+
+portal	https://comet.nerc.ac.uk/COMET-LiCS-portal/
+product_details	https://comet.nerc.ac.uk/comet-lics-portal-product-details/
+public_root	https://gws-access.jasmin.ac.uk/public/nceo_geohazards/LiCSAR_products.public/14/014A_07688_131313/
+frame	014A_07688_131313
+pair	20260712_20260718
+file	interferograms/20260712_20260718/20260712_20260718.geo.unw.tif
+file	interferograms/20260712_20260718/20260712_20260718.geo.cc.tif
+file	metadata/014A_07688_131313.geo.E.tif
+file	metadata/014A_07688_131313.geo.N.tif
+file	metadata/014A_07688_131313.geo.U.tif
+
+# These are modified Copernicus Sentinel data processed by COMET using LiCSAR
+# and JASMIN. Follow the portal's current use conditions and include its
+# requested acknowledgement and LiCSAR citations in any manuscript or release.
