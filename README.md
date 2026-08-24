@@ -69,6 +69,13 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
   geometries are in `results/distributed_fit_fringe_panels_mapped_gslc.png`.
   The separate GUNW-fit-to-GSLC check is in
   `results/fringes_model_comparison.png`.
+- Five draft publication-style figures summarize the trace-supported fit,
+  the free E–N–U decomposition, the physical source, the phase-gradient
+  faulting evidence, and the dike-induced stress on the east-fault
+  receivers: `results/summary_*.png` with matching vector PDF files and the
+  identity manifest `results/summary_figures.json`
+  (`mh26.summary_figures`; needs the terrain tile described in
+  `data/README.md`).
 - `mh26.distributed --geometry FILE` accepts a complete saved geometry,
   validates its patch contract, records file and geometry hashes, and uses
   hash-suffixed outputs. The exact 2005–2010 files are still required for the
@@ -107,6 +114,7 @@ python -m mh26.distributed --geometry FILE  # complete external patch geometry
 python -m mh26.stress
 python -m mh26.uncertainty --n 1000
 python -m mh26.figures
+python -m mh26.summary_figures        # needs the terrain tile (data/README.md)
 python -m mh26.export_geotiff --all
 python -m mh26.validate --profile full
 ```
@@ -147,6 +155,7 @@ mh26/faults.py          graben fault traces from wrapped-phase gradients
 mh26/stress.py          dike-induced stress change on the fault surfaces
 mh26/uncertainty.py     correlated-noise Monte Carlo for the distributed model
 mh26/figures.py         rewrapped-fringe data/model comparison figure
+mh26/summary_figures.py publication-style summary figures from saved results
 mh26/fetch.py           ASF GUNW crop extraction
 mh26/validate.py        data, source-manifest, result, and checksum validation
 scripts/build_release.py deterministic code and data archive builder

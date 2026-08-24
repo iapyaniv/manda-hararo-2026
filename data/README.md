@@ -125,3 +125,22 @@ NPZ atomically, then deletes the HDF5. Expect roughly 45 GB of transfer for all
 20 products. Locally rebuilt NPZ hashes can differ if ASF republishes a
 product or adds optional lookup cubes; the release manifests identify the
 exact distributed files.
+
+## Terrain tile for the summary figures
+
+`mh26.summary_figures` draws its map backgrounds and profile topography from
+one public Copernicus GLO-30 tile. It is used for display only; no analysis
+quantity depends on it. Download it into `data/dem/`:
+
+```bash
+mkdir -p data/dem
+curl -o data/dem/Copernicus_DSM_COG_10_N12_00_E040_00_DEM.tif \
+  https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N12_00_E040_00_DEM/Copernicus_DSM_COG_10_N12_00_E040_00_DEM.tif
+```
+
+The module verifies the tile's SHA-256 hash at run time:
+
+    90ad0f4b67afff380496e9e35a0dd74ea4dcb915ab0e64655b28b30cf2da6d24
+
+Copernicus DEM data: © DLR e.V. 2010–2014 and © Airbus Defence and Space
+GmbH 2014–2018, provided under COPERNICUS by the European Union and ESA.

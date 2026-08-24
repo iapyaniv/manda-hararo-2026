@@ -1,0 +1,29 @@
+{
+  "scope": "Identity record for the summary figure set. Raw data files are covered by the archive checksum manifests in data/.",
+  "generated_by": "mh26.summary_figures",
+  "results_inputs": {
+    "distributed_fit_mapped.json": "8c287924a3eac112f4073cda177240fc86c6b45d46bb9088210a1d0bc8308f32",
+    "distributed_fit_mapped_gslc.json": "ab2d7b3e13fe60388f9614de3b2337309a31ec109b1f985db8a08695ac19be7d",
+    "decomposition_joint_gslc.json": "81a9b96bd8e4e80d6ec812bb4b63f6caeeef44a324749f509cc7298f3095e47e",
+    "fault_traces.json": "76328d6ce925d064359d0fd2befe02a7aa02084e55fe258f152f891fc18dc5cf",
+    "okada_fit.json": "9fd137519c73b8743caaed21eac64529cfd21eca1d6715757a119c1fa319e7b3",
+    "s1_tracks.json": "0ed92ccef096ad475c34fe74ee2197eeb7180d48aace201bb009580208e5b951"
+  },
+  "terrain": {
+    "path": "data/dem/Copernicus_DSM_COG_10_N12_00_E040_00_DEM.tif",
+    "sha256": "90ad0f4b67afff380496e9e35a0dd74ea4dcb915ab0e64655b28b30cf2da6d24",
+    "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N12_00_E040_00_DEM/Copernicus_DSM_COG_10_N12_00_E040_00_DEM.tif"
+  },
+  "outputs": {
+    "summary_decomposition_enu.pdf": "d9fbb7bbb17aa93a9196f8c2c627e6552dd7e8e0bc067daae8b782c391abbeb8",
+    "summary_decomposition_enu.png": "06ce80c8302ca4a3bf06f3cb45e454075a1a97e33b3f32a2903b3c60368b9288",
+    "summary_fault_stress.pdf": "9ad70099d912e30800dcf61c77caf61275d149fe184a98e70fdff9c398b866d8",
+    "summary_fault_stress.png": "181120ba35e03a9e333283c3e6980483ec33d46fd0cbba6c4ebd1baf3af9430f",
+    "summary_los_model_residual.pdf": "47002b7dd14edd60dc999f1aa5b33dd3257535de6b23e641d550e7a6af3b11a7",
+    "summary_los_model_residual.png": "3145573bee3f5e1ba610837a9fa9a870d6224ed5a8799752d391325d8b66656a",
+    "summary_phase_gradient.pdf": "805aa861ba2fdb6ab4a13ea68a7869e3649cbb31fe8b622d94b4f8d2f4212444",
+    "summary_phase_gradient.png": "be3f3e6b6c31c809197c39419ede6af2838b9e7c2cb5ab60393add2e5f969b89",
+    "summary_source_geometry.pdf": "4e7a06588be36fb1eab519952c9318152465b0d76fb3244ef2d700621f7889d4",
+    "summary_source_geometry.png": "6158a099704d2596a51afa614ac88c8f3d167cf3f64b3a810f09b59cd341da45"
+  }
+}

@@ -168,6 +168,33 @@ class GeometryConventionTests(unittest.TestCase):
         self.assertEqual(provenance["source_kind"], "distributed_result")
         self.assertTrue(provenance["sha256"])
 
+    def test_signed_cross_rift_increment_follows_the_ene_frame(self) -> None:
+        # Regression: an opposite perpendicular sign in a map transform once
+        # swapped the east and west ridges. The signed phase increment must
+        # follow the _strike_vectors ENE-positive frame, and its aliasing
+        # mark must trigger exactly beyond λ/4 of LOS per pixel.
+        from mh26.summary_figures import (
+            aliasing_flag,
+            signed_cross_rift_increment,
+        )
+        strike = self.MODEL[2]
+        _, perp = _strike_vectors(strike)
+        x = 683_000.0 + 30.0 * np.arange(40)
+        y = 1_350_000.0 - 30.0 * np.arange(40)
+        X, Y = np.meshgrid(x, y)
+        rate = 0.05  # rad per metre, gradient pointing ENE
+        phase = rate * (perp[1] * X + perp[0] * Y)
+        signed = signed_cross_rift_increment(
+            phase, np.ones_like(phase), x, y, strike
+        )
+        np.testing.assert_allclose(signed[1:-1, 1:-1], rate * 30.0, atol=1e-9)
+
+        los = 0.004 * (perp[1] * X + perp[0] * Y)  # 12 cm per pixel > λ/4
+        flagged = aliasing_flag(los, y, strike, WAVELENGTH_L / 4.0)
+        self.assertTrue(flagged[1:-1, 1:-1].all())
+        calm = aliasing_flag(0.1 * los, y, strike, WAVELENGTH_L / 4.0)
+        self.assertFalse(calm[1:-1, 1:-1].any())
+
     def test_idealized_geometry_has_stress_receivers(self) -> None:
         geometry = build_geometry(self.MODEL)
         receivers = fault_patch_receivers(geometry, 65.0)

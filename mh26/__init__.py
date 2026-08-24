@@ -5,7 +5,8 @@ with the required data archives is in README.md and ANALYSIS_GUIDE.md):
     fetch (or unpack the data archives), okada, los_fields, invert,
     sensitivity, s1_check, history, continuation, s1_tracks,
     distributed, decompose3d, gslc, faults, distributed --mapped,
-    stress, uncertainty, figures, export_geotiff, validate.
+    stress, uncertainty, figures, summary_figures, export_geotiff,
+    validate.
 """
 
 __version__ = "0.2.0"

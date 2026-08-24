@@ -50,6 +50,13 @@ Manda Hararo intrusion.
   (pivotal, about the noiseless refit); `results/fringes_model_comparison.png`
   compares rewrapped observed and modelled fringes with a cross-axis
   profile.
+- `results/summary_*.png` (with matching PDF files) are five draft
+  publication-style figures built by `mh26.summary_figures` from the saved
+  results: the four-geometry trace-supported fit with residuals and
+  profiles, the free E–N–U decomposition with uncertainties and closure,
+  the physical source geometry, the signed phase-gradient faulting
+  evidence, and the dike-induced stress on the east-fault receivers.
+  `results/summary_figures.json` records the input and output hashes.
 - `granules/` records the NISAR (GUNW + GSLC) and LiCSAR source products.
 - `data/` contains archive manifests and instructions for the data files.
 
@@ -143,6 +150,7 @@ python -m mh26.distributed --geometry FILE  # after an external contract arrives
 python -m mh26.stress
 python -m mh26.uncertainty --n 1000
 python -m mh26.figures
+python -m mh26.summary_figures   # needs the terrain tile (data/README.md)
 ```
 
 Run `python -m mh26.gslc --unwrap-sensitivity` only when a full-grid

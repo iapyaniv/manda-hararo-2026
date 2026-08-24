@@ -7,4 +7,5 @@ h5py==3.16.0
 pyrocko==2026.6.2
 rasterio==1.5.1
 pyproj==3.7.2
+cmcrameri==1.8
 earthaccess==0.18.0

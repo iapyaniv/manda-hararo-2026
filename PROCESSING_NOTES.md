@@ -326,6 +326,39 @@ The valid-sample and optimization changes alter the fitted geometry:
 
 All files in `results/` use the current processing.
 
+## Summary figures (mh26.summary_figures)
+
+The five `results/summary_*` figures are display products built from the
+saved results; they change no analysis quantity. Display choices that
+matter for reading them:
+
+- Model fields are evaluated on a 200-m display grid. The inversion support
+  stays at the ~1.3-km blocks, and the printed RMS values are the saved
+  block-level misfits.
+- Observations are decay-normalized to the common 18 July reference with
+  the per-dataset factors stored in the fit, the same normalization the
+  inversion uses.
+- Rewrapped maps use one colour cycle per 10 cm of LOS displacement toward
+  the satellite. Residual maps are clipped at ±10 cm and keep coherent
+  near-axis residuals visible.
+- The decomposition panels show the unsmoothed 1.28-km solve. The North
+  panel dots cells with formal σ above 6 cm as a display mark; the values
+  under the dots are unchanged.
+- The signed cross-rift phase change is the wrapped one-pixel forward
+  difference projected ENE (rift-perpendicular). It aliases where the
+  cross-rift phase rate exceeds π per 30-m pixel (λ/4 of LOS per pixel);
+  the white map veil and the gray profile band mark that zone, estimated
+  from the unwrapped LOS on the same stencil. The forward-difference
+  stencil shifts the signed map about 15 m WNW of true gradient positions.
+- The stress panels resolve the saved distributed dike opening (fault slip
+  excluded) on the trace-supported east-fault receiver orientation; the
+  receiver parameters are printed on the figure. The GSLC/GUNW comparison
+  uses identical receivers from the shared fit geometry.
+- The terrain background is a public Copernicus GLO-30 tile
+  (`data/README.md`), hash-verified at run time and used for display only.
+- Cross-sections in the source and gradient figures sit at the along-strike
+  position of the peak-slip east-fault column, derived from the saved fit.
+
 ## Archive verification
 
 The core, pre-event, and complete data sets have separate SHA-256 manifests.
