@@ -41,12 +41,11 @@
 - The reprocessed 30-m interferograms (mh26.gslc) carry the same provisional
   calibration maturity as the GUNW products, reuse the GUNW ionosphere screen
   (an 80-m product layer interpolated to 30 m), and depend on the documented
-  snaphu configuration: the unwrapped field is sensitive to the cost mode and
-  tiling at the first-fringe level, which is why the GUNW comparison is a
-  standing pipeline stage. Agreement with the GUNW fields is 1.1–1.5 cm RMS
-  on 1.28-km cells; the near-axis band is where the two processings genuinely
-  differ, and there the reprocessed field is the better-controlled one but
-  has no independent third check yet.
+  snaphu configuration. In the saved ascending-pair sensitivity, changing
+  DEFO costs to SMOOTH costs changes 6.1% of near-axis pixels by more than
+  half a fringe, while off-axis agreement remains close. Agreement with the
+  GUNW fields is 1.1–1.5 cm RMS on 1.28-km cells. The near-axis band has no
+  independent registered unwrap check yet.
 
 ## Source model
 
@@ -83,7 +82,8 @@
   opening into fault slip, so its 0.14 km³ sits below the uniform-rectangle
   0.169 km³ without contradiction. Whether the 2026 plane coincides with the
   2005–2010 dike geometry remains untested until those geometry files are
-  available.
+  available. The complete JSON geometry contract and hash-safe input command
+  are ready, but an unknown legacy file format can still require a converter.
 - The phase-gradient ridges are candidate scarp lines: the picker selects
   at most one ridge per side and bin, and only the east ridge passes the
   LOS-step discontinuity test in both geometries (the west ridge's step
@@ -101,8 +101,8 @@
   NISAR→Sentinel-1 is the stronger held-out-sensor support for the fault-like
   term. S1→NISAR is conditional because NISAR affected geometry selection.
   The slip-depth distribution is also shaped by regularization. The stress
-  analysis reports a shallow-to-deep sign change on the assumed receiver
-  surfaces, but the distributed source has no subsurface hard top. The
+  analysis maps the supported receiver plane and reports a shallow-to-deep
+  sign change, but the distributed source has no subsurface hard top. The
   stress-change and Monte Carlo results inherit the geometry
   and noise-model assumptions in their reports. The Monte Carlo intervals
   cover data noise for the idealized GUNW fit only.

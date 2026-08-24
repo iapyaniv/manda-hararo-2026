@@ -134,30 +134,34 @@ pair interpolated and subtracted, and far-field plane referencing. The GSLC
 products carry the same provisional calibration maturity as the GUNW
 products.
 
-Unwrapping configuration matters at the first-fringe level. SMOOTH cost
-with 2 × 2 tiles produced quadrant ambiguity steps at the tile seams and a
-fringe-count deficit at the axis (lattice comparison against the GUNW
-field: slope +0.84, r 0.88). Single-tile DEFO cost with MCF initialization
-removes both (ascending pair: slope +1.01, r 0.993, RMS difference 1.5 cm
-on 1.28-km cells; about 11 minutes and 3.4 GB for a 3000 × 3000 tile). The
-remaining difference against the GUNW product is a narrow near-axis band
-where the 30-m reprocessing keeps coherent cells that the 80-m product
-loses or unwraps differently. `--compare` writes this validation, with
-region statistics and acceptance limits, for each pair; the limits are
-fatal only for the two inversion pairs.
+Unwrapping configuration matters at the first-fringe level. The primary run
+uses one tile, DEFO costs, and MCF initialization. For the ascending
+model-input pair, its comparison with GUNW gives slope +1.01, r = 0.993,
+and 1.5 cm RMS difference on 1.28-km cells. The remaining difference is
+concentrated near the axis, where the 30-m and 80-m processings can keep or
+unwrap different cells. `--compare` writes region statistics and acceptance
+limits for each pair. The limits are fatal only for the two inversion pairs.
+
+`--unwrap-sensitivity` keeps the same interferogram, corrections, one-tile
+layout, and MCF initialization, but changes the cost mode from DEFO to
+SMOOTH. For the ascending model-input pair, the two cases differ by 4.60 cm
+RMS near the axis, and 6.15% of near-axis pixels change by more than half a
+fringe. Off axis within 25 km, the RMS difference is 0.14 cm and 0.014% of
+pixels change by more than half a fringe. The command records input and
+primary-output hashes in
+`results/gslc_unwrap_sensitivity_172_008_A.json`. This is a processing
+sensitivity, not an independent unwrap validation.
 
 For the third pair (track 100 ascending, 15→27 July) the comparison itself
 is the finding: the two unwrapped fields agree at the millimetre level over
 three quarters of the common cells, and differ by one L-band fringe
 (≈11.9 cm) over a sharp-edged island covering the east-flank lobe
 (difference quartiles −0.1/0.0/+0.1 cm, 95th percentile +11.7 cm). The
-reprocessed field is smooth and continuous across that lobe and reaches the
-amplitude the co-event pairs require; the GUNW field carries an internal
-step there and reads about one fringe low. This frame is the one whose
-provisional GUNW products carry the documented subswath-edge defects. No
-reported model quantity uses the GUNW amplitude of this pair (it enters the
-analysis as a qualitative timing bracket); the probe-history row for this
-window inherits the product's low reading.
+reprocessed field is smooth and continuous across that lobe, while the GUNW
+field contains an internal step. These observations alone do not decide
+which fringe count is correct. No reported model quantity uses the GUNW
+amplitude of this pair; it enters the analysis as a qualitative timing
+bracket. The probe-history row for this window uses the GUNW value.
 
 ## Phase-gradient ridges (mh26.faults) and the ridge-anchored fault test
 
@@ -212,10 +216,18 @@ that pass the saved LOS-step rule. `--traces FILE` runs the same inversion on
 all traces in an externally supplied file with the `fault_traces.json` schema.
 It writes content-hash-suffixed outputs and records the source path and SHA-256
 hash, so it cannot replace the normal mapped outputs. Stress can use that exact
-result with `--fit`. The trace schema contains surface
-trace offsets around the fitted 2026 dike frame — ingesting a full old
-dike/fault geometry with its own strike, dip, and depths needs an importer
-that will be written once those files and their format are known.
+result with `--fit`.
+
+`--geometry FILE` accepts either the complete `geometry` object stored in a
+distributed result or a JSON file that contains that contract directly. It
+validates the patch arrays, dislocation rows, surface shapes, masks, axes,
+areas, and patch order. It then uses those patches without rebuilding them
+from current code constants. The result uses a content-hash suffix and records
+the source path, source-file hash, and geometry hash. This closes the generic
+input and provenance gap. It does not supply the missing 2005–2010 geometry or
+convert an unknown legacy file format. The exact old source files are still
+needed for Juliet's requested test. A format-specific conversion can be added
+after those files arrive.
 
 ## Dike-induced stress on the fault surfaces (mh26.stress)
 
@@ -224,12 +236,13 @@ excluded from the source, is resolved for inward-dipping normal slip at
 receivers built from the geometry stored in the same fit. The fault patch
 centres and a 250-m depth profile follow each saved trace column. Receivers
 within 400 m horizontally of the dike plane are excluded as near-singular.
-The result is reported by depth. The shallowest receiver row is mainly
-unclamped in the 65° case, while most deeper rows are clamped. The distributed
-opening is parameterized from the surface to 10 km and has no subsurface hard
-top. The report therefore makes no conclusion relative to the uniform
-rectangle's fitted top. No GSLC stress case or input-chain-independence claim is
-reported.
+The 65° result is stored as spatial normal-stress and Coulomb-stress grids on
+the supported receiver plane and as an along-strike depth summary. The
+shallowest receiver row is mainly unclamped, while most deeper rows are
+clamped. The distributed opening is parameterized from the surface to 10 km
+and has no subsurface hard top. The report therefore makes no conclusion
+relative to the uniform rectangle's fitted top. No GSLC stress case or
+input-chain-independence claim is reported.
 
 The strain-derivative convention of the dislocation code is checked
 against central finite differences by the module self-test

@@ -23,23 +23,29 @@ Manda Hararo intrusion.
   post-event projections with nine pre-event nulls, the decay fit, and the
   Sentinel-1-only East/Up decompositions.
 - `results/distributed_fit.md`, `results/distributed_planes.png`, and
-  `results/distributed_fit_panels.png` contain the distributed
-  opening + graben-fault model fitted jointly to the two NISAR and the two
-  Sentinel-1 co-event geometries.
+  `results/distributed_fit_panels.png` contain the distributed opening and
+  graben-fault model fitted jointly to the two NISAR and two Sentinel-1
+  co-event geometries. The mapped GSLC run also writes
+  `results/distributed_fit_fringe_panels_mapped_gslc.png`, with rewrapped
+  observations and model fields plus continuous residuals for all four looks.
 - `results/decomposition_joint.md` and `results/decomposition_joint.png`
   contain the four-geometry decomposition (rift-perpendicular horizontal +
   vertical) with the cross-sensor closure map.
 - `mh26/gslc.py` rebuilds the co-event interferograms from the 10-m GSLC
   products (crops, interferogram, snaphu unwrapping); see
-  `PROCESSING_NOTES.md`.
+  `PROCESSING_NOTES.md`. The saved SMOOTH-cost sensitivity for the ascending
+  model-input pair is in
+  `results/gslc_unwrap_sensitivity_172_008_A.{json,png}`.
 - `results/fault_traces.json` and `results/fault_traces.png` extract the
   phase-gradient ridges flanking the axis (candidate graben-fault scarps)
   with a LOS-step diagnostic per ridge; `mh26.distributed --mapped` uses only
   trace sides that pass that diagnostic (columns end at the dike plane;
   `--traces FILE` tests all traces in an external file and uses content-hash
-  output names);
-  `results/stress_change.md` resolves the dike's stress change on the
-  fault surfaces by depth; `results/distributed_uncertainty.md` gives
+  output names). `mh26.distributed --geometry FILE` loads a complete patch
+  contract and records the source and geometry hashes.
+  `results/stress_change.md` resolves the dike's stress change as spatial
+  maps and a depth summary on the supported fault surface;
+  `results/distributed_uncertainty.md` gives
   correlated-noise Monte Carlo intervals for the distributed model
   (pivotal, about the noiseless refit); `results/fringes_model_comparison.png`
   compares rewrapped observed and modelled fringes with a cross-axis
@@ -133,10 +139,15 @@ python -m mh26.decompose3d --gslc
 python -m mh26.faults
 python -m mh26.distributed --mapped
 python -m mh26.distributed --mapped --gslc
+python -m mh26.distributed --geometry FILE  # after an external contract arrives
 python -m mh26.stress
 python -m mh26.uncertainty --n 1000
 python -m mh26.figures
 ```
+
+Run `python -m mh26.gslc --unwrap-sensitivity` only when a full-grid
+cost-mode sensitivity is needed. It is not required to reproduce the primary
+result, and each pair can take several minutes.
 
 The Markdown reports and JSON files in `results/` contain the same numerical
 outputs in human-readable and machine-readable forms.

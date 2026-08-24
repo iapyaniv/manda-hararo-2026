@@ -13,31 +13,47 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
 
 ## Results
 
-| quantity | result | output |
-|---|---|---|
-| co-event LOS | maximum +76.6 cm ascending and +58.2 cm descending | `results/los_summary.md` |
-| onset | after 15 July and present by 18 July | NISAR control and LiCSAR event pairs |
-| uniform dike | strike 152.6°, length 17.15 km, depth 1.49–4.99 km, opening 2.81 m; RMS 3.05 cm | `results/okada_fit.md` |
-| processing sensitivity | length 17.1–17.5 km, depth 1.3–6.0 km, opening 2.31–2.92 m | `results/model_sensitivity.md` |
-| geometric volume | 0.169 km³; processing-choice range 0.167–0.188 km³ | `results/model_sensitivity.md` |
-| Sentinel-1 ascending comparison | r = 0.954, amplitude ratio 0.88, RMS 2.3 cm | `results/s1_crosscheck.md` |
-| Sentinel-1 descending comparison | r = 0.917, amplitude ratio 0.85, RMS 2.8 cm | `results/s1_tracks.md` |
-| NISAR post-event projection | +0.107 for 19 July–12 August; processing-choice range +0.100–+0.123 | `results/continuation.md` |
-| Sentinel-1 post-event projections | +0.140 (ascending 18–30 July) and +0.053 (descending 23 July–4 August); later windows at the null level | `results/s1_tracks.md` |
-| post-event decay | one fit across six windows gives a total ≈0.15 of the co-event pattern and a 4.3-day decay time from 18 July; this is a descriptive fit with no formal uncertainty | `results/s1_tracks.md` |
-| post-event opening geometry | +18 cm flank divergence in the Sentinel-1-only East/Up decomposition (illustrative: its two windows are offset by five days; see `LIMITATIONS.md`) | `results/s1_tracks.md` |
+- Co-event LOS maxima are +76.6 cm ascending and +58.2 cm descending.
+  See `results/los_summary.md`.
+- The onset is after 15 July and present by 18 July, based on the NISAR
+  control and LiCSAR event pairs.
+- The uniform dike has strike 152.6°, length 17.15 km, depth 1.49–4.99 km,
+  opening 2.81 m, and RMS 3.05 cm. See `results/okada_fit.md`.
+- Processing cases span 17.1–17.5 km length, 1.3–6.0 km depth, and
+  2.31–2.92 m opening. Geometric volume is 0.169 km³, with a
+  processing-choice range of 0.167–0.188 km³. See
+  `results/model_sensitivity.md`.
+- The Sentinel-1 ascending comparison gives r = 0.954, amplitude ratio 0.88,
+  and RMS 2.3 cm. The descending comparison gives r = 0.917, amplitude ratio
+  0.85, and RMS 2.8 cm. See `results/s1_crosscheck.md` and
+  `results/s1_tracks.md`.
+- The NISAR post-event projection is +0.107 for 19 July–12 August, with a
+  processing-choice range of +0.100–+0.123. See `results/continuation.md`.
+- Sentinel-1 post-event projections are +0.140 ascending for 18–30 July and
+  +0.053 descending for 23 July–4 August. Later windows are at the null
+  level. One descriptive fit across all six windows gives a total near 0.15
+  of the co-event pattern and a 4.3-day decay time from 18 July. It has no
+  formal uncertainty. See `results/s1_tracks.md`.
+- The illustrative Sentinel-1-only East/Up decomposition gives +18 cm flank
+  divergence. Its two windows are offset by five days. See
+  `LIMITATIONS.md` and `results/s1_tracks.md`.
 
 ## Model extensions and checks
 
-- The distributed opening and fault-basis fit reduces joint RMS from 2.59 to
-  2.30 cm. NISAR→Sentinel-1 is the held-out-sensor transfer test. The reverse
-  transfer is conditional because NISAR affected geometry selection. See
-  `results/distributed_fit.md`.
+- The trace-supported distributed fit includes only the east fault. It
+  reduces joint RMS from 2.59 to 2.42 cm and improves both 5-km holdout
+  splits. The 2.30 cm two-fault idealization remains a geometry sensitivity.
+  NISAR→Sentinel-1 is the stronger held-out-sensor transfer direction. See
+  `results/distributed_fit_mapped.md` and `LIMITATIONS.md`.
 - The joint decomposition, free three-component variant, closure diagnostics,
   and 30-m-input repeat are in `results/decomposition_joint*.md`. Counts now
   distinguish exactly three geometries from four geometries.
 - The GSLC reprocessing comparison and its near-axis differences are in
   `results/gslc_gunw_compare_*.json`.
+- A single-tile SMOOTH/MCF sensitivity changes 6.1% of near-axis pixels by
+  more than half a fringe in the ascending model-input pair. It agrees
+  closely off axis. This is not an independent unwrap validation. See
+  `results/gslc_unwrap_sensitivity_172_008_A.json`.
 - Phase-gradient ridges, threshold sensitivity, and an along-strike alignment
   null are in `results/fault_traces.json`. Only the east ridge has consistent
   LOS-step support. The default trace-column fit excludes the unsupported west
@@ -45,12 +61,18 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
 - The trace-column fit is a geometry sensitivity, not a fault map. Its source
   path and SHA-256 hash are stored in `results/distributed_fit_mapped.json`.
 - The stress report uses the source and receiver geometry stored in that fit.
-  It reports stress by receiver depth and does not use the uniform rectangle's
-  fitted top. See `results/stress_change.md`.
+  It includes spatial stress maps and a depth summary. It does not use the
+  uniform rectangle's fitted top. See `results/stress_change.md`.
 - The Monte Carlo applies the far-field datum and ramp projection to the model
   and to every covariance draw. See `results/distributed_uncertainty.md`.
-- The rewrapped fringe comparison is in
+- Same-chain rewrapped observations, model fields, and residuals for all four
+  geometries are in `results/distributed_fit_fringe_panels_mapped_gslc.png`.
+  The separate GUNW-fit-to-GSLC check is in
   `results/fringes_model_comparison.png`.
+- `mh26.distributed --geometry FILE` accepts a complete saved geometry,
+  validates its patch contract, records file and geometry hashes, and uses
+  hash-suffixed outputs. The exact 2005–2010 files are still required for the
+  requested comparison.
 
 Sixteen pre-event windows from November 2025 through 15 July 2026 have a
 maximum absolute 1-km probe mean of 3.4 cm (`results/probe_history.md`). Nine
@@ -81,6 +103,7 @@ python -m mh26.decompose3d --gslc
 python -m mh26.faults                 # phase-gradient ridges (needs gslc archive)
 python -m mh26.distributed --mapped   # ridge-anchored fault-geometry variant
 python -m mh26.distributed --mapped --gslc
+python -m mh26.distributed --geometry FILE  # complete external patch geometry
 python -m mh26.stress
 python -m mh26.uncertainty --n 1000
 python -m mh26.figures
@@ -92,6 +115,9 @@ The shipped `data/gslc/*_ifg.npz` and `*_unw.npz` reproduce from the raw
 GSLC granules with `python -m mh26.gslc --crop --ifg --unwrap --compare`
 (Earthdata Login in `~/.netrc`; `snaphu` on the PATH, e.g.
 `apt install snaphu`; tens of GB of ranged transfer).
+Run `python -m mh26.gslc --unwrap-sensitivity` for the documented
+single-tile SMOOTH/MCF sensitivity on the two model-input pairs. Each full
+grid can take several minutes.
 
 Run all commands from the repository root. `requirements-lock.txt` records the
 environment used for the committed outputs. `requirements.txt` gives broader
