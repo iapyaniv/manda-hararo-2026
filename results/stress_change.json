@@ -1,0 +1,264 @@
+{
+  "source": "distributed dike opening (trace-column geometry); fault slip excluded from the stress source",
+  "source_fit": {
+    "path": "results/distributed_fit_mapped.json",
+    "sha256": "8c287924a3eac112f4073cda177240fc86c6b45d46bb9088210a1d0bc8308f32"
+  },
+  "geometry_sha256": "641aa01a9dce8beff8b04434a9f40f49e588e3a87a46b420e0cc87a28fb7025d",
+  "source_parameterization": {
+    "dike_depth_edges_km": [
+      0.0,
+      1.0,
+      2.0,
+      3.0,
+      4.0,
+      5.0,
+      6.0,
+      7.0,
+      8.0,
+      9.0,
+      10.0
+    ],
+    "opening_sum_by_depth_row_m": [
+      4.076563224985114,
+      12.399906690898026,
+      17.923769697918186,
+      18.696073502970766,
+      15.575328620428255,
+      10.621973567395866,
+      5.690736540999254,
+      2.1697776786657563,
+      0.41891873956240133,
+      2.5022922733396734e-35
+    ],
+    "parameterized_top_depth_km": 0.0,
+    "subsurface_hard_top_depth_km": null,
+    "note": "The distributed plane starts at the surface; it has no subsurface hard top at the uniform rectangle's fitted top depth."
+  },
+  "receivers": {
+    "placement": "fault patch centres rebuilt only from the geometry stored in source_fit; dip-specific columns end at the dike plane; receivers within 400 m horizontally of the dike plane are excluded",
+    "dips_deg": [
+      55.0,
+      65.0,
+      75.0
+    ],
+    "rake": "normal (hanging wall down-dip)",
+    "friction": 0.4,
+    "standoff_m": 400.0
+  },
+  "per_dip": {
+    "55": {
+      "east": {
+        "overall": {
+          "n_receivers": 18,
+          "median_sigma_n_mpa": 1.5781584623132257,
+          "fraction_unclamped": 0.7222222222222222,
+          "median_cfs_mpa": 1.0036737188741522,
+          "fraction_cfs_positive": 0.6666666666666666
+        },
+        "n_excluded_near_dike": 10,
+        "rows": [
+          {
+            "row": 0,
+            "mean_receiver_depth_km": 0.6642666603033952,
+            "n_receivers": 10,
+            "median_sigma_n_mpa": 5.993073912557485,
+            "fraction_unclamped": 1.0,
+            "median_cfs_mpa": 3.912892599102972,
+            "fraction_cfs_positive": 1.0
+          },
+          {
+            "row": 1,
+            "mean_receiver_depth_km": 1.9969682354087122,
+            "n_receivers": 7,
+            "median_sigma_n_mpa": -1.979129349094819,
+            "fraction_unclamped": 0.2857142857142857,
+            "median_cfs_mpa": -3.4002529400366246,
+            "fraction_cfs_positive": 0.14285714285714285
+          },
+          {
+            "row": 2,
+            "mean_receiver_depth_km": 3.333333333333333,
+            "n_receivers": 1,
+            "median_sigma_n_mpa": 1.3411902260208726,
+            "fraction_unclamped": 1.0,
+            "median_cfs_mpa": 1.490169133542695,
+            "fraction_cfs_positive": 1.0
+          }
+        ]
+      }
+    },
+    "65": {
+      "east": {
+        "overall": {
+          "n_receivers": 25,
+          "median_sigma_n_mpa": 1.0316092066020732,
+          "fraction_unclamped": 0.52,
+          "median_cfs_mpa": 0.2453240828940724,
+          "fraction_cfs_positive": 0.52
+        },
+        "n_excluded_near_dike": 8,
+        "rows": [
+          {
+            "row": 0,
+            "mean_receiver_depth_km": 0.6666666666666667,
+            "n_receivers": 11,
+            "median_sigma_n_mpa": 6.088963019821652,
+            "fraction_unclamped": 1.0,
+            "median_cfs_mpa": 2.4366111370397934,
+            "fraction_cfs_positive": 1.0
+          },
+          {
+            "row": 1,
+            "mean_receiver_depth_km": 2.0,
+            "n_receivers": 8,
+            "median_sigma_n_mpa": -3.050840997106037,
+            "fraction_unclamped": 0.125,
+            "median_cfs_mpa": -6.085182005174648,
+            "fraction_cfs_positive": 0.125
+          },
+          {
+            "row": 2,
+            "mean_receiver_depth_km": 3.3333333333333326,
+            "n_receivers": 6,
+            "median_sigma_n_mpa": -8.272891288390516,
+            "fraction_unclamped": 0.16666666666666666,
+            "median_cfs_mpa": -4.970720552519902,
+            "fraction_cfs_positive": 0.16666666666666666
+          }
+        ]
+      }
+    },
+    "75": {
+      "east": {
+        "overall": {
+          "n_receivers": 29,
+          "median_sigma_n_mpa": -0.26213835678141634,
+          "fraction_unclamped": 0.4827586206896552,
+          "median_cfs_mpa": -0.331126429286307,
+          "fraction_cfs_positive": 0.41379310344827586
+        },
+        "n_excluded_near_dike": 9,
+        "rows": [
+          {
+            "row": 0,
+            "mean_receiver_depth_km": 0.6666666666666667,
+            "n_receivers": 12,
+            "median_sigma_n_mpa": 5.719822141383278,
+            "fraction_unclamped": 1.0,
+            "median_cfs_mpa": 1.0796566816144253,
+            "fraction_cfs_positive": 0.8333333333333334
+          },
+          {
+            "row": 1,
+            "mean_receiver_depth_km": 2.0,
+            "n_receivers": 9,
+            "median_sigma_n_mpa": -4.522780119811649,
+            "fraction_unclamped": 0.1111111111111111,
+            "median_cfs_mpa": -7.254779100932196,
+            "fraction_cfs_positive": 0.1111111111111111
+          },
+          {
+            "row": 2,
+            "mean_receiver_depth_km": 3.333333333333333,
+            "n_receivers": 8,
+            "median_sigma_n_mpa": -11.517116529556306,
+            "fraction_unclamped": 0.125,
+            "median_cfs_mpa": -6.645795115782969,
+            "fraction_cfs_positive": 0.125
+          }
+        ]
+      }
+    }
+  },
+  "depth_profile_dip65": {
+    "east": {
+      "depth_km": [
+        0.125,
+        0.375,
+        0.625,
+        0.875,
+        1.125,
+        1.375,
+        1.625,
+        1.875,
+        2.125,
+        2.375,
+        2.625,
+        2.875,
+        3.125,
+        3.375,
+        3.625
+      ],
+      "median_sigma_n_mpa": [
+        5.879428596345785,
+        6.2271681748497825,
+        5.682937271697057,
+        5.070628065023735,
+        3.5748383792699325,
+        1.4912668372035438,
+        -0.11696083303981844,
+        -1.9158931594854338,
+        -5.136480866421412,
+        -7.759632157237649,
+        -10.027500471722284,
+        -10.289999202678075,
+        -8.105677582266921,
+        -8.327380350755545,
+        -5.8524433837664445
+      ],
+      "p16_sigma_n_mpa": [
+        1.551035435172827,
+        1.5954227292854513,
+        1.8250830160282454,
+        1.5036692277384496,
+        1.1528324240720218,
+        0.6484570749376203,
+        -0.530929109538194,
+        -2.8215432192352696,
+        -5.82732551360593,
+        -10.87185827190392,
+        -13.373490018979457,
+        -12.437385188645484,
+        -13.600349181146651,
+        -15.349239575264056,
+        -13.764333038431248
+      ],
+      "p84_sigma_n_mpa": [
+        8.746155481909142,
+        8.056689879444587,
+        8.273963435531522,
+        9.512774979781016,
+        4.556694258095924,
+        2.398809766217298,
+        0.5439947130629568,
+        -0.03329205102570709,
+        -0.6178992024678436,
+        -1.0764037675724827,
+        -1.4631087774020546,
+        -1.1281060521449566,
+        -0.7585370133393301,
+        -0.6092251211109733,
+        -0.15716508096531345
+      ],
+      "median_cfs_mpa": [
+        4.84285533739504,
+        4.137207674395563,
+        2.6988487770600607,
+        0.9361145800047157,
+        -0.8582938397508532,
+        -2.0279340375130235,
+        -3.245677461306525,
+        -4.67446266912767,
+        -7.201082946692961,
+        -8.269441904629582,
+        -6.5010288937050005,
+        -7.042603729532441,
+        -5.091299083326451,
+        -4.983560530202774,
+        -2.941265999359162
+      ]
+    }
+  },
+  "interpretation": "Normal stress varies with receiver depth. The shallowest saved row is mainly unclamped, while most deeper saved rows are clamped in the 65-degree case. This result is conditional on the saved receiver surfaces. The distributed opening starts at the surface and has no subsurface hard top, so this report makes no conclusion relative to the uniform rectangle's fitted top."
+}
