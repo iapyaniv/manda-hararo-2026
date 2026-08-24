@@ -1,0 +1,48 @@
+{
+  "tag": "172_008_A",
+  "ifg": {
+    "path": "data/gslc/172_008_A_ifg.npz",
+    "sha256": "6feef6a04f709753d14d09c981b8158e6f9b59303efeee939f4b3f25c2c6110a"
+  },
+  "primary_unwrap": {
+    "path": "data/gslc/172_008_A_unw.npz",
+    "sha256": "2b067fcbe2824e7628e70857416ee805ce2a6b21ba1549c4a49b3a46c7b56a4a",
+    "configuration": {
+      "stat_cost_mode": "DEFO",
+      "init_method": "MCF"
+    }
+  },
+  "one_fringe_los_m": 0.1192,
+  "variants": {
+    "smooth_mcf": {
+      "configuration": {
+        "stat_cost_mode": "SMOOTH",
+        "init_method": "MCF"
+      },
+      "regions": {
+        "whole_scene": {
+          "n_pixels": 5302387,
+          "mean_difference_m": -0.00030449696569331066,
+          "rms_difference_m": 0.00989100616700137,
+          "p95_abs_difference_m": 4.1935693687045196e-08,
+          "fraction_over_half_fringe": 0.0028675764330291244
+        },
+        "near_axis": {
+          "n_pixels": 244252,
+          "mean_difference_m": -0.006702471652191693,
+          "rms_difference_m": 0.04596529694663764,
+          "p95_abs_difference_m": 0.11919994811770301,
+          "fraction_over_half_fringe": 0.06147749046067177
+        },
+        "off_axis_within_25km": {
+          "n_pixels": 1333438,
+          "mean_difference_m": 1.6896969078289798e-05,
+          "rms_difference_m": 0.0014191254227180956,
+          "p95_abs_difference_m": 6.180149676460187e-08,
+          "fraction_over_half_fringe": 0.00014173887349843038
+        }
+      }
+    }
+  },
+  "scope": "Same interferogram and corrections in every case. This tests processing sensitivity and is not an independent unwrap validation."
+}

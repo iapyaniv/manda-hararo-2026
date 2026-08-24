@@ -6,8 +6,8 @@ valid-sample mask). This module rebuilds the two co-event interferograms from
 the L2 GSLC products instead: GSLC epochs of one track share the same UTM
 grid and are DEM-flattened, so the interferogram is a per-pixel product with
 no co-registration or topographic step. We control multilooking, filtering,
-and unwrapping (snaphu), which preserves the near-axis fringes the GUNW
-products lose.
+and unwrapping (snaphu). The GSLC result keeps near-axis coherent cells that
+the GUNW result omits, but its fringe count remains processing-sensitive.
 
 Stages (each writes files the next stage reads):
 
@@ -29,6 +29,7 @@ products use the same L-band carrier, so no wavelength conversion is needed.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import subprocess
 import tempfile
@@ -37,7 +38,7 @@ from pathlib import Path
 import numpy as np
 
 from .gunw import load_pair
-from .params import CENTER_E, CENTER_N, FARFIELD_RADIUS, REPO, WAVELENGTH_L
+from .params import CENTER_E, CENTER_N, FARFIELD_RADIUS, REPO, RESULTS, WAVELENGTH_L
 
 DATA_GSLC = REPO / "data" / "gslc"
 TMP = REPO / "data" / "h5tmp"
@@ -50,6 +51,10 @@ GOLDSTEIN_TILE = 64
 COHERENCE_WINDOW = 3            # multilooked pixels (90 m estimation window)
 UNWRAP_COHERENCE_MIN = 0.25     # snaphu sees everything; analysis mask only
 SNAPHU = "snaphu"
+SNAPHU_PRIMARY = {"stat_cost_mode": "DEFO", "init_method": "MCF"}
+SNAPHU_SENSITIVITY_VARIANTS = {
+    "smooth_mcf": {"stat_cost_mode": "SMOOTH", "init_method": "MCF"},
+}
 
 GRIDS = "/science/LSAR/GSLC/grids/frequencyA"
 IDENT = "/science/LSAR/identification"
@@ -308,7 +313,13 @@ def make_ifg(tags: list[str] | None = None, looks: int = LOOKS) -> None:
 
 # --- stage 3: unwrap ----------------------------------------------------------
 
-def _run_snaphu(phase: np.ndarray, coherence: np.ndarray) -> np.ndarray:
+def _run_snaphu(phase: np.ndarray, coherence: np.ndarray,
+                *, stat_cost_mode: str = "DEFO",
+                init_method: str = "MCF") -> np.ndarray:
+    if stat_cost_mode not in {"DEFO", "SMOOTH"}:
+        raise ValueError(f"unsupported snaphu cost mode: {stat_cost_mode}")
+    if init_method not in {"MCF", "MST"}:
+        raise ValueError(f"unsupported snaphu initialization: {init_method}")
     ny, nx = phase.shape
     with tempfile.TemporaryDirectory(prefix="snaphu_", dir=str(DATA_GSLC)) as td:
         td = Path(td)
@@ -320,8 +331,8 @@ def _run_snaphu(phase: np.ndarray, coherence: np.ndarray) -> np.ndarray:
         # a single tile avoids the quadrant ambiguity offsets that 2x2 tiling
         # produced (visible against the GUNW field as tile-seam steps).
         config.write_text("\n".join([
-            "STATCOSTMODE DEFO",
-            "INITMETHOD MCF",
+            f"STATCOSTMODE {stat_cost_mode}",
+            f"INITMETHOD {init_method}",
             "INFILEFORMAT FLOAT_DATA",
             "CORRFILEFORMAT FLOAT_DATA",
             "OUTFILEFORMAT FLOAT_DATA",
@@ -358,6 +369,23 @@ def _iono_on_grid(tag: str, x: np.ndarray, y: np.ndarray) -> np.ndarray:
     return interpolator(np.column_stack([Y.ravel(), X.ravel()])).reshape(X.shape)
 
 
+def _referenced_los(tag: str, unwrapped_phase: np.ndarray,
+                    coherence: np.ndarray, x: np.ndarray,
+                    y: np.ndarray) -> np.ndarray:
+    phase = unwrapped_phase - _iono_on_grid(tag, x, y)
+    los = -phase * WAVELENGTH_L / (4 * np.pi)
+    X, Y = np.meshgrid(x, y)
+    far = (np.hypot(X - CENTER_E, Y - CENTER_N) > FARFIELD_RADIUS) \
+        & (coherence > UNWRAP_COHERENCE_MIN)
+    if far.sum() < 3:
+        raise ValueError(f"{tag}: too few far-field pixels for plane referencing")
+    A = np.c_[np.ones(far.sum()), (X[far] - CENTER_E) / 1e4,
+              (Y[far] - CENTER_N) / 1e4]
+    coef, *_ = np.linalg.lstsq(A, los[far], rcond=None)
+    return los - (coef[0] + coef[1] * (X - CENTER_E) / 1e4
+                  + coef[2] * (Y - CENTER_N) / 1e4)
+
+
 def unwrap(tags: list[str] | None = None) -> None:
     for tag in PAIRS:
         if tags and tag not in tags:
@@ -365,17 +393,9 @@ def unwrap(tags: list[str] | None = None) -> None:
         f = np.load(DATA_GSLC / f"{tag}_ifg.npz")
         phase, coherence, x, y = f["phase"], f["coherence"], f["x"], f["y"]
         print(f"{tag}: snaphu on {phase.shape}")
-        unw = _run_snaphu(phase, coherence)
-        unw -= _iono_on_grid(tag, x, y)
-        los = -unw * WAVELENGTH_L / (4 * np.pi)
+        unw = _run_snaphu(phase, coherence, **SNAPHU_PRIMARY)
+        los = _referenced_los(tag, unw, coherence, x, y)
         X, Y = np.meshgrid(x, y)
-        far = (np.hypot(X - CENTER_E, Y - CENTER_N) > FARFIELD_RADIUS) \
-            & (coherence > UNWRAP_COHERENCE_MIN)
-        A = np.c_[np.ones(far.sum()), (X[far] - CENTER_E) / 1e4,
-                  (Y[far] - CENTER_N) / 1e4]
-        coef, *_ = np.linalg.lstsq(A, los[far], rcond=None)
-        los -= (coef[0] + coef[1] * (X - CENTER_E) / 1e4
-                + coef[2] * (Y - CENTER_N) / 1e4)
         out = DATA_GSLC / f"{tag}_unw.npz"
         np.savez_compressed(out, los=los.astype(np.float32),
                             coherence=coherence, x=x, y=y, epsg=f["epsg"],
@@ -386,6 +406,132 @@ def unwrap(tags: list[str] | None = None) -> None:
         ok = near & (coherence > UNWRAP_COHERENCE_MIN)
         print(f"{100 * np.percentile(los[ok], 1):+.1f} / "
               f"{100 * np.percentile(los[ok], 99):+.1f} cm")
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def unwrap_sensitivity(tags: list[str] | None = None) -> None:
+    """Compare SMOOTH costs with the saved DEFO-cost primary unwrap.
+
+    This is an internal processing sensitivity. It does not provide an
+    independent unwrap because all cases use the same interferogram,
+    coherence, ionosphere screen, and far-field reference.
+    """
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    from .params import INVERSION_PAIRS
+
+    selected = list(INVERSION_PAIRS) if not tags else tags
+    unknown = sorted(set(selected) - PAIRS.keys())
+    if unknown:
+        raise ValueError("unknown GSLC tag(s): " + ", ".join(unknown))
+    model = np.asarray(json.loads((RESULTS / "okada_fit.json").read_text())["values"][:7])
+    cycle_m = WAVELENGTH_L / 2
+
+    for tag in selected:
+        ifg_path = DATA_GSLC / f"{tag}_ifg.npz"
+        primary_path = DATA_GSLC / f"{tag}_unw.npz"
+        f = np.load(ifg_path)
+        primary = np.load(primary_path)
+        phase = f["phase"]
+        coherence = f["coherence"]
+        x, y = f["x"], f["y"]
+        if primary["los"].shape != phase.shape:
+            raise ValueError(f"{tag}: saved unwrap and interferogram shapes differ")
+        baseline = np.asarray(primary["los"], dtype=float)
+        X, Y = np.meshgrid(x, y)
+        perp, along = _axis_distance(X, Y, model)
+        radius = np.hypot(X - CENTER_E, Y - CENTER_N)
+        common = (coherence > UNWRAP_COHERENCE_MIN) & np.isfinite(baseline)
+        regions = {
+            "whole_scene": np.ones_like(common),
+            "near_axis": ((perp < NEAR_AXIS_PERP_M)
+                          & (along < NEAR_AXIS_ALONG_M)),
+            "off_axis_within_25km": ((perp >= NEAR_AXIS_PERP_M)
+                                     | (along >= NEAR_AXIS_ALONG_M))
+                                    & (radius < 25_000),
+        }
+
+        fig, axes = plt.subplots(1, len(SNAPHU_SENSITIVITY_VARIANTS),
+                                 figsize=(7 * len(SNAPHU_SENSITIVITY_VARIANTS), 6),
+                                 squeeze=False)
+        results = {}
+        for column, (name, config) in enumerate(
+                SNAPHU_SENSITIVITY_VARIANTS.items()):
+            print(f"{tag}: snaphu sensitivity {name} on {phase.shape}")
+            alternative_phase = _run_snaphu(phase, coherence, **config)
+            alternative = _referenced_los(
+                tag, alternative_phase, coherence, x, y
+            )
+            valid = common & np.isfinite(alternative)
+            difference = alternative - baseline
+
+            def region_stats(region: np.ndarray) -> dict:
+                chosen = valid & region
+                values = difference[chosen]
+                if not len(values):
+                    return {"n_pixels": 0}
+                return {
+                    "n_pixels": int(len(values)),
+                    "mean_difference_m": float(np.mean(values)),
+                    "rms_difference_m": float(np.sqrt(np.mean(values ** 2))),
+                    "p95_abs_difference_m": float(
+                        np.percentile(np.abs(values), 95)
+                    ),
+                    "fraction_over_half_fringe": float(
+                        np.mean(np.abs(values) > cycle_m / 2)
+                    ),
+                }
+
+            results[name] = {
+                "configuration": config,
+                "regions": {region_name: region_stats(region)
+                            for region_name, region in regions.items()},
+            }
+            ax = axes[0, column]
+            image = ax.imshow(
+                np.where(valid, difference, np.nan) * 100,
+                cmap="RdBu_r", vmin=-100 * cycle_m, vmax=100 * cycle_m,
+                extent=[x[0] / 1e3, x[-1] / 1e3,
+                        y[-1] / 1e3, y[0] / 1e3],
+            )
+            plt.colorbar(image, ax=ax, shrink=0.78, label="alternative − primary (cm)")
+            ax.set_title(f"{name}: {config['stat_cost_mode']} + "
+                         f"{config['init_method']}", fontsize=10)
+            ax.set_xlabel("UTM 37N easting (km)")
+            if column == 0:
+                ax.set_ylabel("UTM 37N northing (km)")
+
+        payload = {
+            "tag": tag,
+            "ifg": {"path": str(ifg_path.relative_to(REPO)),
+                    "sha256": _sha256(ifg_path)},
+            "primary_unwrap": {
+                "path": str(primary_path.relative_to(REPO)),
+                "sha256": _sha256(primary_path),
+                "configuration": SNAPHU_PRIMARY,
+            },
+            "one_fringe_los_m": cycle_m,
+            "variants": results,
+            "scope": "Same interferogram and corrections in every case. This "
+                     "tests processing sensitivity and is not an independent "
+                     "unwrap validation.",
+        }
+        json_path = RESULTS / f"gslc_unwrap_sensitivity_{tag}.json"
+        json_path.write_text(json.dumps(payload, indent=2) + "\n")
+        fig.suptitle(f"{tag}: snaphu sensitivity relative to the saved "
+                     "DEFO + MCF single-tile unwrap", fontsize=11)
+        fig.tight_layout(rect=[0, 0, 1, 0.94])
+        figure_path = RESULTS / f"gslc_unwrap_sensitivity_{tag}.png"
+        fig.savefig(figure_path, dpi=110)
+        plt.close(fig)
+        print(f"sensitivity: {json_path}")
+        print(f"figure: {figure_path}")
 
 
 # Acceptance limits for the GUNW comparison. The near-axis band genuinely
@@ -627,6 +773,9 @@ def main() -> None:
                     help="whole-granule download instead of ranged reads")
     ap.add_argument("--ifg", action="store_true")
     ap.add_argument("--unwrap", action="store_true")
+    ap.add_argument("--unwrap-sensitivity", action="store_true",
+                    help="compare SMOOTH/MCF with the saved DEFO/MCF "
+                         "primary unwrap")
     ap.add_argument("--compare", action="store_true",
                     help="validate unwrapped GSLC LOS against the GUNW field")
     ap.add_argument("--wrapped", action="store_true",
@@ -643,12 +792,14 @@ def main() -> None:
         make_ifg(tags=args.tags, looks=args.looks)
     if args.unwrap:
         unwrap(tags=args.tags)
+    if args.unwrap_sensitivity:
+        unwrap_sensitivity(tags=args.tags)
     if args.compare:
         compare(tags=args.tags)
     if args.wrapped:
         wrapped_figure(tags=args.tags)
-    if not any((args.probe, args.crop, args.ifg, args.unwrap, args.compare,
-                args.wrapped)):
+    if not any((args.probe, args.crop, args.ifg, args.unwrap,
+                args.unwrap_sensitivity, args.compare, args.wrapped)):
         ap.print_help()
 
 

@@ -463,6 +463,24 @@ def validate_new_products() -> None:
                     or values.get("p95_abs_m", 0) < 0:
                 raise ValueError(f"{path.name}: {region} summary is invalid")
 
+    unwrap_sensitivity = _json.loads(
+        (REPO / "results" / "gslc_unwrap_sensitivity_172_008_A.json").read_text()
+    )
+    if unwrap_sensitivity["tag"] != "172_008_A":
+        raise ValueError("unwrap sensitivity has the wrong pair identity")
+    for source_key in ("ifg", "primary_unwrap"):
+        source = unwrap_sensitivity[source_key]
+        source_path = REPO / source["path"]
+        if sha256(source_path) != source["sha256"]:
+            raise ValueError(f"unwrap sensitivity {source_key} hash mismatch")
+    for variant in unwrap_sensitivity["variants"].values():
+        for region in variant["regions"].values():
+            fraction = region["fraction_over_half_fringe"]
+            if region["n_pixels"] <= 0 or region["rms_difference_m"] < 0 \
+                    or region["p95_abs_difference_m"] < 0 \
+                    or not 0 <= fraction <= 1:
+                raise ValueError("unwrap sensitivity region summary is invalid")
+
     # Every published result must parse as strict RFC 8259 JSON (a NaN
     # literal in fault_traces.json once broke strict readers).
     def _no_constants(name: str):
@@ -536,7 +554,13 @@ def validate_new_products() -> None:
     stress_geometry = geometry_from_json(source_fit["geometry"])
     if stress["geometry_sha256"] != geometry_sha256(stress_geometry):
         raise ValueError("stress_change.json: source geometry hash mismatch")
-    from .stress import DIKE_STANDOFF_M, fault_patch_receivers
+    from .stress import (
+        DIKE_STANDOFF_M,
+        MAIN_DIP,
+        PROFILE_DZ_M,
+        fault_patch_receivers,
+        fault_profile_receivers,
+    )
 
     base_receivers = fault_patch_receivers(
         stress_geometry, stress_geometry["fault_dip"]
@@ -570,6 +594,48 @@ def validate_new_products() -> None:
                     raise ValueError(
                         f"stress_change.json: dip {dip_key} {side} row mismatch"
                     )
+
+    map_receivers = fault_profile_receivers(stress_geometry, MAIN_DIP)
+    stress_maps = stress["stress_map_dip65"]
+    if set(stress_maps) != set(map_receivers):
+        raise ValueError("stress_change.json: spatial-map sides are inconsistent")
+    max_depth = float(stress_geometry["fault_z_edges_m"][-1])
+    expected_depths = np.arange(PROFILE_DZ_M / 2, max_depth, PROFILE_DZ_M)
+    expected_along = np.asarray(stress_geometry["fault_s_centres_m"])
+    for side, receivers in map_receivers.items():
+        record = stress_maps[side]
+        if not np.allclose(record["depth_km"], expected_depths / 1e3) \
+                or not np.allclose(record["along_strike_km"],
+                                   expected_along / 1e3):
+            raise ValueError(f"stress_change.json: {side} spatial axes mismatch")
+        keep = np.abs(receivers["offsets_m"]) > DIKE_STANDOFF_M
+        shape = (len(expected_depths), len(expected_along))
+        expected_offsets = np.full(shape, np.nan)
+        rows = np.rint(
+            (receivers["depths_m"][keep] - PROFILE_DZ_M / 2) / PROFILE_DZ_M
+        ).astype(int)
+        columns = receivers["columns"][keep]
+        expected_offsets[rows, columns] = receivers["offsets_m"][keep] / 1e3
+
+        def stored_grid(key: str) -> np.ndarray:
+            return np.asarray([
+                [np.nan if value is None else value for value in row]
+                for row in record[key]
+            ], dtype=float)
+
+        offsets = stored_grid("horizontal_offset_from_dike_km")
+        sigma_n = stored_grid("sigma_n_mpa")
+        cfs = stored_grid("cfs_mpa")
+        expected_mask = np.isfinite(expected_offsets)
+        if offsets.shape != shape or not np.allclose(
+                offsets, expected_offsets, rtol=0, atol=1e-12, equal_nan=True
+        ):
+            raise ValueError(f"stress_change.json: {side} receiver grid mismatch")
+        if not np.array_equal(np.isfinite(sigma_n), expected_mask) \
+                or not np.array_equal(np.isfinite(cfs), expected_mask) \
+                or record["n_receivers"] != int(keep.sum()) \
+                or record["n_excluded_near_dike"] != int((~keep).sum()):
+            raise ValueError(f"stress_change.json: {side} stress-map mask mismatch")
 
     unc = _json.loads(
         (REPO / "results" / "distributed_uncertainty.json").read_text())
