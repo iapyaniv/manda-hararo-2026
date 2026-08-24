@@ -1,0 +1,32 @@
+{
+  "tag": "165_082_D",
+  "slope_gslc_on_gunw": 1.021403561488201,
+  "correlation": 0.9898304702534481,
+  "whole_scene": {
+    "n_cells": 3809,
+    "rms_m": 0.011093463588045907,
+    "p95_abs_m": 0.0035777145144273194
+  },
+  "near_axis": {
+    "n_cells": 139,
+    "rms_m": 0.057068626200808145,
+    "p95_abs_m": 0.12303404109784476
+  },
+  "off_axis_within_25km": {
+    "n_cells": 1050,
+    "rms_m": 0.001848590771388697,
+    "p95_abs_m": 0.0030506541517789395
+  },
+  "gslc_only_cells": 30,
+  "gslc_only_cells_near_axis": 4,
+  "note": "GSLC-only cells have no GUNW check; the near-axis band is where the two processings genuinely differ",
+  "limits": {
+    "slope": [
+      0.9,
+      1.1
+    ],
+    "r_min": 0.97,
+    "rms_all_max_m": 0.03,
+    "rms_near_axis_max_m": 0.15
+  }
+}

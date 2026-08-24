@@ -1,0 +1,32 @@
+{
+  "tag": "100_A_008_STRADDLE",
+  "slope_gslc_on_gunw": 1.2622852316977609,
+  "correlation": 0.9809620395006917,
+  "whole_scene": {
+    "n_cells": 1936,
+    "rms_m": 0.03801498268591427,
+    "p95_abs_m": 0.11662337379395432
+  },
+  "near_axis": {
+    "n_cells": 133,
+    "rms_m": 0.08132403782221582,
+    "p95_abs_m": 0.14291884923160972
+  },
+  "off_axis_within_25km": {
+    "n_cells": 781,
+    "rms_m": 0.04949861993257146,
+    "p95_abs_m": 0.11741267038758788
+  },
+  "gslc_only_cells": 34,
+  "gslc_only_cells_near_axis": 13,
+  "note": "GSLC-only cells have no GUNW check; the near-axis band is where the two processings genuinely differ",
+  "limits": {
+    "slope": [
+      0.9,
+      1.1
+    ],
+    "r_min": 0.97,
+    "rms_all_max_m": 0.03,
+    "rms_near_axis_max_m": 0.15
+  }
+}
