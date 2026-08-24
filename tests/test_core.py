@@ -2,12 +2,23 @@ from __future__ import annotations
 
 import unittest
 import warnings
+from unittest.mock import patch
 
 import numpy as np
 
+from mh26.distributed import (
+    _strike_vectors,
+    assemble,
+    build_geometry,
+    geometry_from_json,
+    geometry_sha256,
+    geometry_to_json,
+)
 from mh26.gunw import block_average, corrected_los, los_unit_neu, valid_sample_mask
-from mh26.params import WAVELENGTH_L
+from mh26.params import CENTER_E, CENTER_N, FARFIELD_RADIUS, WAVELENGTH_L
 from mh26.s1_check import coherence_fraction
+from mh26.stress import fault_patch_receivers
+from mh26.uncertainty import referenced_noise_draw
 
 
 class ValidityMaskTests(unittest.TestCase):
@@ -66,6 +77,127 @@ class NumericUtilityTests(unittest.TestCase):
         vectors = los_unit_neu(data, np.array([[500.0, 500.0]]), height=500.0)
         np.testing.assert_allclose(vectors[0, :2], [0.2, 0.6])
         self.assertAlmostEqual(np.linalg.norm(vectors[0]), 1.0)
+
+
+class GeometryConventionTests(unittest.TestCase):
+    MODEL = np.array([683225.36, 1350366.91, 152.58, 17150.0, 1494.0,
+                      4989.0, 2.812])
+
+    def test_strike_frame_round_trip_matches_map_transform(self) -> None:
+        # Regression: an opposite perpendicular sign in the map transform
+        # swapped the east and west ridges in the published figure.
+        from mh26.faults import strike_frame
+        e_c, n_c, strike = self.MODEL[0], self.MODEL[1], self.MODEL[2]
+        sr = np.radians(strike)
+        s, p = 3_000.0, 1_650.0
+        e = e_c + s * np.sin(sr) - p * np.cos(sr)
+        n = n_c + s * np.cos(sr) + p * np.sin(sr)
+        along, perp = strike_frame(np.array([e]), np.array([n]), self.MODEL)
+        self.assertAlmostEqual(along[0], s, places=5)
+        self.assertAlmostEqual(perp[0], p, places=5)
+
+    def test_fault_columns_terminate_at_the_dike_plane(self) -> None:
+        # Regression: ridge-anchored columns once continued through the dike
+        # onto the far side of the rift.
+        offsets = {"east": np.full(14, 500.0), "west": np.full(14, -700.0)}
+        g = build_geometry(self.MODEL, fault_trace_offsets=offsets)
+        _, perp = _strike_vectors(self.MODEL[2])
+        dip_r = np.radians(g["fault_dip"])
+        for side, sign in (("east", 1.0), ("west", -1.0)):
+            sel = g["kinds"] == f"fault_{side}"
+            pat = g["patches"][sel]
+            off = ((pat[:, 0] - self.MODEL[1]) * perp[0]
+                   + (pat[:, 1] - self.MODEL[0]) * perp[1])
+            self.assertTrue((sign * off > 0).all())
+            deepest = sign * off - pat[:, 8] * np.cos(dip_r)
+            self.assertGreater(float(deepest.min()), -1.0)
+            self.assertEqual(int(sel.sum()),
+                             int(g["fault_masks"][side].sum()))
+        full = build_geometry(self.MODEL)
+        for side in ("east", "west"):
+            self.assertTrue(full["fault_masks"][side].all())
+
+    def test_fault_patch_centres_lie_on_the_dipping_planes(self) -> None:
+        # Patch centres must lie on the dipping plane — z/tan(dip) toward
+        # the axis from the surface trace — not vertically below the trace.
+        offsets = {"east": np.linspace(1_200.0, 3_000.0, 14),
+                   "west": np.full(14, -1_400.0)}
+        g = build_geometry(self.MODEL, fault_trace_offsets=offsets)
+        _, perp = _strike_vectors(self.MODEL[2])
+        dip_r = np.radians(g["fault_dip"])
+        for side, sign in (("east", 1.0), ("west", -1.0)):
+            cols = np.argwhere(g["fault_masks"][side])[:, 1]
+            sel = g["kinds"] == f"fault_{side}"
+            pat = g["patches"][sel]
+            off = ((pat[:, 0] - self.MODEL[1]) * perp[0]
+                   + (pat[:, 1] - self.MODEL[0]) * perp[1])
+            expected = (np.asarray(offsets[side])[cols]
+                        - sign * pat[:, 2] / np.tan(dip_r))
+            np.testing.assert_allclose(off, expected, atol=1e-6)
+
+    def test_saved_geometry_round_trip_preserves_every_patch(self) -> None:
+        geometry = build_geometry(self.MODEL)
+        restored = geometry_from_json(geometry_to_json(geometry))
+        self.assertEqual(geometry_sha256(restored), geometry_sha256(geometry))
+        np.testing.assert_array_equal(restored["patches"], geometry["patches"])
+        for side in ("east", "west"):
+            self.assertEqual(len(restored["fault_column_offsets_m"][side]), 14)
+
+    def test_idealized_geometry_has_stress_receivers(self) -> None:
+        geometry = build_geometry(self.MODEL)
+        receivers = fault_patch_receivers(geometry, 65.0)
+        for side in ("east", "west"):
+            self.assertGreater(len(receivers[side]["points"]), 0)
+            saved = geometry["patches"][geometry["kinds"] == f"fault_{side}"]
+            np.testing.assert_allclose(receivers[side]["points"], saved[:, :3],
+                                       atol=1e-9)
+
+
+class ReferenceAndCacheTests(unittest.TestCase):
+    MODEL = GeometryConventionTests.MODEL
+
+    def test_noise_draw_obeys_far_field_plane_constraints(self) -> None:
+        angles = np.linspace(0, 2 * np.pi, 24, endpoint=False)
+        radius = FARFIELD_RADIUS + 5_000.0
+        far_points = np.column_stack([
+            CENTER_N + radius * np.sin(angles),
+            CENTER_E + radius * np.cos(angles),
+        ])
+        near_points = np.array([[CENTER_N, CENTER_E],
+                                [CENTER_N + 1_000.0, CENTER_E]])
+        points = np.vstack([far_points, near_points])
+        draw = referenced_noise_draw(
+            points, np.eye(len(points)), np.random.default_rng(4)
+        )
+        design = np.column_stack([
+            np.ones(len(far_points)),
+            far_points[:, 1] - CENTER_E,
+            far_points[:, 0] - CENTER_N,
+        ])
+        np.testing.assert_allclose(design.T @ draw[:len(far_points)], 0.0,
+                                   atol=1e-8)
+
+    def test_greens_cache_is_reused_only_for_the_same_geometry(self) -> None:
+        first = build_geometry(self.MODEL)
+        second = build_geometry(self.MODEL, fault_offset=1_500.0)
+        dataset = {
+            "pts": np.zeros((2, 2)),
+            "units": np.zeros((2, 3)),
+            "vals": np.zeros(2),
+            "sigma": 1.0,
+        }
+        calls = []
+
+        def fake_greens(geometry, points, units):
+            calls.append(geometry["fault_offset"])
+            return np.full((len(points), len(geometry["kinds"])), len(calls))
+
+        with patch("mh26.distributed.greens_los", side_effect=fake_greens):
+            assemble([dataset], first)
+            assemble([dataset], first)
+            matrix, _, _ = assemble([dataset], second)
+        self.assertEqual(calls, [2_000.0, 1_500.0])
+        np.testing.assert_array_equal(matrix[:, :-1], 2.0)
 
 
 if __name__ == "__main__":

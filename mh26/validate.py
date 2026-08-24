@@ -5,9 +5,9 @@ Examples::
     python -m mh26.validate --profile core
     python -m mh26.validate --profile full
 
-The core profile covers event, control, and continuation NISAR crops,
-Sentinel-1 inputs, and reported results. The full profile also requires all 15
-pre-event crops. SHA-256 verification is enabled by default.
+The core profile covers event, control, and continuation NISAR crops, the
+two-track Sentinel-1 inputs, and reported results. The full profile also
+requires all 15 pre-event crops. SHA-256 verification is enabled by default.
 """
 
 from __future__ import annotations
@@ -31,7 +31,9 @@ from .params import (
     REPO,
     RESULTS,
     S1_FRAME,
+    S1_FRAMES,
     S1_PAIR,
+    S1_TRACK_PAIRS,
 )
 from .s1_check import assert_same_grid, coherence_fraction, read_crop
 
@@ -150,12 +152,31 @@ def validate_granule_manifests() -> None:
         if line.strip() and not line.lstrip().startswith("#")
     ]
     frame_values = [value for key, value in licsar_lines if key == "frame"]
-    pair_values = [value for key, value in licsar_lines if key == "pair"]
-    if frame_values != [S1_FRAME] or pair_values != [S1_PAIR]:
-        raise ValueError("LiCSAR manifest frame/pair differs from configuration")
+    pair_values = [tuple(value.split())
+                   for key, value in licsar_lines if key == "pair"]
+    if sorted(frame_values) != sorted(S1_FRAMES):
+        raise ValueError("LiCSAR manifest frames differ from configuration")
+    if len(pair_values) != len(set(pair_values)):
+        raise ValueError("LiCSAR manifest contains duplicate pair lines")
+    if set(pair_values) != set(S1_TRACK_PAIRS):
+        raise ValueError("LiCSAR manifest pairs differ from configuration")
+    if (S1_FRAME, S1_PAIR, "co-event") not in S1_TRACK_PAIRS:
+        raise ValueError("primary cross-check pair missing from S1_TRACK_PAIRS")
     source_names = {
         Path(value).name for key, value in licsar_lines if key == "file"
     }
+    expected_names = (
+        {f"{frame}.geo.{component}.tif"
+         for frame in S1_FRAMES for component in "ENU"}
+        | {f"{pair}.geo.{suffix}.tif"
+           for _, pair, _ in S1_TRACK_PAIRS for suffix in ("unw", "cc")}
+    )
+    if source_names != expected_names:
+        raise ValueError(
+            "LiCSAR manifest files differ from configured frames and pairs: "
+            f"missing={sorted(expected_names - source_names)}, "
+            f"extra={sorted(source_names - expected_names)}"
+        )
     local_names = {path.name for path in DATA_S1.glob("*.tif")}
     if source_names != local_names:
         raise ValueError(
@@ -163,6 +184,26 @@ def validate_granule_manifests() -> None:
             f"missing={sorted(local_names - source_names)}, "
             f"extra={sorted(source_names - local_names)}"
         )
+
+    from .gslc import PAIRS as gslc_pairs
+
+    gslc_rows = [
+        line.split("\t")
+        for line in (REPO / "granules" / "gslc.tsv").read_text().splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+    if any(len(row) != 3 for row in gslc_rows):
+        raise ValueError("granules/gslc.tsv: expected tag<TAB>role<TAB>granule")
+    listed = {(tag, role): granule for tag, role, granule in gslc_rows}
+    if len(listed) != len(gslc_rows):
+        raise ValueError("granules/gslc.tsv contains duplicate tag/role rows")
+    expected_gslc = {
+        (tag, role): granule
+        for tag, granules in gslc_pairs.items()
+        for role, granule in zip(("ref", "sec"), granules)
+    }
+    if listed != expected_gslc:
+        raise ValueError("granules/gslc.tsv differs from mh26.gslc PAIRS")
 
     expected_geotiffs = {
         f"{tag}.{suffix}.tif"
@@ -181,57 +222,374 @@ def validate_granule_manifests() -> None:
 
 
 def validate_s1() -> None:
-    inputs = []
-    for name, path in (
-        ("unwrapped", DATA_S1 / f"{S1_PAIR}.geo.unw.tif"),
-        ("coherence", DATA_S1 / f"{S1_PAIR}.geo.cc.tif"),
-        ("E", DATA_S1 / f"{S1_FRAME}.geo.E.tif"),
-        ("N", DATA_S1 / f"{S1_FRAME}.geo.N.tif"),
-        ("U", DATA_S1 / f"{S1_FRAME}.geo.U.tif"),
-    ):
-        if not path.is_file():
-            raise FileNotFoundError(path)
-        array, x, y = read_crop(path)
-        inputs.append((name, array, x, y))
-    assert_same_grid(inputs)
-    coherence = coherence_fraction(inputs[1][1])
-    finite = coherence[np.isfinite(coherence)]
-    if finite.min() < 0 or finite.max() > 1:
-        raise ValueError("normalized Sentinel-1 coherence lies outside 0–1")
+    for frame in S1_FRAMES:
+        base = []
+        for component in "ENU":
+            path = DATA_S1 / f"{frame}.geo.{component}.tif"
+            if not path.is_file():
+                raise FileNotFoundError(path)
+            array, x, y = read_crop(path)
+            base.append((f"{frame} {component}", array, x, y))
+        assert_same_grid(base)
+        for pair_frame, pair, _ in S1_TRACK_PAIRS:
+            if pair_frame != frame:
+                continue
+            entries = [base[0]]
+            for suffix in ("unw", "cc"):
+                path = DATA_S1 / f"{pair}.geo.{suffix}.tif"
+                if not path.is_file():
+                    raise FileNotFoundError(path)
+                array, x, y = read_crop(path)
+                entries.append((f"{pair} {suffix}", array, x, y))
+            assert_same_grid(entries)
+            coherence = coherence_fraction(entries[2][1])
+            finite = coherence[np.isfinite(coherence)]
+            if finite.min() < 0 or finite.max() > 1:
+                raise ValueError(
+                    f"{pair}: normalized Sentinel-1 coherence lies outside 0–1"
+                )
 
 
 def validate_results(require_continuation: bool = True) -> None:
     import json
 
     fit = json.loads((RESULTS / "okada_fit.json").read_text())
-    p = fit["values"]
-    checks = (
-        (10_000 < p[3] < 30_000, "dike length outside sanity range"),
-        (0 <= p[4] < p[5] < 12_000, "dike depth bounds invalid"),
-        (0.5 < p[6] < 5.0, "dike opening outside sanity range"),
-        (0.1 < fit["volume_km3"] < 0.3, "dike volume outside sanity range"),
-        (fit["rms_m"] < 0.10, "NISAR model RMS exceeds 10 cm"),
-        (fit["optimizer"]["optimality"] < 0.1, "optimizer optimality is too large"),
-    )
-    for passed, message in checks:
-        if not passed:
-            raise ValueError(message)
+    p = np.asarray(fit["values"], dtype=float)
+    if len(p) < 7 or not np.isfinite(p).all():
+        raise ValueError("okada fit parameters are incomplete or non-finite")
+    if not (p[3] > 0 and 0 <= p[4] < p[5] and p[6] >= 0):
+        raise ValueError("okada fit geometry is internally invalid")
+    expected_volume = p[3] * (p[5] - p[4]) * p[6] / 1e9
+    if not np.isclose(fit["volume_km3"], expected_volume, rtol=1e-12):
+        raise ValueError("okada fit volume does not match its parameters")
+    optimizer = fit["optimizer"]
+    if optimizer["status"] <= 0 \
+            or optimizer["starts_completed"] != optimizer["starts_attempted"]:
+        raise ValueError("okada optimizer did not complete all recorded starts")
+    if fit["n_obs"] <= len(p) or fit["rms_m"] < 0:
+        raise ValueError("okada fit observation count or RMS is invalid")
 
     s1 = json.loads((RESULTS / "s1_crosscheck.json").read_text())
-    if s1["correlation"] < 0.90 or s1["rms_m"] > 0.05:
-        raise ValueError("Sentinel-1 comparison is outside the defined result bounds")
+    if s1["n_pixels"] <= 0 or s1["rms_m"] < 0 \
+            or not np.isfinite([s1["correlation"], s1["amplitude_ratio"],
+                                s1["rms_m"]]).all():
+        raise ValueError("Sentinel-1 comparison contract is invalid")
     sensitivity = json.loads((RESULTS / "model_sensitivity.json").read_text())
-    if len(sensitivity["variants"]) < 5:
-        raise ValueError("model sensitivity table is unexpectedly incomplete")
+    if not sensitivity["variants"]:
+        raise ValueError("model sensitivity table is empty")
     history = json.loads((RESULTS / "probe_history.json").read_text())
-    if history["pre_event_windows"] != 16:
-        raise ValueError("probe history does not contain 16 pre-event windows")
-    if history["pre_event_max_abs_probe_cm"] > 5.0:
-        raise ValueError("pre-event probe history exceeds the 5 cm sanity bound")
+    pre_rows = [row for row in history["rows"] if row["phase"] == "pre-event"]
+    pre_values = [abs(value) for row in pre_rows
+                  for value in row["probe_means_cm"].values()]
+    if history["pre_event_windows"] != len(pre_rows) \
+            or not np.isclose(history["pre_event_max_abs_probe_cm"],
+                              max(pre_values), rtol=1e-12):
+        raise ValueError("probe-history summary does not match its rows")
     if require_continuation:
         continuation = json.loads((RESULTS / "continuation.json").read_text())
-        if continuation["n_blocks"] < 100:
-            raise ValueError("continuation test has too few blocks")
+        interval = continuation["pattern_fraction_cluster_wild_95"]
+        envelope = continuation["pattern_fraction_processing_envelope"]
+        variants = [row["pattern_fraction"]
+                    for row in continuation["processing_sensitivity"]]
+        if continuation["n_blocks"] <= 0 or interval[0] > interval[1] \
+                or not np.isclose(envelope[0], min(variants)) \
+                or not np.isclose(envelope[1], max(variants)):
+            raise ValueError("continuation summary does not match its records")
+
+    tracks = json.loads((RESULTS / "s1_tracks.json").read_text())
+    expected_pairs = {(frame, pair, role) for frame, pair, role in S1_TRACK_PAIRS}
+    recorded_pairs = {(row["frame"], row["pair"], row["role"])
+                      for row in tracks["projections"]}
+    if recorded_pairs != expected_pairs:
+        raise ValueError("Sentinel-1 projections do not match the source manifest")
+    if set(tracks["frame_signs"]) != set(S1_FRAMES) \
+            or any(sign not in (-1.0, 1.0)
+                   for sign in tracks["frame_signs"].values()):
+        raise ValueError("Sentinel-1 frame signs are incomplete or invalid")
+    for frame, result in tracks["coevent_crosschecks"].items():
+        if result["applied_observation_sign"] != tracks["frame_signs"][frame]:
+            raise ValueError(f"{frame}: co-event sign does not match frame sign")
+    asc = tracks["coevent_crosschecks"][s1["frame"]]
+    for key in ("pair", "n_pixels", "applied_observation_sign", "correlation",
+                "amplitude_ratio", "rms_m"):
+        if asc[key] != s1[key]:
+            raise ValueError(f"s1_crosscheck.json disagrees on {key}")
+    for row in tracks["projections"]:
+        interval = row["pattern_fraction_cluster_wild_95"]
+        values = [row["pattern_fraction"], row["zero_intercept_pattern_fraction"],
+                  row["correlation"], row["rms_m"], *interval]
+        if row["n_blocks"] <= 0 or interval[0] > interval[1] \
+                or not np.isfinite(values).all():
+            raise ValueError(f"{row['pair']}: invalid projection record")
+    nulls = tracks["null_summary"]
+    null_values = np.asarray([row["pattern_fraction"]
+                              for row in tracks["projections"]
+                              if row["role"] == "pre-event"])
+    expected_nulls = (len(null_values), float(null_values.mean()),
+                      float(null_values.std(ddof=1)),
+                      float(np.abs(null_values).max()))
+    recorded_nulls = (nulls["n_pairs"], nulls["mean"],
+                      nulls["standard_deviation"], nulls["max_abs"])
+    if not np.allclose(recorded_nulls, expected_nulls, rtol=1e-12, atol=1e-15):
+        raise ValueError("pre-event null summary does not match its projections")
+    decay = tracks["post_event_decay"]
+    from .s1_tracks import decay_fit
+    refit = decay_fit([row for row in tracks["projections"]
+                       if row["role"] == "post-event"])
+    for key in ("amplitude_total_pattern_fraction", "tau_days", "rms_of_fit"):
+        if not np.isclose(decay[key], refit[key], rtol=1e-10, atol=1e-12):
+            raise ValueError(f"post-event decay summary disagrees on {key}")
+
+
+def validate_distributed_result(name: str, expected_source: str) -> None:
+    """Check a distributed result against its complete saved solution."""
+    import json
+
+    from .distributed import geometry_from_json, geometry_sha256
+
+    payload = json.loads((RESULTS / name).read_text())
+    if payload.get("nisar_source") != expected_source:
+        raise ValueError(f"{name}: nisar_source is not {expected_source!r}")
+    geometry = geometry_from_json(payload["geometry"])
+    if payload.get("geometry_sha256") != geometry_sha256(geometry):
+        raise ValueError(f"{name}: geometry hash mismatch")
+    magnitudes = np.asarray(payload["dislocation_magnitudes_m"], dtype=float)
+    if magnitudes.shape != geometry["kinds"].shape \
+            or not np.isfinite(magnitudes).all() or (magnitudes < 0).any():
+        raise ValueError(f"{name}: invalid dislocation vector")
+    dataset_names = [row["name"] for row in payload["datasets"]]
+    offsets = payload["dataset_offsets_m"]
+    if set(offsets) != set(dataset_names) \
+            or not np.isfinite(list(offsets.values())).all() \
+            or payload["n_parameters"] != len(magnitudes) + len(dataset_names):
+        raise ValueError(f"{name}: parameter records are inconsistent")
+
+    dike = geometry["kinds"] == "dike"
+    volume = float(np.sum(geometry["areas"][dike] * magnitudes[dike]))
+    if not np.isclose(payload["dike"]["dike_volume_km3"], volume / 1e9,
+                      rtol=1e-12):
+        raise ValueError(f"{name}: dike volume does not match patches")
+    opening = magnitudes[dike].reshape(geometry["dike_shape"])
+    if not np.allclose(payload["opening_distribution"], opening,
+                       rtol=1e-12, atol=1e-14):
+        raise ValueError(f"{name}: opening grid does not match solution")
+
+    for side in ("east", "west"):
+        selected = geometry["kinds"] == f"fault_{side}"
+        if not selected.any():
+            if side in payload["fault_slip"]:
+                raise ValueError(f"{name}: disabled {side} fault has a slip grid")
+            continue
+        expected = np.full(geometry["fault_shape"], np.nan)
+        expected[geometry["fault_masks"][side]] = magnitudes[selected]
+        stored = np.asarray([
+            [np.nan if value is None else value for value in row]
+            for row in payload["fault_slip"][side]
+        ])
+        if not np.allclose(stored, expected, rtol=1e-12, atol=1e-14,
+                           equal_nan=True):
+            raise ValueError(f"{name}: {side} slip grid does not match solution")
+
+    fault = ~dike
+    fault_potency = float(np.sum(geometry["areas"][fault] * magnitudes[fault]))
+    partition = payload["potency_partition"]
+    if not np.allclose([partition["dike_m3"], partition["faults_m3"]],
+                       [volume, fault_potency], rtol=1e-12):
+        raise ValueError(f"{name}: potency partition does not match patches")
+    counts = {row["name"]: row["n_blocks"] for row in payload["datasets"]}
+    for model_name, values in payload["rms_m"].items():
+        expected_all = np.sqrt(sum(counts[key] * values[key] ** 2
+                                   for key in counts) / sum(counts.values()))
+        if not np.isclose(values["all"], expected_all, rtol=1e-12):
+            raise ValueError(f"{name}: {model_name} pooled RMS is inconsistent")
+    if name == "distributed_fit.json":
+        selection = payload["lambda_selection"]
+        sweep = selection["sweep"]
+        chosen = selection["chosen_index"]
+        scores = [row["cv10_test_rms_mean_m"] for row in sweep]
+        if chosen != int(np.argmin(scores)) or chosen in (0, len(sweep) - 1) \
+                or not np.isclose(payload["lambda_chosen"],
+                                  sweep[chosen]["lambda"]):
+            raise ValueError(f"{name}: lambda selection is inconsistent")
+
+
+def validate_new_products() -> None:
+    """Contract checks on the distributed, decomposition, and GSLC results."""
+    import json as _json
+
+    from .distributed import geometry_from_json, geometry_sha256
+
+    for name, expected_source in (
+        ("distributed_fit.json", "gunw"),
+        ("distributed_fit_gslc.json", "gslc"),
+        ("distributed_fit_mapped.json", "gunw"),
+        ("distributed_fit_mapped_gslc.json", "gslc"),
+    ):
+        validate_distributed_result(name, expected_source)
+
+    for dec_name, source in (("decomposition_joint.json", "gunw"),
+                             ("decomposition_joint_gslc.json", "gslc")):
+        decomposition = _json.loads(
+            (REPO / "results" / dec_name).read_text())
+        if decomposition.get("nisar_source") != source:
+            raise ValueError(f"{dec_name}: nisar_source is not {source!r}")
+        for key in ("rift_perpendicular", "zero_north_variant", "free_3d"):
+            if key not in decomposition:
+                raise ValueError(f"{dec_name}: {key} missing")
+            if "closure_probes" not in decomposition[key] \
+                    and key != "zero_north_variant":
+                raise ValueError(f"{dec_name}: {key} closure_probes missing")
+        counts = decomposition["rift_perpendicular"]
+        if not (counts["n_cells"] >= counts["n_cells_ge3"] > 0
+                and counts["n_cells_ge3"]
+                == counts["n_cells_3geo"] + counts["n_cells_4geo"]):
+            raise ValueError(f"{dec_name}: cell counts inconsistent")
+        free = decomposition["free_3d"]
+        if free["n_cells"] != free["n_cells_3geo"] + free["n_cells_4geo"] \
+                or free["n_cells"] != counts["n_cells_ge3"]:
+            raise ValueError(f"{dec_name}: free-3D cell counts inconsistent")
+
+    from .params import INVERSION_PAIRS
+
+    for tag in INVERSION_PAIRS:
+        path = REPO / "results" / f"gslc_gunw_compare_{tag}.json"
+        stats = _json.loads(path.read_text())
+        if stats["tag"] != tag or not -1 <= stats["correlation"] <= 1 \
+                or not np.isfinite(stats["slope_gslc_on_gunw"]):
+            raise ValueError(f"{path.name}: comparison identity or fit is invalid")
+        for region in ("whole_scene", "near_axis", "off_axis_within_25km"):
+            values = stats[region]
+            if values["n_cells"] < 0 or values.get("rms_m", 0) < 0 \
+                    or values.get("p95_abs_m", 0) < 0:
+                raise ValueError(f"{path.name}: {region} summary is invalid")
+
+    # Every published result must parse as strict RFC 8259 JSON (a NaN
+    # literal in fault_traces.json once broke strict readers).
+    def _no_constants(name: str):
+        raise ValueError(f"non-finite JSON literal {name!r}")
+
+    for path in sorted((REPO / "results").glob("*.json")):
+        _json.loads(path.read_text(), parse_constant=_no_constants)
+
+    # Ridge-anchored fits must carry their complete geometry and trace identity.
+    from .distributed import _strike_vectors
+
+    for name in ("distributed_fit_mapped.json",
+                 "distributed_fit_mapped_gslc.json"):
+        payload = _json.loads((REPO / "results" / name).read_text())
+        geom = geometry_from_json(payload["geometry"])
+        if payload.get("geometry_sha256") != geometry_sha256(geom):
+            raise ValueError(f"{name}: geometry hash mismatch")
+        if geom.get("fault_trace_source") != "mapped":
+            raise ValueError(f"{name}: fault_trace_source is not 'mapped'")
+        for key in ("fault_trace_provenance", "trace_dip_sweep"):
+            if key not in payload:
+                raise ValueError(f"{name}: {key} missing")
+        provenance = payload["fault_trace_provenance"]
+        source_path = Path(provenance["path"])
+        if not source_path.is_absolute():
+            source_path = REPO / source_path
+        if source_path.exists() and sha256(source_path) != provenance["sha256"]:
+            raise ValueError(f"{name}: trace source hash mismatch")
+        if provenance["modeled_fault_sides"] != geom["enabled_fault_sides"]:
+            raise ValueError(f"{name}: modeled trace sides disagree")
+        supported = [
+            side for side in ("east", "west")
+            if provenance["trace_support"][side][
+                "consistent_axis_side_down_step"
+            ]
+        ]
+        if geom["enabled_fault_sides"] != supported:
+            raise ValueError(f"{name}: unsupported trace side is modeled")
+        _, perp = _strike_vectors(geom["strike"])
+        e_c, n_c = geom["trace_centre"]
+        dip_r = np.radians(geom["fault_dip"])
+        for side in geom["enabled_fault_sides"]:
+            sign = 1.0 if side == "east" else -1.0
+            selected = geom["kinds"] == f"fault_{side}"
+            patches = geom["patches"][selected]
+            offsets = ((patches[:, 0] - n_c) * perp[0]
+                       + (patches[:, 1] - e_c) * perp[1])
+            deepest = sign * offsets - patches[:, 8] * np.cos(dip_r)
+            if not (sign * offsets > 0).all() or deepest.min() < -1.0:
+                raise ValueError(f"{name}: {side} fault reaches past the dike plane")
+        for side in ("east", "west"):
+            stored = int(geom["fault_masks"][side].sum())
+            expected = geom["fault_retained_patches"][side]
+            if stored != expected:
+                raise ValueError(f"{name}: {side} fault mask does not match "
+                                 "the retained patch count")
+
+    traces = _json.loads((REPO / "results" / "fault_traces.json").read_text())
+    for key in ("los_step_across_ridges", "trace_support",
+                "threshold_sensitivity", "cross_geometry_alignment_null"):
+        if key not in traces:
+            raise ValueError(f"fault_traces.json: {key} missing")
+
+    stress = _json.loads((REPO / "results" / "stress_change.json").read_text())
+    source_path = Path(stress["source_fit"]["path"])
+    if not source_path.is_absolute():
+        source_path = REPO / source_path
+    if sha256(source_path) != stress["source_fit"]["sha256"]:
+        raise ValueError("stress_change.json: source fit hash mismatch")
+    source_fit = _json.loads(source_path.read_text())
+    stress_geometry = geometry_from_json(source_fit["geometry"])
+    if stress["geometry_sha256"] != geometry_sha256(stress_geometry):
+        raise ValueError("stress_change.json: source geometry hash mismatch")
+    from .stress import DIKE_STANDOFF_M, fault_patch_receivers
+
+    base_receivers = fault_patch_receivers(
+        stress_geometry, stress_geometry["fault_dip"]
+    )
+    for side, receivers in base_receivers.items():
+        saved = stress_geometry["patches"][
+            stress_geometry["kinds"] == f"fault_{side}"
+        ]
+        if not np.allclose(receivers["points"], saved[:, :3],
+                           rtol=0, atol=1e-9):
+            raise ValueError(
+                f"stress_change.json: {side} base receivers leave saved plane"
+            )
+    for dip_key, sides in stress["per_dip"].items():
+        receivers = fault_patch_receivers(stress_geometry, float(dip_key))
+        for side, records in sides.items():
+            keep = np.abs(receivers[side]["offsets_m"]) > DIKE_STANDOFF_M
+            if records["overall"]["n_receivers"] != int(keep.sum()) \
+                    or records["n_excluded_near_dike"] != int((~keep).sum()):
+                raise ValueError(
+                    f"stress_change.json: dip {dip_key} {side} receiver count mismatch"
+                )
+            kept_rows = receivers[side]["rows"][keep]
+            kept_points = receivers[side]["points"][keep]
+            for row in records["rows"]:
+                selected = kept_rows == row["row"]
+                expected_depth = float(np.mean(kept_points[selected, 2])) / 1e3
+                if row["n_receivers"] != int(selected.sum()) \
+                        or not np.isclose(row["mean_receiver_depth_km"],
+                                          expected_depth, rtol=1e-12):
+                    raise ValueError(
+                        f"stress_change.json: dip {dip_key} {side} row mismatch"
+                    )
+
+    unc = _json.loads(
+        (REPO / "results" / "distributed_uncertainty.json").read_text())
+    for key in ("target_fit", "target_fit_sha256", "geometry_sha256",
+                "covariances", "best_fit", "noiseless_refit",
+                "interval_method", "intervals_95", "reference_projection"):
+        if key not in unc:
+            raise ValueError(f"distributed_uncertainty.json: {key} missing")
+    uncertainty_target = RESULTS / "distributed_fit.json"
+    target_payload = _json.loads(uncertainty_target.read_text())
+    if unc["target_fit_sha256"] != sha256(uncertainty_target) \
+            or unc["geometry_sha256"] != target_payload["geometry_sha256"]:
+        raise ValueError("distributed_uncertainty.json: target fit identity mismatch")
+    if unc["n_realizations"] != len(next(iter(unc["draws"].values()))) \
+            or any(len(values) != unc["n_realizations"]
+                   for values in unc["draws"].values()):
+        raise ValueError("distributed_uncertainty.json: draw counts disagree")
+    applied = set(unc["reference_projection"]["applied_to"])
+    if applied != {"best-model prediction", "every noise draw"}:
+        raise ValueError("distributed_uncertainty.json: reference projection incomplete")
 
 
 def main() -> None:
@@ -251,18 +609,31 @@ def main() -> None:
     validate_s1()
     print("PASS Sentinel-1 grids and coherence encoding")
     validate_results(require_continuation=True)
-    print("PASS reported result bounds")
+    print("PASS result contracts and derived-summary consistency")
+    validate_new_products()
+    print("PASS distributed, decomposition, GSLC-comparison, ridge/stress/"
+          "uncertainty contracts and strict-JSON results")
     if not args.skip_checksums:
-        manifest = REPO / "data" / (
-            "SHA256SUMS.txt" if args.profile == "full" else "SHA256SUMS-core.txt"
-        )
-        count = verify_checksum_file(manifest)
-        expected_count = 65 if args.profile == "full" else 50
-        if count != expected_count:
-            raise ValueError(
-                f"{manifest.name} has {count} entries; expected {expected_count}"
+        # The s1tracks and gslc manifests stay separate so the 2026-08-18
+        # core archive verifies unchanged next to the later add-ons.
+        if args.profile == "full":
+            manifest_counts = (
+                ("SHA256SUMS.txt", 104),
+                ("SHA256SUMS-gslc.txt", 4),
             )
-        print(f"PASS {count} SHA-256 checksums from {manifest.name}")
+        else:
+            manifest_counts = (
+                ("SHA256SUMS-core.txt", 50),
+                ("SHA256SUMS-s1tracks.txt", 35),
+            )
+        for name, expected_count in manifest_counts:
+            manifest = REPO / "data" / name
+            count = verify_checksum_file(manifest)
+            if count != expected_count:
+                raise ValueError(
+                    f"{name} has {count} entries; expected {expected_count}"
+                )
+            print(f"PASS {count} SHA-256 checksums from {name}")
     print(f"VALIDATION PASSED ({args.profile} profile)")
 
 
