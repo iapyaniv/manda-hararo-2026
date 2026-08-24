@@ -28,7 +28,8 @@ Run after `mh26.invert` and `mh26.s1_tracks`:  python -m mh26.distributed
 Self-checks only:                              python -m mh26.distributed --selftest
 
 Writes results/distributed_fit.{json,md}, results/distributed_planes.png,
-and results/distributed_fit_panels.png.
+results/distributed_fit_panels.png, and
+results/distributed_fit_fringe_panels.png.
 """
 
 from __future__ import annotations
@@ -109,6 +110,7 @@ OFFSET_BOUND = 0.2              # m, per-dataset datum nuisance
 LAMBDA_GRID = np.logspace(-1.5, 3.0, 19)
 CV_CELL_M = 10_000.0            # checkerboard cell for the selection criterion
 DECAY_REFERENCE = dt.date(2026, 7, 18)
+FRINGE_CYCLE_M = 0.10
 
 S1_COEVENT = {frame: pair for frame, pair in S1_DECOMPOSITION_SETS["co-event"]}
 S1_GEOMETRY = {"014A_07688_131313": "S1 asc 07-12→07-18",
@@ -339,6 +341,17 @@ def geometry_from_json(payload: dict) -> dict:
     """Restore and validate a geometry saved by :func:`geometry_to_json`."""
     if payload.get("geometry_contract_version") != 1:
         raise ValueError("distributed result has no complete geometry contract; rerun it")
+    required = {
+        "patches", "disl", "kinds", "areas", "dike_shape", "fault_shape",
+        "dike_s_edges_m", "dike_z_edges_m", "dike_s_centres",
+        "dike_z_centres", "fault_s_edges_m", "fault_s_centres_m",
+        "fault_z_edges_m", "min_fault_patch_thickness_m", "strike",
+        "trace_centre", "fault_offset", "fault_dip", "fault_trace_source",
+        "enabled_fault_sides", "fault_column_offsets_m", "fault_masks",
+    }
+    missing = sorted(required - payload.keys())
+    if missing:
+        raise ValueError("saved geometry is incomplete: " + ", ".join(missing))
     geometry = dict(payload)
     for key in ("patches", "disl", "areas", "dike_s_edges_m",
                 "dike_z_edges_m", "dike_s_centres", "dike_z_centres",
@@ -349,6 +362,9 @@ def geometry_from_json(payload: dict) -> dict:
         geometry[key] = tuple(int(value) for value in geometry[key])
     geometry["trace_centre"] = tuple(float(value)
                                      for value in geometry["trace_centre"])
+    geometry["enabled_fault_sides"] = [
+        str(side) for side in geometry["enabled_fault_sides"]
+    ]
     geometry["fault_masks"] = {
         side: np.asarray(mask, dtype=bool)
         for side, mask in geometry["fault_masks"].items()
@@ -362,14 +378,63 @@ def geometry_from_json(payload: dict) -> dict:
     if disl.shape != (len(patches), 3) or kinds.shape != (len(patches),) \
             or areas.shape != (len(patches),):
         raise ValueError("saved geometry arrays have inconsistent patch counts")
+    if not (np.isfinite(patches).all() and np.isfinite(disl).all()
+            and np.isfinite(areas).all()):
+        raise ValueError("saved geometry arrays must contain only finite values")
+    if np.any(areas <= 0):
+        raise ValueError("saved patch areas must be positive")
     if not np.allclose(areas, _patch_areas(patches), rtol=1e-12, atol=1e-6):
         raise ValueError("saved patch areas do not match the saved patch bounds")
+    if len(geometry["trace_centre"]) != 2 \
+            or not np.isfinite(geometry["trace_centre"]).all():
+        raise ValueError("saved trace_centre must contain finite easting and northing")
+    enabled = geometry["enabled_fault_sides"]
+    if len(enabled) != len(set(enabled)) or set(enabled) - {"east", "west"}:
+        raise ValueError("saved enabled_fault_sides must contain east and/or west once")
+    dike_shape = geometry["dike_shape"]
+    fault_shape = geometry["fault_shape"]
+    if len(dike_shape) != 2 or len(fault_shape) != 2 \
+            or min(*dike_shape, *fault_shape) <= 0:
+        raise ValueError("saved dike_shape and fault_shape must be positive 2-D shapes")
+    if int(np.prod(dike_shape)) != int(np.sum(kinds == "dike")):
+        raise ValueError("saved dike shape does not match its patch count")
+    if len(geometry["dike_z_edges_m"]) != dike_shape[0] + 1 \
+            or len(geometry["dike_s_edges_m"]) != dike_shape[1] + 1 \
+            or len(geometry["dike_z_centres"]) != dike_shape[0] \
+            or len(geometry["dike_s_centres"]) != dike_shape[1]:
+        raise ValueError("saved dike axes do not match dike_shape")
+    if len(geometry["fault_z_edges_m"]) != fault_shape[0] + 1 \
+            or len(geometry["fault_s_edges_m"]) != fault_shape[1] + 1 \
+            or len(geometry["fault_s_centres_m"]) != fault_shape[1]:
+        raise ValueError("saved fault axes do not match fault_shape")
+    for edge_key in ("dike_s_edges_m", "dike_z_edges_m",
+                     "fault_s_edges_m", "fault_z_edges_m"):
+        if not np.isfinite(geometry[edge_key]).all() \
+                or not np.all(np.diff(geometry[edge_key]) > 0):
+            raise ValueError(f"saved {edge_key} must be finite and increasing")
+    for centres_key, edges_key in (("dike_s_centres", "dike_s_edges_m"),
+                                   ("dike_z_centres", "dike_z_edges_m"),
+                                   ("fault_s_centres_m", "fault_s_edges_m")):
+        expected = 0.5 * (geometry[edges_key][:-1] + geometry[edges_key][1:])
+        if not np.allclose(geometry[centres_key], expected):
+            raise ValueError(f"saved {centres_key} does not match {edges_key}")
+    expected_kinds = ["dike"] * int(np.prod(dike_shape))
     for side in ("east", "west"):
+        if side not in geometry["fault_masks"] \
+                or side not in geometry["fault_column_offsets_m"]:
+            raise ValueError(f"saved geometry has no {side} fault metadata")
         mask = geometry["fault_masks"][side]
-        if mask.shape != geometry["fault_shape"]:
+        if mask.shape != fault_shape:
             raise ValueError(f"saved {side} fault mask has the wrong shape")
         if int(mask.sum()) != int(np.sum(kinds == f"fault_{side}")):
             raise ValueError(f"saved {side} fault mask does not match patch kinds")
+        offsets = np.asarray(geometry["fault_column_offsets_m"][side], dtype=float)
+        if offsets.shape != (fault_shape[1],) or not np.isfinite(offsets).all():
+            raise ValueError(f"saved {side} fault-column offsets are invalid")
+        geometry["fault_column_offsets_m"][side] = offsets.tolist()
+        expected_kinds.extend([f"fault_{side}"] * int(mask.sum()))
+    if kinds.tolist() != expected_kinds:
+        raise ValueError("saved patches must be ordered dike, east fault, west fault")
     return geometry
 
 
@@ -378,6 +443,39 @@ def geometry_sha256(geometry: dict) -> str:
     encoded = json.dumps(geometry_to_json(geometry), sort_keys=True,
                          separators=(",", ":"), allow_nan=False).encode()
     return hashlib.sha256(encoded).hexdigest()
+
+
+def _display_source_path(path: Path) -> str:
+    resolved = path.resolve()
+    try:
+        return str(resolved.relative_to(REPO.resolve()))
+    except ValueError:
+        return str(resolved)
+
+
+def load_geometry_source(path: str | Path) -> tuple[dict, dict]:
+    """Load a complete geometry contract or a distributed-result wrapper."""
+    source = Path(path)
+    raw = source.read_bytes()
+    payload = json.loads(raw)
+    if not isinstance(payload, dict):
+        raise ValueError(f"{source}: geometry source must be a JSON object")
+    wrapped = "geometry" in payload
+    candidate = payload["geometry"] if wrapped else payload
+    if not isinstance(candidate, dict):
+        raise ValueError(f"{source}: geometry must be a JSON object")
+    geometry = geometry_from_json(candidate)
+    identity = geometry_sha256(geometry)
+    if wrapped and payload.get("geometry_sha256") != identity:
+        raise ValueError(f"{source}: saved geometry hash does not match its geometry")
+    provenance = {
+        "path": _display_source_path(source),
+        "sha256": hashlib.sha256(raw).hexdigest(),
+        "geometry_sha256": identity,
+        "source_kind": ("distributed_result" if wrapped
+                        else "geometry_contract"),
+    }
+    return geometry, provenance
 
 
 def _greens_geometry_key(geometry: dict) -> str:
@@ -938,6 +1036,7 @@ def plot_planes(geometry: dict, summary: dict, lambda_label: str,
 
 def plot_panels(datasets: list[dict], geometry: dict, keep: np.ndarray,
                 x: np.ndarray, suffix: str = "") -> None:
+    panels = []
     fig, axes = plt.subplots(4, 3, figsize=(15, 18))
     for i, ds in enumerate(datasets):
         pred = ds["_greens"][:, keep] @ x[:keep.sum()] + x[keep.sum() + i]
@@ -952,6 +1051,7 @@ def plot_panels(datasets: list[dict], geometry: dict, keep: np.ndarray,
             pred_grid = np.full(obs_grid.shape, np.nan)
             pred_grid[ds["ok_mask"]] = pred
             extent = None
+        panels.append((ds, obs_grid, pred_grid, extent))
         obs_plot = obs_grid.copy()
         v = np.nanpercentile(np.abs(obs_plot), 99)
         for j, (F, title) in enumerate(((obs_plot, f"{ds['name']}\nobserved (decay-normalized)"),
@@ -970,9 +1070,44 @@ def plot_panels(datasets: list[dict], geometry: dict, keep: np.ndarray,
     plt.close(fig)
     print(f"figure: {out}")
 
+    fig, axes = plt.subplots(4, 3, figsize=(15, 18))
+    for i, (ds, obs_grid, pred_grid, extent) in enumerate(panels):
+        residual = obs_grid - pred_grid
+        for j, (field, title, wrapped) in enumerate((
+                (obs_grid, f"{ds['name']}\nobserved (decay-normalized)", True),
+                (pred_grid, "same-chain distributed model", True),
+                (residual, "continuous residual (clipped ±10 cm)", False))):
+            ax = axes[i, j]
+            if wrapped:
+                phase = (np.mod(field, FRINGE_CYCLE_M) / FRINGE_CYCLE_M
+                         * 2 * np.pi - np.pi)
+                im = ax.imshow(phase, cmap="twilight_shifted", vmin=-np.pi,
+                               vmax=np.pi, extent=extent)
+                colourbar = plt.colorbar(im, ax=ax, shrink=0.75)
+                colourbar.set_ticks([-np.pi, 0, np.pi])
+                colourbar.set_ticklabels(
+                    ["0", f"{50 * FRINGE_CYCLE_M:.0f}",
+                     f"{100 * FRINGE_CYCLE_M:.0f} cm"]
+                )
+            else:
+                im = ax.imshow(field * 100, cmap="RdBu_r", vmin=-10,
+                               vmax=10, extent=extent)
+                plt.colorbar(im, ax=ax, shrink=0.75, label="cm")
+            ax.set_title(title, fontsize=9)
+            ax.set_xticks([])
+            ax.set_yticks([])
+    fig.suptitle("Same-chain distributed fit to all four co-event geometries "
+                 f"({100 * FRINGE_CYCLE_M:.0f} cm per colour cycle)", fontsize=12)
+    fig.tight_layout(rect=[0, 0, 1, 0.96])
+    out = RESULTS / f"distributed_fit_fringe_panels{suffix}.png"
+    fig.savefig(out, dpi=110)
+    plt.close(fig)
+    print(f"figure: {out}")
+
 
 def main(nisar_source: str = "gunw", fault_source: str = "idealized",
-         traces_path: str | Path | None = None) -> None:
+         traces_path: str | Path | None = None,
+         geometry_path: str | Path | None = None) -> None:
     RESULTS.mkdir(exist_ok=True)
     suffix = ("" if nisar_source == "gunw" else "_gslc")
     fit_path = RESULTS / "okada_fit.json"
@@ -987,8 +1122,18 @@ def main(nisar_source: str = "gunw", fault_source: str = "idealized",
 
     trace_offsets = None
     trace_provenance = None
+    geometry_provenance = None
     enabled_fault_sides = ("east", "west")
-    if fault_source != "idealized":
+    external_geometry = geometry_path is not None
+    trace_geometry = fault_source != "idealized" and not external_geometry
+    if external_geometry:
+        if fault_source != "idealized" or traces_path is not None:
+            raise ValueError("a complete geometry cannot be combined with trace options")
+        geometry, geometry_provenance = load_geometry_source(geometry_path)
+        enabled_fault_sides = tuple(geometry["enabled_fault_sides"])
+        suffix = (f"_geometry_{geometry_provenance['sha256'][:12]}"
+                  + suffix)
+    elif trace_geometry:
         trace_offsets, trace_provenance = load_fault_trace_source(traces_path)
         if fault_source == "mapped":
             suffix = "_mapped" + suffix
@@ -1002,12 +1147,13 @@ def main(nisar_source: str = "gunw", fault_source: str = "idealized",
         else:
             suffix = f"_traces_{trace_provenance['sha256'][:12]}" + suffix
         trace_provenance["modeled_fault_sides"] = list(enabled_fault_sides)
-    geometry = build_geometry(
-        model,
-        fault_trace_offsets=trace_offsets,
-        fault_trace_source=fault_source,
-        enabled_fault_sides=enabled_fault_sides,
-    )
+    if not external_geometry:
+        geometry = build_geometry(
+            model,
+            fault_trace_offsets=trace_offsets,
+            fault_trace_source=fault_source,
+            enabled_fault_sides=enabled_fault_sides,
+        )
     datasets = load_datasets(model, decay, nisar_source=nisar_source)
     n_sets = len(datasets)
 
@@ -1015,7 +1161,8 @@ def main(nisar_source: str = "gunw", fault_source: str = "idealized",
     # The smoothing weight is selected once, on the primary configuration
     # (idealized geometry, GUNW inputs); every variant reuses it so the
     # geometry and input comparisons are at matched regularization.
-    primary = nisar_source == "gunw" and fault_source == "idealized"
+    primary = (nisar_source == "gunw" and fault_source == "idealized"
+               and not external_geometry)
     if primary:
         selection = select_lambda(datasets, geometry, A, b, keep, n_sets)
         lam = selection["lambda_chosen"]
@@ -1096,7 +1243,9 @@ def main(nisar_source: str = "gunw", fault_source: str = "idealized",
         })
         print(f"sensitivity {label}: volume {s_s['dike_volume_km3']:.3f} km³, "
               f"{slip_sides} max slip {slip_values(s_s)} m")
-    if fault_source != "idealized":
+    if external_geometry:
+        geometry_variants = []
+    elif trace_geometry:
         def _shifted(delta: float) -> dict:
             return {"east": np.asarray(trace_offsets["east"]) + delta,
                     "west": np.asarray(trace_offsets["west"]) - delta}
@@ -1145,7 +1294,7 @@ def main(nisar_source: str = "gunw", fault_source: str = "idealized",
     # A saved dip sweep for trace-column geometry: the truncation depth scales
     # with tan(dip), so the sweep tests dip and fault area together.
     dip_sweep = None
-    if fault_source != "idealized":
+    if trace_geometry:
         dip_sweep = []
         for dip in (55.0, 60.0, 65.0, 70.0, 75.0):
             g_d = build_geometry(model, fault_trace_offsets=trace_offsets,
@@ -1192,6 +1341,13 @@ def main(nisar_source: str = "gunw", fault_source: str = "idealized",
     fault_potency = (summary.get("fault_east_potency_m3", 0.0)
                      + summary.get("fault_west_potency_m3", 0.0))
     dike_potency = summary["dike_volume_km3"] * 1e9
+    geometry_note = (
+        "complete geometry loaded directly from the recorded source file; "
+        "no source-code geometry constants were used"
+        if external_geometry else
+        "comparison with the 2005-2010 dike and fault geometries requires "
+        "those exact geometry files"
+    )
     payload = {
         "geometry": geometry_to_json(geometry),
         "geometry_sha256": geometry_sha256(geometry),
@@ -1233,6 +1389,8 @@ def main(nisar_source: str = "gunw", fault_source: str = "idealized",
         "nisar_source": nisar_source,
         **({"fault_trace_provenance": trace_provenance}
            if trace_provenance is not None else {}),
+        **({"geometry_provenance": geometry_provenance}
+           if geometry_provenance is not None else {}),
         **({"trace_dip_sweep": dip_sweep} if dip_sweep is not None else {}),
         "notes": [
             "geometry fixed a priori; only dislocation magnitudes inverted",
@@ -1240,8 +1398,7 @@ def main(nisar_source: str = "gunw", fault_source: str = "idealized",
             "weights: per-dataset far-field robust sigma; offsets: per-dataset nuisance",
             "regularization: Laplacian per surface, single lambda selected by "
             "minimum mean 10-km checkerboard held-out RMS for the primary fit",
-            "comparison with the 2005-2010 dike and fault geometries requires "
-            "those geometry files",
+            geometry_note,
         ],
     }
     (RESULTS / f"distributed_fit{suffix}.json").write_text(
@@ -1250,18 +1407,29 @@ def main(nisar_source: str = "gunw", fault_source: str = "idealized",
     excluded_sides = [side for side in ("east", "west")
                       if trace_provenance is not None
                       and side not in enabled_fault_sides]
+    if geometry_provenance is not None:
+        geometry_description = (
+            f"complete patch geometry from {geometry_provenance['path']} "
+            f"(file SHA-256 {geometry_provenance['sha256']}; geometry SHA-256 "
+            f"{geometry_provenance['geometry_sha256']})"
+        )
+    elif trace_provenance is not None:
+        geometry_description = (
+            f"anchored at trace columns from {trace_provenance['path']} "
+            f"(SHA-256 {trace_provenance['sha256']}); dip 65° inward; each "
+            "column ends where it meets the dike plane"
+        )
+    else:
+        geometry_description = (
+            "idealized traces ±2 km from the dike, dip 65° inward"
+        )
     lines = [
         "# Distributed opening + graben-fault model (four geometries"
         + ("; NISAR from GSLC reprocessing" if nisar_source == "gslc" else "")
-        + ("; fault-trace geometry" if fault_source != "idealized" else "")
+        + ("; complete external geometry" if external_geometry else
+           "; fault-trace geometry" if trace_geometry else "")
         + ")", "",
-        "- fault geometry: "
-        + (f"anchored at trace columns from "
-           f"{trace_provenance['path']} (SHA-256 "
-           f"{trace_provenance['sha256']}); dip 65° inward; each column ends "
-           "where it meets the dike plane"
-           if fault_source != "idealized"
-           else "idealized traces ±2 km from the dike, dip 65° inward"),
+        "- fault geometry: " + geometry_description,
         *(["- trace evidence rule: " + ", ".join(excluded_sides)
            + " lacks a consistent LOS step across geometries and is excluded "
              "from this fit; the retained trace geometry remains a "
@@ -1388,24 +1556,36 @@ def main(nisar_source: str = "gunw", fault_source: str = "idealized",
             "S1→NISAR is conditional because the NISAR fields affected "
             "geometry selection.",
         ])
+    if external_geometry:
+        geometry_scope = [
+            "- The patch rows, surface masks, strike, dip, and depth axes come",
+            "  from the recorded geometry file. The inversion does not rebuild",
+            "  them from current source-code constants.",
+            "- Source-specific geometry sensitivity cases need separate geometry",
+            "  files. No hard-coded offsets or dips are applied to this run.",
+        ]
+    elif trace_geometry:
+        geometry_scope = [
+            "- The fault surfaces keep one fixed strike while their column",
+            "  offsets follow the supplied traces, so plan-view steps between",
+            "  columns are parameterisation steps, not resolved geometry; the",
+            "  smoothing couples stepped columns as neighbours. Columns end at",
+            "  the dike plane. A direct test against the 2005-2010 dike and",
+            "  fault geometries requires those geometry files.",
+        ]
+    else:
+        geometry_scope = [
+            "- The graben-fault geometry is a two-plane idealization chosen from the",
+            "  residual trough; a direct test against the 2005-2010 dike and fault",
+            "  geometries requires those geometry files.",
+        ]
     lines.extend([
         "",
         "## Scope",
         "",
         "- The dike plane, strike, and fault geometry are fixed a priori; the",
         "  inversion solves only dislocation magnitudes (convex, positive).",
-    ] + ([
-        "- The fault surfaces keep one fixed strike while their column",
-        "  offsets follow the supplied traces, so plan-view steps between",
-        "  columns are parameterisation steps, not resolved geometry; the",
-        "  smoothing couples stepped columns as neighbours. Columns end at",
-        "  the dike plane. A direct test against the 2005-2010 dike and",
-        "  fault geometries requires those geometry files.",
-    ] if fault_source != "idealized" else [
-        "- The graben-fault geometry is a two-plane idealization chosen from the",
-        "  residual trough; a direct test against the 2005-2010 dike and fault",
-        "  geometries requires those geometry files.",
-    ]) + scope_fault_lines + [
+    ] + geometry_scope + scope_fault_lines + [
         "- Formal resolution/uncertainty of the slip distribution is not",
         "  computed here; the sensitivity list brackets the main choices.",
     ])
@@ -1436,6 +1616,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     traces.add_argument("--traces", type=Path, metavar="FILE",
                         help="use an external fault-trace JSON file; outputs "
                              "receive a content-hash suffix")
+    traces.add_argument("--geometry", type=Path, metavar="FILE",
+                        help="use a complete geometry-contract JSON or a saved "
+                             "distributed result; outputs receive a content-hash "
+                             "suffix")
     return parser.parse_args(argv)
 
 
@@ -1447,4 +1631,5 @@ if __name__ == "__main__":
         "mapped" if args.mapped else "idealized"
     )
     main(nisar_source="gslc" if args.gslc else "gunw",
-         fault_source=source, traces_path=args.traces)
+         fault_source=source, traces_path=args.traces,
+         geometry_path=args.geometry)

@@ -4441,6 +4441,6 @@
     "datasets normalized to co-event-through-18-July with the S1 decay summary",
     "weights: per-dataset far-field robust sigma; offsets: per-dataset nuisance",
     "regularization: Laplacian per surface, single lambda selected by minimum mean 10-km checkerboard held-out RMS for the primary fit",
-    "comparison with the 2005-2010 dike and fault geometries requires those geometry files"
+    "comparison with the 2005-2010 dike and fault geometries requires those exact geometry files"
   ]
 }

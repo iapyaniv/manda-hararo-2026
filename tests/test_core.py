@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import json
+import tempfile
 import unittest
 import warnings
+from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
@@ -13,6 +16,7 @@ from mh26.distributed import (
     geometry_from_json,
     geometry_sha256,
     geometry_to_json,
+    load_geometry_source,
 )
 from mh26.gunw import block_average, corrected_los, los_unit_neu, valid_sample_mask
 from mh26.params import CENTER_E, CENTER_N, FARFIELD_RADIUS, WAVELENGTH_L
@@ -142,6 +146,27 @@ class GeometryConventionTests(unittest.TestCase):
         np.testing.assert_array_equal(restored["patches"], geometry["patches"])
         for side in ("east", "west"):
             self.assertEqual(len(restored["fault_column_offsets_m"][side]), 14)
+
+    def test_complete_geometry_file_preserves_source_patches_and_identity(self) -> None:
+        geometry = build_geometry(self.MODEL, fault_offset=1_500.0,
+                                  fault_dip=55.0)
+        wrapper = {
+            "geometry": geometry_to_json(geometry),
+            "geometry_sha256": geometry_sha256(geometry),
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "old_geometry.json"
+            source.write_text(json.dumps(wrapper))
+            restored, provenance = load_geometry_source(source)
+            wrapper["geometry_sha256"] = "0" * 64
+            source.write_text(json.dumps(wrapper))
+            with self.assertRaisesRegex(ValueError, "hash does not match"):
+                load_geometry_source(source)
+        np.testing.assert_array_equal(restored["patches"], geometry["patches"])
+        self.assertEqual(provenance["geometry_sha256"],
+                         geometry_sha256(geometry))
+        self.assertEqual(provenance["source_kind"], "distributed_result")
+        self.assertTrue(provenance["sha256"])
 
     def test_idealized_geometry_has_stress_receivers(self) -> None:
         geometry = build_geometry(self.MODEL)
