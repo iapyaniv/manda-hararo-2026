@@ -47,6 +47,45 @@ LAME_LAMBDA = SHEAR_MODULUS = 30e9  # Pa
 S1_FRAME = "014A_07688_131313"
 S1_PAIR = "20260712_20260718"
 
+# LiCSAR frames with local East/North/Up LOS-vector rasters. 014A is
+# ascending; 079D is descending (full two-track set released 2026-08-17).
+S1_FRAMES = ("014A_07688_131313", "079D_07694_131313")
+
+# All LiCSAR pairs used by the two-track analysis: (frame, pair, role).
+# Pre-event pairs provide an empirical null for the dike-pattern projection.
+S1_TRACK_PAIRS = (
+    ("014A_07688_131313", "20260712_20260718", "co-event"),
+    ("079D_07694_131313", "20260711_20260723", "co-event"),
+    ("014A_07688_131313", "20260718_20260730", "post-event"),
+    ("014A_07688_131313", "20260730_20260811", "post-event"),
+    ("014A_07688_131313", "20260718_20260811", "post-event"),
+    ("079D_07694_131313", "20260723_20260804", "post-event"),
+    ("079D_07694_131313", "20260804_20260816", "post-event"),
+    ("079D_07694_131313", "20260723_20260816", "post-event"),
+    ("014A_07688_131313", "20260605_20260612", "pre-event"),
+    ("014A_07688_131313", "20260612_20260617", "pre-event"),
+    ("014A_07688_131313", "20260617_20260624", "pre-event"),
+    ("014A_07688_131313", "20260624_20260629", "pre-event"),
+    ("014A_07688_131313", "20260629_20260706", "pre-event"),
+    ("014A_07688_131313", "20260706_20260712", "pre-event"),
+    ("079D_07694_131313", "20260610_20260622", "pre-event"),
+    ("079D_07694_131313", "20260622_20260629", "pre-event"),
+    ("079D_07694_131313", "20260629_20260711", "pre-event"),
+)
+
+# The two 24-day pairs used for the post-event two-geometry decomposition and
+# the co-event pairs decomposed for comparison.
+S1_DECOMPOSITION_SETS = {
+    "co-event": (
+        ("014A_07688_131313", "20260712_20260718"),
+        ("079D_07694_131313", "20260711_20260723"),
+    ),
+    "post-event": (
+        ("014A_07688_131313", "20260718_20260811"),
+        ("079D_07694_131313", "20260723_20260816"),
+    ),
+}
+
 # Interferogram crops (data/nisar/<tag>.npz). Event pairs first.
 PAIRS = {
     "172_008_A": "asc 07-08→07-20",

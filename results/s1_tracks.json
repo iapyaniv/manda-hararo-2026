@@ -1,0 +1,734 @@
+{
+  "coevent_crosschecks": {
+    "014A_07688_131313": {
+      "pair": "20260712_20260718",
+      "n_pixels": 47075,
+      "regression_slope_observed_on_predicted": -0.8819679657676434,
+      "applied_observation_sign": -1.0,
+      "amplitude_ratio": 0.8819679657676434,
+      "correlation": 0.9535243339498103,
+      "rms_m": 0.022606485032492133
+    },
+    "079D_07694_131313": {
+      "pair": "20260711_20260723",
+      "n_pixels": 43695,
+      "regression_slope_observed_on_predicted": -0.8451921570816835,
+      "applied_observation_sign": -1.0,
+      "amplitude_ratio": 0.8451921570816835,
+      "correlation": 0.9174643775327139,
+      "rms_m": 0.02782513429704647
+    }
+  },
+  "frame_signs": {
+    "014A_07688_131313": -1.0,
+    "079D_07694_131313": -1.0
+  },
+  "projections": [
+    {
+      "frame": "014A_07688_131313",
+      "geometry": "ascending",
+      "pair": "20260712_20260718",
+      "window": "2026-07-12\u21922026-07-18",
+      "days": 6,
+      "role": "co-event",
+      "n_blocks": 1024,
+      "pattern_fraction": 0.9223112096921104,
+      "pattern_fraction_cluster_wild_95": [
+        0.8929412799541632,
+        0.9522671548969625
+      ],
+      "n_clusters": 87,
+      "offset_m": -0.0019590688079397472,
+      "zero_intercept_pattern_fraction": 0.9174781384419953,
+      "correlation": 0.976148077612261,
+      "rms_m": 0.02591591563831593
+    },
+    {
+      "frame": "079D_07694_131313",
+      "geometry": "descending",
+      "pair": "20260711_20260723",
+      "window": "2026-07-11\u21922026-07-23",
+      "days": 12,
+      "role": "co-event",
+      "n_blocks": 912,
+      "pattern_fraction": 0.9174318507211574,
+      "pattern_fraction_cluster_wild_95": [
+        0.8410030074101411,
+        0.9943624330575447
+      ],
+      "n_clusters": 85,
+      "offset_m": -0.014089221813188321,
+      "zero_intercept_pattern_fraction": 0.8858693499747599,
+      "correlation": 0.9464068367624787,
+      "rms_m": 0.03617717568059102
+    },
+    {
+      "frame": "014A_07688_131313",
+      "geometry": "ascending",
+      "pair": "20260718_20260730",
+      "window": "2026-07-18\u21922026-07-30",
+      "days": 12,
+      "role": "post-event",
+      "n_blocks": 1021,
+      "pattern_fraction": 0.14007776711348152,
+      "pattern_fraction_cluster_wild_95": [
+        0.10692482446976982,
+        0.17407124881525352
+      ],
+      "n_clusters": 87,
+      "offset_m": -0.007718587301090367,
+      "zero_intercept_pattern_fraction": 0.12194164594849527,
+      "correlation": 0.8142855064392558,
+      "rms_m": 0.013215043451255041,
+      "processing_sensitivity": [
+        {
+          "variant": "0.9 km blocks",
+          "pattern_fraction": 0.1408200176880366,
+          "n_blocks": 2264
+        },
+        {
+          "variant": "2.0 km blocks",
+          "pattern_fraction": 0.1395144594780788,
+          "n_blocks": 459
+        },
+        {
+          "variant": "25 km far field",
+          "pattern_fraction": 0.14011808077381988,
+          "n_blocks": 1021
+        },
+        {
+          "variant": "32 km far field",
+          "pattern_fraction": 0.13978396394680737,
+          "n_blocks": 1021
+        },
+        {
+          "variant": "fit within 20 km",
+          "pattern_fraction": 0.14857341050495143,
+          "n_blocks": 655
+        },
+        {
+          "variant": "fit within 30 km",
+          "pattern_fraction": 0.13365594078749488,
+          "n_blocks": 1443
+        },
+        {
+          "variant": "prediction >0.5 cm",
+          "pattern_fraction": 0.1397539093987229,
+          "n_blocks": 1051
+        },
+        {
+          "variant": "prediction >2 cm",
+          "pattern_fraction": 0.1400427584378839,
+          "n_blocks": 917
+        }
+      ],
+      "pattern_fraction_processing_envelope": [
+        0.13365594078749488,
+        0.14857341050495143
+      ]
+    },
+    {
+      "frame": "014A_07688_131313",
+      "geometry": "ascending",
+      "pair": "20260730_20260811",
+      "window": "2026-07-30\u21922026-08-11",
+      "days": 12,
+      "role": "post-event",
+      "n_blocks": 1060,
+      "pattern_fraction": 0.01470232003290544,
+      "pattern_fraction_cluster_wild_95": [
+        -0.00462137851735195,
+        0.033732533329036016
+      ],
+      "n_clusters": 87,
+      "offset_m": -0.004457128574112541,
+      "zero_intercept_pattern_fraction": 0.0037713743595330896,
+      "correlation": 0.1807612479711563,
+      "rms_m": 0.010589234806327582,
+      "processing_sensitivity": [
+        {
+          "variant": "0.9 km blocks",
+          "pattern_fraction": 0.0145908729467428,
+          "n_blocks": 2366
+        },
+        {
+          "variant": "2.0 km blocks",
+          "pattern_fraction": 0.015145055465125054,
+          "n_blocks": 474
+        },
+        {
+          "variant": "25 km far field",
+          "pattern_fraction": 0.013778543543921142,
+          "n_blocks": 1060
+        },
+        {
+          "variant": "32 km far field",
+          "pattern_fraction": 0.016180630718994744,
+          "n_blocks": 1060
+        },
+        {
+          "variant": "fit within 20 km",
+          "pattern_fraction": 0.012989906354385143,
+          "n_blocks": 689
+        },
+        {
+          "variant": "fit within 30 km",
+          "pattern_fraction": 0.015143310956135613,
+          "n_blocks": 1476
+        },
+        {
+          "variant": "prediction >0.5 cm",
+          "pattern_fraction": 0.015034896565354887,
+          "n_blocks": 1090
+        },
+        {
+          "variant": "prediction >2 cm",
+          "pattern_fraction": 0.014086065324030821,
+          "n_blocks": 951
+        }
+      ],
+      "pattern_fraction_processing_envelope": [
+        0.012989906354385143,
+        0.016180630718994744
+      ]
+    },
+    {
+      "frame": "014A_07688_131313",
+      "geometry": "ascending",
+      "pair": "20260718_20260811",
+      "window": "2026-07-18\u21922026-08-11",
+      "days": 24,
+      "role": "post-event",
+      "n_blocks": 958,
+      "pattern_fraction": 0.15472440659230113,
+      "pattern_fraction_cluster_wild_95": [
+        0.12533099434497225,
+        0.18245822855808635
+      ],
+      "n_clusters": 87,
+      "offset_m": -0.012881171422970272,
+      "zero_intercept_pattern_fraction": 0.12684186058122934,
+      "correlation": 0.8064479327897817,
+      "rms_m": 0.015381796094265376,
+      "processing_sensitivity": [
+        {
+          "variant": "0.9 km blocks",
+          "pattern_fraction": 0.15582017661296152,
+          "n_blocks": 2122
+        },
+        {
+          "variant": "2.0 km blocks",
+          "pattern_fraction": 0.1551833340191078,
+          "n_blocks": 433
+        },
+        {
+          "variant": "25 km far field",
+          "pattern_fraction": 0.15389864934262779,
+          "n_blocks": 958
+        },
+        {
+          "variant": "32 km far field",
+          "pattern_fraction": 0.15583615403272075,
+          "n_blocks": 958
+        },
+        {
+          "variant": "fit within 20 km",
+          "pattern_fraction": 0.16165936746442866,
+          "n_blocks": 605
+        },
+        {
+          "variant": "fit within 30 km",
+          "pattern_fraction": 0.14890530975142474,
+          "n_blocks": 1360
+        },
+        {
+          "variant": "prediction >0.5 cm",
+          "pattern_fraction": 0.15486154419757103,
+          "n_blocks": 990
+        },
+        {
+          "variant": "prediction >2 cm",
+          "pattern_fraction": 0.15455661936990192,
+          "n_blocks": 856
+        }
+      ],
+      "pattern_fraction_processing_envelope": [
+        0.14890530975142474,
+        0.16165936746442866
+      ]
+    },
+    {
+      "frame": "079D_07694_131313",
+      "geometry": "descending",
+      "pair": "20260723_20260804",
+      "window": "2026-07-23\u21922026-08-04",
+      "days": 12,
+      "role": "post-event",
+      "n_blocks": 1004,
+      "pattern_fraction": 0.05299585641041771,
+      "pattern_fraction_cluster_wild_95": [
+        0.043674322267199625,
+        0.06294383909540821
+      ],
+      "n_clusters": 86,
+      "offset_m": -0.0016210406541360286,
+      "zero_intercept_pattern_fraction": 0.04933616325722979,
+      "correlation": 0.7261914151412414,
+      "rms_m": 0.0062346943113939365,
+      "processing_sensitivity": [
+        {
+          "variant": "0.9 km blocks",
+          "pattern_fraction": 0.05332291419769133,
+          "n_blocks": 2221
+        },
+        {
+          "variant": "2.0 km blocks",
+          "pattern_fraction": 0.053142450852478006,
+          "n_blocks": 453
+        },
+        {
+          "variant": "25 km far field",
+          "pattern_fraction": 0.052420894304651904,
+          "n_blocks": 1004
+        },
+        {
+          "variant": "32 km far field",
+          "pattern_fraction": 0.054267414907410355,
+          "n_blocks": 1004
+        },
+        {
+          "variant": "fit within 20 km",
+          "pattern_fraction": 0.05059361806460059,
+          "n_blocks": 657
+        },
+        {
+          "variant": "fit within 30 km",
+          "pattern_fraction": 0.05281951325509831,
+          "n_blocks": 1398
+        },
+        {
+          "variant": "prediction >0.5 cm",
+          "pattern_fraction": 0.05348144545440742,
+          "n_blocks": 1061
+        },
+        {
+          "variant": "prediction >2 cm",
+          "pattern_fraction": 0.05299326394464842,
+          "n_blocks": 879
+        }
+      ],
+      "pattern_fraction_processing_envelope": [
+        0.05059361806460059,
+        0.054267414907410355
+      ]
+    },
+    {
+      "frame": "079D_07694_131313",
+      "geometry": "descending",
+      "pair": "20260804_20260816",
+      "window": "2026-08-04\u21922026-08-16",
+      "days": 12,
+      "role": "post-event",
+      "n_blocks": 991,
+      "pattern_fraction": -0.014760867365854469,
+      "pattern_fraction_cluster_wild_95": [
+        -0.023432449557352533,
+        -0.006392039329292354
+      ],
+      "n_clusters": 86,
+      "offset_m": -0.006430494731375395,
+      "zero_intercept_pattern_fraction": -0.02984519590495117,
+      "correlation": -0.29145122422484193,
+      "rms_m": 0.006014142962109814,
+      "processing_sensitivity": [
+        {
+          "variant": "0.9 km blocks",
+          "pattern_fraction": -0.014561122042396964,
+          "n_blocks": 2183
+        },
+        {
+          "variant": "2.0 km blocks",
+          "pattern_fraction": -0.015130234200062608,
+          "n_blocks": 450
+        },
+        {
+          "variant": "25 km far field",
+          "pattern_fraction": -0.014090343677104735,
+          "n_blocks": 991
+        },
+        {
+          "variant": "32 km far field",
+          "pattern_fraction": -0.016523883724022314,
+          "n_blocks": 991
+        },
+        {
+          "variant": "fit within 20 km",
+          "pattern_fraction": -0.009506221264990664,
+          "n_blocks": 658
+        },
+        {
+          "variant": "fit within 30 km",
+          "pattern_fraction": -0.02001843542264355,
+          "n_blocks": 1360
+        },
+        {
+          "variant": "prediction >0.5 cm",
+          "pattern_fraction": -0.015292057403589892,
+          "n_blocks": 1048
+        },
+        {
+          "variant": "prediction >2 cm",
+          "pattern_fraction": -0.014341320667541695,
+          "n_blocks": 867
+        }
+      ],
+      "pattern_fraction_processing_envelope": [
+        -0.02001843542264355,
+        -0.009506221264990664
+      ]
+    },
+    {
+      "frame": "079D_07694_131313",
+      "geometry": "descending",
+      "pair": "20260723_20260816",
+      "window": "2026-07-23\u21922026-08-16",
+      "days": 24,
+      "role": "post-event",
+      "n_blocks": 890,
+      "pattern_fraction": 0.040097178474853085,
+      "pattern_fraction_cluster_wild_95": [
+        0.028877292538294436,
+        0.0517710519452689
+      ],
+      "n_clusters": 87,
+      "offset_m": -0.008411805003193074,
+      "zero_intercept_pattern_fraction": 0.017941352440310677,
+      "correlation": 0.5787369908861332,
+      "rms_m": 0.007194865171798827,
+      "processing_sensitivity": [
+        {
+          "variant": "0.9 km blocks",
+          "pattern_fraction": 0.040210260578154286,
+          "n_blocks": 1971
+        },
+        {
+          "variant": "2.0 km blocks",
+          "pattern_fraction": 0.039370731014525075,
+          "n_blocks": 406
+        },
+        {
+          "variant": "25 km far field",
+          "pattern_fraction": 0.04017651560797915,
+          "n_blocks": 890
+        },
+        {
+          "variant": "32 km far field",
+          "pattern_fraction": 0.039665863472513954,
+          "n_blocks": 890
+        },
+        {
+          "variant": "fit within 20 km",
+          "pattern_fraction": 0.042329518042840034,
+          "n_blocks": 588
+        },
+        {
+          "variant": "fit within 30 km",
+          "pattern_fraction": 0.03427471725924493,
+          "n_blocks": 1230
+        },
+        {
+          "variant": "prediction >0.5 cm",
+          "pattern_fraction": 0.040097364408876374,
+          "n_blocks": 946
+        },
+        {
+          "variant": "prediction >2 cm",
+          "pattern_fraction": 0.04051775749471933,
+          "n_blocks": 774
+        }
+      ],
+      "pattern_fraction_processing_envelope": [
+        0.03427471725924493,
+        0.042329518042840034
+      ]
+    },
+    {
+      "frame": "014A_07688_131313",
+      "geometry": "ascending",
+      "pair": "20260605_20260612",
+      "window": "2026-06-05\u21922026-06-12",
+      "days": 7,
+      "role": "pre-event",
+      "n_blocks": 1071,
+      "pattern_fraction": -0.021796128124052162,
+      "pattern_fraction_cluster_wild_95": [
+        -0.033011703035050056,
+        -0.010587232258219241
+      ],
+      "n_clusters": 87,
+      "offset_m": 0.0032054848491127755,
+      "zero_intercept_pattern_fraction": -0.01380272132942759,
+      "correlation": -0.26767092312833457,
+      "rms_m": 0.010363045597665472
+    },
+    {
+      "frame": "014A_07688_131313",
+      "geometry": "ascending",
+      "pair": "20260612_20260617",
+      "window": "2026-06-12\u21922026-06-17",
+      "days": 5,
+      "role": "pre-event",
+      "n_blocks": 1073,
+      "pattern_fraction": 0.02045258929883195,
+      "pattern_fraction_cluster_wild_95": [
+        0.009715406471700862,
+        0.030811999118375736
+      ],
+      "n_clusters": 87,
+      "offset_m": 0.011392226764011476,
+      "zero_intercept_pattern_fraction": 0.04885326684816017,
+      "correlation": 0.28987679336721384,
+      "rms_m": 0.008909768466091593
+    },
+    {
+      "frame": "014A_07688_131313",
+      "geometry": "ascending",
+      "pair": "20260617_20260624",
+      "window": "2026-06-17\u21922026-06-24",
+      "days": 7,
+      "role": "pre-event",
+      "n_blocks": 1072,
+      "pattern_fraction": -0.017178211393801435,
+      "pattern_fraction_cluster_wild_95": [
+        -0.030367417113086846,
+        -0.003368339686083291
+      ],
+      "n_clusters": 87,
+      "offset_m": -0.003114185592782721,
+      "zero_intercept_pattern_fraction": -0.024925539798246195,
+      "correlation": -0.20256380369478597,
+      "rms_m": 0.01096467341349112
+    },
+    {
+      "frame": "014A_07688_131313",
+      "geometry": "ascending",
+      "pair": "20260624_20260629",
+      "window": "2026-06-24\u21922026-06-29",
+      "days": 5,
+      "role": "pre-event",
+      "n_blocks": 1074,
+      "pattern_fraction": 0.014360520520519993,
+      "pattern_fraction_cluster_wild_95": [
+        0.005961682261551223,
+        0.022607209859762986
+      ],
+      "n_clusters": 87,
+      "offset_m": -0.002554160783829278,
+      "zero_intercept_pattern_fraction": 0.007994039292112128,
+      "correlation": 0.23778268232506117,
+      "rms_m": 0.007732564449440637
+    },
+    {
+      "frame": "014A_07688_131313",
+      "geometry": "ascending",
+      "pair": "20260629_20260706",
+      "window": "2026-06-29\u21922026-07-06",
+      "days": 7,
+      "role": "pre-event",
+      "n_blocks": 1074,
+      "pattern_fraction": 0.006603568071531979,
+      "pattern_fraction_cluster_wild_95": [
+        0.0031659888232533455,
+        0.010104390683838895
+      ],
+      "n_clusters": 87,
+      "offset_m": 0.008379220253562948,
+      "zero_intercept_pattern_fraction": 0.0274527094856145,
+      "correlation": 0.19848755284197392,
+      "rms_m": 0.004301243715164787
+    },
+    {
+      "frame": "014A_07688_131313",
+      "geometry": "ascending",
+      "pair": "20260706_20260712",
+      "window": "2026-07-06\u21922026-07-12",
+      "days": 6,
+      "role": "pre-event",
+      "n_blocks": 1075,
+      "pattern_fraction": -0.02180506288104048,
+      "pattern_fraction_cluster_wild_95": [
+        -0.032160073676589546,
+        -0.01194907482403623
+      ],
+      "n_clusters": 87,
+      "offset_m": -0.012062802166092276,
+      "zero_intercept_pattern_fraction": -0.051890859669596424,
+      "correlation": -0.36646651474590725,
+      "rms_m": 0.007319003541501708
+    },
+    {
+      "frame": "079D_07694_131313",
+      "geometry": "descending",
+      "pair": "20260610_20260622",
+      "window": "2026-06-10\u21922026-06-22",
+      "days": 12,
+      "role": "pre-event",
+      "n_blocks": 1016,
+      "pattern_fraction": 0.007871922687348664,
+      "pattern_fraction_cluster_wild_95": [
+        -0.0029505847503375248,
+        0.018393918953812594
+      ],
+      "n_clusters": 86,
+      "offset_m": 0.0018258154139943398,
+      "zero_intercept_pattern_fraction": 0.01190342739091293,
+      "correlation": 0.145035811250004,
+      "rms_m": 0.006649200202513569
+    },
+    {
+      "frame": "079D_07694_131313",
+      "geometry": "descending",
+      "pair": "20260622_20260629",
+      "window": "2026-06-22\u21922026-06-29",
+      "days": 7,
+      "role": "pre-event",
+      "n_blocks": 1023,
+      "pattern_fraction": 0.01145278849248498,
+      "pattern_fraction_cluster_wild_95": [
+        0.006297054500919214,
+        0.01695837861929426
+      ],
+      "n_clusters": 86,
+      "offset_m": 0.004007459376742279,
+      "zero_intercept_pattern_fraction": 0.020322715015336477,
+      "correlation": 0.26691148519052615,
+      "rms_m": 0.0051073231072424966
+    },
+    {
+      "frame": "079D_07694_131313",
+      "geometry": "descending",
+      "pair": "20260629_20260711",
+      "window": "2026-06-29\u21922026-07-11",
+      "days": 12,
+      "role": "pre-event",
+      "n_blocks": 1023,
+      "pattern_fraction": 0.004097498048104834,
+      "pattern_fraction_cluster_wild_95": [
+        -0.0034106746826399695,
+        0.011165941025356263
+      ],
+      "n_clusters": 86,
+      "offset_m": -0.004416498464565211,
+      "zero_intercept_pattern_fraction": -0.005714518031976971,
+      "correlation": 0.08695364601013073,
+      "rms_m": 0.005796122212759781
+    }
+  ],
+  "null_summary": {
+    "n_pairs": 9,
+    "mean": 0.0004510538577698134,
+    "standard_deviation": 0.0162859408698063,
+    "max_abs": 0.02180506288104048
+  },
+  "post_event_decay": {
+    "reference_epoch": "2026-07-18",
+    "amplitude_total_pattern_fraction": 0.15253123374150288,
+    "tau_days": 4.290821634602112,
+    "rms_of_fit": 0.008957699842145199,
+    "n_windows": 6,
+    "windows_days": [
+      [
+        0.0,
+        12.0
+      ],
+      [
+        12.0,
+        24.0
+      ],
+      [
+        0.0,
+        24.0
+      ],
+      [
+        5.0,
+        17.0
+      ],
+      [
+        17.0,
+        29.0
+      ],
+      [
+        5.0,
+        29.0
+      ]
+    ],
+    "note": "descriptive window-integrated summary, not a physical model"
+  },
+  "nisar_cross_sensor_check": {
+    "window": "2026-07-19\u21922026-08-12",
+    "observed_nisar_pattern_fraction": 0.10732005148037956,
+    "predicted_from_s1_decay": 0.12037167504625469
+  },
+  "decomposition": {
+    "co-event": {
+      "n_cells_within_18km": 502,
+      "east_cm_p01_p99": [
+        -56.06932003434516,
+        52.49789112834476
+      ],
+      "up_cm_p01_p99": [
+        -2.0040463319957165,
+        26.22698531907075
+      ],
+      "east_flank_probe_cm": {
+        "EAST": 54.43240377115226,
+        "WEST": -57.71226144181988
+      },
+      "opening_divergence_cm": 112.14466521297214,
+      "axis_up_probe_cm": null,
+      "pairs": {
+        "ascending": {
+          "frame": "014A_07688_131313",
+          "pair": "20260712_20260718",
+          "window": "2026-07-12\u21922026-07-18"
+        },
+        "descending": {
+          "frame": "079D_07694_131313",
+          "pair": "20260711_20260723",
+          "window": "2026-07-11\u21922026-07-23"
+        }
+      }
+    },
+    "post-event": {
+      "n_cells_within_18km": 519,
+      "east_cm_p01_p99": [
+        -9.87876885858432,
+        7.682074825166395
+      ],
+      "up_cm_p01_p99": [
+        -4.272351873308649,
+        5.655507824923627
+      ],
+      "east_flank_probe_cm": {
+        "EAST": 6.890396330194047,
+        "WEST": -11.069496289288718
+      },
+      "opening_divergence_cm": 17.959892619482765,
+      "axis_up_probe_cm": -1.0328862310314404,
+      "pairs": {
+        "ascending": {
+          "frame": "014A_07688_131313",
+          "pair": "20260718_20260811",
+          "window": "2026-07-18\u21922026-08-11"
+        },
+        "descending": {
+          "frame": "079D_07694_131313",
+          "pair": "20260723_20260816",
+          "window": "2026-07-23\u21922026-08-16"
+        }
+      }
+    }
+  },
+  "statistic": "block regression of screened LOS on the co-event dike pattern within 25 km; intercept fitted; see mh26.continuation",
+  "bootstrap": "wild sign bootstrap on 5-km clusters, 2000 samples; conditional heuristic, not a calibrated interval"
+}
