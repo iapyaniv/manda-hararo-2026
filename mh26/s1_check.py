@@ -1,4 +1,4 @@
-"""Step 3 — compare Sentinel-1 data with the NISAR-derived dike model.
+"""compare Sentinel-1 data with the NISAR-derived dike model.
 
 The command predicts the LiCSAR interferogram (C-band, ascending frame
 014A_07688_131313, pair 20260712_20260718) from the model fitted to NISAR. It

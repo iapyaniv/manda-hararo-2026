@@ -1,4 +1,4 @@
-"""Step 1 — LOS displacement panels and the asc/desc E-U decomposition.
+"""LOS displacement panels and the asc/desc E-U decomposition.
 
 Per pair: ionosphere-corrected, far-field-referenced LOS field with peak
 location/extent stats. Then the ascending+descending pair is decomposed on

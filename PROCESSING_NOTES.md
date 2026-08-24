@@ -36,6 +36,263 @@ comparison normalizes this raster to 0–1 before it applies the 0.25 threshold.
 It also requires identical grids for all five input rasters and checks the LOS
 vector norms.
 
+## Two-track Sentinel-1 processing
+
+The two-track module reuses the pixel statistic of `mh26.s1_check` for the
+co-event cross-checks and the block statistic of `mh26.continuation` for the
+projections: 12-pixel (≈1.33 km) blocks on the 0.001° LiCSAR grid, a 25-km
+fit radius, a 1-cm prediction threshold, and a fitted intercept.
+
+The LiCSAR unwrapped-phase sign is resolved empirically once per frame from
+the co-event regression against the model (both frames resolve to −1) and is
+then applied unchanged to that frame's pre- and post-event pairs. A weak pair
+must not resolve its own sign; that would bias every projection positive.
+The validator refuses a sign change.
+
+The pre-event pairs give an empirical null distribution for the projection
+coefficient. Atmospheric and ionospheric noise enters the null pairs in the
+same way as the post-event pairs.
+
+The decay fit is a least-squares fit of
+`A (exp(-t1/tau) - exp(-t2/tau))` to the six Sentinel-1 window-integrated
+projections with t in days after 18 July. The East/Up decomposition bins each
+geometry's screened, sign-aligned LOS and LOS vectors onto a shared 1.28-km
+UTM lattice (at least 40 samples per cell and geometry) and solves the
+zero-north two-component system per cell.
+
+The 2026-08-17 LiCSAR regeneration republished the ascending co-event pair
+byte-identically, so the core-archive copies match the current portal files.
+
+## Distributed model (mh26.distributed)
+
+The distributed inversion fixes all geometry a priori (dike plane and strike
+from the uniform fit; graben faults ±2 km from the trace, dip 65° inward,
+0–4 km depth) and solves only dislocation magnitudes: patch opening on the
+dike (28 km × 10 km, 1.75 × 1 km patches) and normal slip on the two faults,
+non-negative, with one Laplacian smoothing weight (selected as described
+below) and a per-dataset offset. Data are the two NISAR geometries (mh26.invert blocks)
+plus the two LiCSAR co-event pairs (mh26.s1_tracks blocks), each divided by
+its decay-normalization factor (window end vs 18 July; factors 1.000–1.105)
+and weighted by its far-field robust scatter.
+
+The module selftests Green's-function conventions before solving: a patch
+grid tiling the uniform rectangle reproduces `okada.forward` to < 0.1 mm,
+and positive normal slip on the east fault subsides the axis side.
+
+The smoothing weight is selected by held-out prediction, not by the
+L-curve: on this problem the discrete L-curve curvature maximum is not
+bracketed by any moderate grid (it keeps climbing into the heavily
+over-damped branch, where held-out prediction is clearly worse), so a
+curvature "knee" is a boundary artifact and is reported for reference
+only. The criterion is the mean 10-km checkerboard held-out RMS over
+λ = 0.03–1000 (19 logarithmic steps); it has an interior minimum at
+λ = 17.8, selection raises an error at a grid edge, and the full selection
+table plus a cross-sensor transfer check are stored with the primary
+result. Every variant (mapped, GSLC) reuses the primary λ so comparisons
+are at matched regularization, and a λ×1/3.2–λ×3.2 envelope is carried in
+the sensitivity list so the λ-dependence of each quoted quantity is
+visible. The 10-km cells are not fully independent under 15–30 km noise
+correlation lengths. NISAR→Sentinel-1 is therefore reported as the stronger
+held-out-sensor check. S1→NISAR is only a conditional reverse transfer because
+the NISAR fields affected geometry selection.
+
+Joint RMS on the four geometries: uniform rectangle 2.71 cm → distributed
+opening 2.59 cm → opening + graben faults 2.30 cm. The graben faults carry
+about a quarter of the dike's potency (Σ area·dislocation; ratio 0.235,
+not a moment-tensor ratio). The dike volume
+of the distributed model (0.145 km³; 0.137–0.166 across the smoothing
+envelope, geometry variants, sensor subsets, and the
+no-decay-normalization variant) is not the same quantity as the
+uniform-rectangle volume (0.169 km³): part of the near-axis signal moves
+from opening into fault slip. A volume is meaningful only together with
+its model class.
+
+## Joint decomposition (mh26.decompose3d)
+
+The four-geometry decomposition solves, per 1.28-km lattice cell, horizontal
+motion along the rift-perpendicular azimuth (strike − 90°) plus vertical.
+This replaces the zero-north assumption of the earlier two-geometry
+decompositions: near-polar LOS vectors barely observe north, and zero-north
+aliases real rift-normal motion. Cells need at least two geometries (exact
+solve); with three or more, the weighted residual is a cross-sensor closure
+diagnostic (median 0.55 σ). Inputs are decay-normalized as in the
+distributed inversion.
+
+## GSLC reprocessing (mh26.gslc)
+
+The GUNW chain works at the product's 80-m unwrapped posting and inherits
+the product's unwrapping. `mh26.gslc` rebuilds the two co-event
+interferograms from the 10-m L2 GSLC products: ranged-read crops of the HH
+layer (chunk-aligned row bands through earthaccess/fsspec, with the GSLC
+`mask` and `inputDataExceptionMask` rasters kept — the provisional mask
+encodes 0 = no subswath, 1 = subswath 1, 255 = fill; invalid epoch samples
+zero the interferogram pixel), per-pixel interferogram (GSLC epochs share
+one UTM grid and are DEM-flattened; the grid is 10 m in x and 5 m in y, so
+6 × 3 looks give the 30-m posting), Goldstein filter (α = 0.6, 64-px
+tiles), boxcar coherence, snaphu, the GUNW ionosphere screen of the same
+pair interpolated and subtracted, and far-field plane referencing. The GSLC
+products carry the same provisional calibration maturity as the GUNW
+products.
+
+Unwrapping configuration matters at the first-fringe level. SMOOTH cost
+with 2 × 2 tiles produced quadrant ambiguity steps at the tile seams and a
+fringe-count deficit at the axis (lattice comparison against the GUNW
+field: slope +0.84, r 0.88). Single-tile DEFO cost with MCF initialization
+removes both (ascending pair: slope +1.01, r 0.993, RMS difference 1.5 cm
+on 1.28-km cells; about 11 minutes and 3.4 GB for a 3000 × 3000 tile). The
+remaining difference against the GUNW product is a narrow near-axis band
+where the 30-m reprocessing keeps coherent cells that the 80-m product
+loses or unwraps differently. `--compare` writes this validation, with
+region statistics and acceptance limits, for each pair; the limits are
+fatal only for the two inversion pairs.
+
+For the third pair (track 100 ascending, 15→27 July) the comparison itself
+is the finding: the two unwrapped fields agree at the millimetre level over
+three quarters of the common cells, and differ by one L-band fringe
+(≈11.9 cm) over a sharp-edged island covering the east-flank lobe
+(difference quartiles −0.1/0.0/+0.1 cm, 95th percentile +11.7 cm). The
+reprocessed field is smooth and continuous across that lobe and reaches the
+amplitude the co-event pairs require; the GUNW field carries an internal
+step there and reads about one fringe low. This frame is the one whose
+provisional GUNW products carry the documented subswath-edge defects. No
+reported model quantity uses the GUNW amplitude of this pair (it enters the
+analysis as a qualitative timing bracket); the probe-history row for this
+window inherits the product's low reading.
+
+## Phase-gradient ridges (mh26.faults) and the ridge-anchored fault test
+
+Wrapped-phase gradients of the 30-m reprocessed interferograms resolve two
+coherent gradient ridges flanking the axis, detected independently in both
+NISAR geometries (median cross-geometry spread 300 m) over ~25 km of
+strike: the east ridge ≈1.6 km and the west ridge ≈1.3 km from the dike
+trace. The picker selects at most one ridge per side and 500-m bin, and a
+smooth steep gradient band can pass its quality threshold, so the ridges
+are candidate scarp lines, not mapped faults. A LOS-step diagnostic across
+each ridge (unwrapped fields; 0.1–0.4 km bands each side, local trend
+removed) tests the discontinuity interpretation: the east ridge shows an
+axis-side-down step in both geometries (median −4.8 cm ascending, −1.7 cm
+descending; 79%/63% of bins negative) — the signature of a downthrown
+scarp — while the west ridge does not (+2.9 cm ascending, −2.9 cm
+descending), so the west line remains a candidate only. The strike-frame
+sign convention is pinned to `mh26.distributed._strike_vectors`
+(ENE-positive); the extraction is label-symmetric, so an inconsistent sign
+convention swaps the east/west labels without changing the ridge geometry.
+The result also stores sensitivity to the coherence and peak-quality
+thresholds, plus a circular-shift null for cross-geometry alignment along
+strike. These diagnostics test the picker and do not turn either ridge into
+an independently mapped fault.
+
+Anchoring the inversion's fault planes at the ridges is a geometry test,
+with one construction rule: each inward-dipping column ends where it meets
+the vertical dike plane (depth = |offset| × tan dip), so no fault patch
+continues through the dike onto the far side of the rift; ridge offsets
+under ~1.9 km truncate their columns. The default mapped fit includes the
+33 of 42 nominal east patches that remain and excludes the west trace because
+it fails the cross-geometry LOS-step test. This east-trace fit has 2.42 cm
+joint RMS, compared with 2.30 cm for the two-plane idealization; its 5-km
+checkerboard holdout improves on both splits. The regularized east slip
+maximum is 0.67 m, and the fault/dike potency ratio is 0.112 (idealized:
+0.235 — the partition between opening and slip shifts with the assumed fault
+area). In the saved 55–75° dip sweep, the GUNW chain spans 0.021 cm joint RMS
+and the GSLC chain spans 0.092 cm. Their minima do not agree, and the GSLC
+minimum is at the grid boundary, so the data do not give a stable dip
+estimate. Two scope points apply to the validation. The checkerboard holdout
+is conditional — the ridge geometry
+was derived from the full fields before the split, and 5-km cells are not
+independent under the observed noise correlation lengths. NISAR→Sentinel-1 is
+the stronger transfer direction because Sentinel-1 did not set the geometry.
+The fault term also improves S1→NISAR prediction, but that reverse direction
+is conditional because the NISAR test fields affected geometry selection.
+Both parameterizations reduce in-sample and held-out residuals relative to
+opening only. These conditional tests do not establish the trace geometry;
+the 2005–2010 geometry files remain the discriminating test. The idealized
+fit is kept as the reference (`distributed_fit.*`) and the ridge-anchored fit as
+`distributed_fit_mapped.*`. That default mapped fit includes only trace sides
+that pass the saved LOS-step rule. `--traces FILE` runs the same inversion on
+all traces in an externally supplied file with the `fault_traces.json` schema.
+It writes content-hash-suffixed outputs and records the source path and SHA-256
+hash, so it cannot replace the normal mapped outputs. Stress can use that exact
+result with `--fit`. The trace schema contains surface
+trace offsets around the fitted 2026 dike frame — ingesting a full old
+dike/fault geometry with its own strike, dip, and depths needs an importer
+that will be written once those files and their format are known.
+
+## Dike-induced stress on the fault surfaces (mh26.stress)
+
+The static stress change of the saved distributed opening, with fault slip
+excluded from the source, is resolved for inward-dipping normal slip at
+receivers built from the geometry stored in the same fit. The fault patch
+centres and a 250-m depth profile follow each saved trace column. Receivers
+within 400 m horizontally of the dike plane are excluded as near-singular.
+The result is reported by depth. The shallowest receiver row is mainly
+unclamped in the 65° case, while most deeper rows are clamped. The distributed
+opening is parameterized from the surface to 10 km and has no subsurface hard
+top. The report therefore makes no conclusion relative to the uniform
+rectangle's fitted top. No GSLC stress case or input-chain-independence claim is
+reported.
+
+The strain-derivative convention of the dislocation code is checked
+against central finite differences by the module self-test
+(`python -m mh26.stress --selftest`), which also runs at the start of
+every stress computation.
+
+## Correlated-noise Monte Carlo (mh26.uncertainty)
+
+Per-dataset nugget + exponential stationary kernels are fitted to the
+far-field semivariograms of the referenced block observations (range searched
+to 30 km; the fit parameters, binned semivariograms, and any search-limit hits
+are stored in the result). A covariance fit to referenced values does not
+impose the plane-removal constraints. The best-model prediction and every
+stationary covariance draw are therefore passed through the block-space
+far-field datum and ramp projection before each synthetic field is inverted
+with fixed saved geometry, bounds, and smoothing. The noiseless refit differs
+from the best fit through the combined estimator bias — the smoothing penalty
+acting again plus the
+referencing removing part of the model's own far-field signal — so raw
+refit percentiles are reported only as estimator dispersion, and the 95%
+intervals are pivotal (basic bootstrap): refit errors about the noiseless
+refit, re-centred on the best-fit values. The intervals are conditional
+data-noise dispersion under this simulator, for the idealized-geometry
+GUNW fit at the selected smoothing; they are not a full
+physical-parameter confidence interval. Geometry, smoothing, and
+processing choices are bracketed separately by the sensitivity envelopes,
+and positivity truncates the noise response near zero slip.
+
+## Decomposition frame-coverage rule
+
+Lattice cells that straddle a NISAR swath/subswath boundary or a
+product-mask gap average partly filled, edge-degraded samples: a rim of
+ascending-frame edge cells (≈−14 cm) combined with a Sentinel-1
+tropospheric patch produced a spurious localized feature near UTM
+(670, 1338) km in early decomposition runs. The decomposition therefore
+requires every NISAR cell to be at least 90% covered by the product
+valid-sample mask. The criterion uses the mask alone — it is
+value-independent, applies to every NISAR geometry everywhere (coherence
+plays no role, so sparse-but-in-frame axial cells survive), and involves
+no post-hoc spatial selection. LiCSAR frames have no swath boundary inside
+the lattice, so no equivalent rule exists for Sentinel-1; the residual
+Sentinel-1 tropospheric patch near (670, 1338) km remains visible in
+low-redundancy cells and is disclosed in LIMITATIONS.
+
+## Decomposition probe-disk closure and the east-flank systematic
+
+The radial closure summaries hide local systematics, so closure is also
+reported inside the 2-km probe disks that define the reported divergence
+and subsidence values. The
+EAST-flank redundant cells close at ≈3.1 σ (all above 1 σ) while WEST
+closes at ≈0.6 σ and the axis disk has no redundant cells: the four looks
+disagree systematically on the east-lobe amplitude, consistent with the
+Sentinel-1-vs-NISAR amplitude ratios (0.85–0.88) of the independent S1
+cross-checks. Rerunning the decomposition with the 30-m reprocessed NISAR
+fields (`--gslc`) moves the divergence by 2–3 cm and leaves the EAST
+closure unchanged (≈3.2 σ), which locates the systematic between the
+sensors, not between the NISAR processing chains. The divergence values
+are therefore cross-sensor compromises at the east flank; the spread
+across input chain and normalization choices (+112 to +121 cm) is the
+honest width, and the source inversion — which fits each look with its own
+noise weight instead of forcing per-cell agreement — is the primary
+quantitative product.
+
 ## Parameter sensitivity
 
 The formal covariance in `results/okada_fit.json` assumes independent white
@@ -69,7 +326,7 @@ The following work is not part of the current results:
 
 - estimation with a spatial covariance model;
 - comparison with alternative source geometries;
-- comparison of the post-event pair with additional viewing geometries;
+- source modelling of the post-event signal itself;
 - integration with long-term deformation and local seismic data.
 
 The validator checks data schema, coordinates, masks, LOS vectors, raster

@@ -1,4 +1,4 @@
-"""Step 4 — pre-event probe history across all extracted pairs.
+"""pre-event probe history across all extracted pairs.
 
 Reports the 1-km-radius-disk mean of ionosphere-corrected, far-field-referenced
 LOS at three probe points (the two co-event flank peaks and a southern

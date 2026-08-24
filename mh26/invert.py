@@ -1,4 +1,4 @@
-"""Step 2 — Okada dike inversion, joint ascending + descending NISAR.
+"""Okada dike inversion, joint ascending + descending NISAR.
 
 Single rectangular tensile dislocation (vertical dike), uniform opening,
 solved by multistart least squares on block-averaged, ionosphere-corrected,

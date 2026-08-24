@@ -1,4 +1,4 @@
-"""Step 0 — rebuild data/nisar from the open NISAR archive at ASF DAAC.
+"""rebuild data/nisar from the open NISAR archive at ASF DAAC.
 
 For each row of `granules/pairs.tsv` (tag <TAB> granule ID), this command
 downloads the L2 GUNW HDF5 through earthaccess, extracts a 90 × 90 km crop,
