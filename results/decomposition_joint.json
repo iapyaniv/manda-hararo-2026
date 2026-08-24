@@ -1,0 +1,246 @@
+{
+  "nisar_source": "gunw",
+  "datasets": [
+    {
+      "name": "NISAR asc 07-08\u219207-20",
+      "decay_factor": 1.056827415909799,
+      "sigma_cm": 1.218358638770132,
+      "n_cells": 2357
+    },
+    {
+      "name": "NISAR desc 07-07\u219207-19",
+      "decay_factor": 1.031709789421209,
+      "sigma_cm": 1.7423221501850161,
+      "n_cells": 3809
+    },
+    {
+      "name": "S1 asc 07-12\u219207-18",
+      "decay_factor": 1.0,
+      "sigma_cm": 0.9246171056420048,
+      "n_cells": 3174
+    },
+    {
+      "name": "S1 desc 07-11\u219207-23",
+      "decay_factor": 1.1049665095165895,
+      "sigma_cm": 1.0046935489928763,
+      "n_cells": 3177
+    }
+  ],
+  "no_normalization_variant": {
+    "opening_divergence_cm": 117.24374418616003,
+    "axis_w_probe_cm": -15.224199069483845
+  },
+  "perp_azimuth_deg": 62.58330236374249,
+  "rift_perpendicular": {
+    "label": "rift-perpendicular (az 62.6\u00b0)",
+    "n_cells": 3453,
+    "n_cells_ge3": 3220,
+    "n_cells_3geo": 1209,
+    "n_cells_4geo": 2011,
+    "flank_h_probe_cm": {
+      "EAST": 52.253923049893515,
+      "WEST": -59.92216196628962
+    },
+    "flank_probe_geometries": {
+      "EAST": {
+        "n_cells": 8,
+        "min_geometries": 2,
+        "max_geometries": 4
+      },
+      "WEST": {
+        "n_cells": 7,
+        "min_geometries": 2,
+        "max_geometries": 4
+      }
+    },
+    "opening_divergence_cm": 112.17608501618314,
+    "axis_w_probe_cm": -14.946090595159776,
+    "axis_probe_geometries": {
+      "n_cells": 6,
+      "min_geometries": 2,
+      "max_geometries": 2
+    },
+    "median_sigma_h_cm": 1.00561336046533,
+    "median_sigma_w_cm": 0.7259202803989709,
+    "closure": {
+      "all": {
+        "n_cells": 3220,
+        "median_sigma_units": 0.5500886861235402,
+        "fraction_above_1sigma": 0.1512422360248447
+      },
+      "within_25km": {
+        "n_cells": 1102,
+        "median_sigma_units": 0.7861166171723618,
+        "fraction_above_1sigma": 0.308529945553539
+      },
+      "within_15km": {
+        "n_cells": 352,
+        "median_sigma_units": 1.1740286701069227,
+        "fraction_above_1sigma": 0.6193181818181818
+      },
+      "beyond_28km": {
+        "n_cells": 1819,
+        "median_sigma_units": 0.4071692545419472,
+        "fraction_above_1sigma": 0.06981858163826278
+      }
+    },
+    "closure_probes": {
+      "EAST": {
+        "n_redundant_cells": 6,
+        "median_sigma_units": 3.1430354152387463,
+        "fraction_above_1sigma": 1.0
+      },
+      "WEST": {
+        "n_redundant_cells": 4,
+        "median_sigma_units": 0.6194194796135778,
+        "fraction_above_1sigma": 0.25
+      },
+      "AXIS": {
+        "n_redundant_cells": 0
+      }
+    }
+  },
+  "zero_north_variant": {
+    "label": "zero-north (quasi-East)",
+    "n_cells": 3453,
+    "n_cells_ge3": 3220,
+    "n_cells_3geo": 1209,
+    "n_cells_4geo": 2011,
+    "flank_h_probe_cm": {
+      "EAST": 47.7078563611841,
+      "WEST": -53.18813915494853
+    },
+    "flank_probe_geometries": {
+      "EAST": {
+        "n_cells": 8,
+        "min_geometries": 2,
+        "max_geometries": 4
+      },
+      "WEST": {
+        "n_cells": 7,
+        "min_geometries": 2,
+        "max_geometries": 4
+      }
+    },
+    "opening_divergence_cm": 100.89599551613263,
+    "axis_w_probe_cm": -11.257593656650675,
+    "axis_probe_geometries": {
+      "n_cells": 6,
+      "min_geometries": 2,
+      "max_geometries": 2
+    },
+    "median_sigma_h_cm": 0.9160787515803853,
+    "median_sigma_w_cm": 0.7269211150863768,
+    "closure": {
+      "all": {
+        "n_cells": 3220,
+        "median_sigma_units": 0.587680020981513,
+        "fraction_above_1sigma": 0.2204968944099379
+      },
+      "within_25km": {
+        "n_cells": 1102,
+        "median_sigma_units": 0.9291881490515814,
+        "fraction_above_1sigma": 0.45644283121597096
+      },
+      "within_15km": {
+        "n_cells": 352,
+        "median_sigma_units": 1.9445997526638799,
+        "fraction_above_1sigma": 0.7528409090909091
+      },
+      "beyond_28km": {
+        "n_cells": 1819,
+        "median_sigma_units": 0.4046027463328701,
+        "fraction_above_1sigma": 0.09400769653655855
+      }
+    },
+    "closure_probes": {
+      "EAST": {
+        "n_redundant_cells": 6,
+        "median_sigma_units": 5.413220564475605,
+        "fraction_above_1sigma": 1.0
+      },
+      "WEST": {
+        "n_redundant_cells": 4,
+        "median_sigma_units": 2.938561158704374,
+        "fraction_above_1sigma": 1.0
+      },
+      "AXIS": {
+        "n_redundant_cells": 0
+      }
+    }
+  },
+  "free_3d": {
+    "n_cells": 3220,
+    "n_cells_3geo": 1209,
+    "n_cells_4geo": 2011,
+    "flank_riftperp_probe_cm": {
+      "EAST": 55.01619408036249,
+      "WEST": -62.36971984123954
+    },
+    "opening_divergence_cm": 117.38591392160203,
+    "axis_u_probe_cm": null,
+    "axis_probe_geometries": {
+      "n_cells": 0
+    },
+    "north_p01_p99_cm_within_18km": [
+      -30.728453627007408,
+      39.0236134178676
+    ],
+    "median_sigma_cm": {
+      "east": 0.9336231559804277,
+      "north": 4.486661299219351,
+      "up": 0.7563439746212767
+    },
+    "closure": {
+      "all": {
+        "n_cells": 2011,
+        "median_sigma_units": 0.4136793283984189,
+        "fraction_above_1sigma": 0.05668821481849826
+      },
+      "within_25km": {
+        "n_cells": 795,
+        "median_sigma_units": 0.5185208090311447,
+        "fraction_above_1sigma": 0.13836477987421383
+      },
+      "within_15km": {
+        "n_cells": 289,
+        "median_sigma_units": 0.526485925690874,
+        "fraction_above_1sigma": 0.28719723183391005
+      },
+      "beyond_28km": {
+        "n_cells": 1028,
+        "median_sigma_units": 0.31218464261845336,
+        "fraction_above_1sigma": 0.0038910505836575876
+      }
+    },
+    "closure_probes": {
+      "EAST": {
+        "n_redundant_cells": 5,
+        "median_sigma_units": 2.8406547997235165,
+        "fraction_above_1sigma": 1.0
+      },
+      "WEST": {
+        "n_redundant_cells": 3,
+        "median_sigma_units": 0.6389754409742591,
+        "fraction_above_1sigma": 0.3333333333333333
+      },
+      "AXIS": {
+        "n_redundant_cells": 0
+      }
+    }
+  },
+  "model_probes_cm": {
+    "flank_h": {
+      "EAST": 42.511209240183234,
+      "WEST": -48.214820080569815
+    },
+    "axis_w": 6.411944632262541
+  },
+  "notes": [
+    "per-cell weighted LS on >=2 of 4 geometries; two-look cells are exact solves and carry no redundancy",
+    "sigma = far-field robust scatter per dataset",
+    "decay normalization to co-event through 2026-07-18 (mh26.s1_tracks summary); a model choice, not a neutral epoch conversion",
+    "closure requires >=3 geometries; values in sigma units",
+    "north motion is constrained to the rift-perpendicular azimuth (from the fitted strike), not zero; the free three-component solve is reported separately"
+  ]
+}
