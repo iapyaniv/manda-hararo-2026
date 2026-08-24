@@ -11,9 +11,9 @@ Every receiver is a fault patch centre or a point along a saved trace column.
 Receivers closer than 400 m horizontally to the dike plane are excluded as
 near-singular.
 
-The result has depth structure and the report keeps it: statements are made
-per depth row, not at one depth, and the resolved stresses are computed for
-receiver dips 55/65/75 degrees.
+The result keeps both spatial and depth structure. The 65-degree case is
+stored as along-strike/depth maps and as a depth summary. Receiver-dip
+sensitivity uses 55, 65, and 75 degrees.
 
 Run after `mh26.distributed --mapped`:
     python -m mh26.stress
@@ -187,18 +187,22 @@ def fault_profile_receivers(geometry: dict, dip_deg: float,
         if side not in enabled:
             continue
         offsets = np.asarray(geometry["fault_column_offsets_m"][side], dtype=float)
-        points, depths, receiver_offsets = [], [], []
-        for s_c, trace_offset in zip(s_centres, offsets):
+        points, depths, columns, along_values, receiver_offsets = [], [], [], [], []
+        for column, (s_c, trace_offset) in enumerate(zip(s_centres, offsets)):
             z_cut = min(max_depth, abs(trace_offset) * np.tan(dip_r))
             for depth in np.arange(step_m / 2, z_cut, step_m):
                 offset = trace_offset - sign * depth / np.tan(dip_r)
                 position = (np.array([n_c, e_c]) + along * s_c + perp * offset)
                 points.append([position[0], position[1], depth])
                 depths.append(depth)
+                columns.append(column)
+                along_values.append(s_c)
                 receiver_offsets.append(offset)
         out[side] = {
             "points": np.asarray(points, dtype=float).reshape(-1, 3),
             "depths_m": np.asarray(depths, dtype=float),
+            "columns": np.asarray(columns, dtype=int),
+            "along_m": np.asarray(along_values, dtype=float),
             "offsets_m": np.asarray(receiver_offsets, dtype=float),
         }
     return out
@@ -268,13 +272,19 @@ def main(requested_fit: Path | None = None) -> None:
                   f"median ΔCFS {overall['median_cfs_mpa']:+.2f} MPa")
 
     profile = {}
+    stress_map_arrays = {}
+    stress_maps = {}
     max_fault_depth = float(np.asarray(geometry["fault_z_edges_m"])[-1])
     z_bins = np.arange(0.0, max_fault_depth + PROFILE_DZ_M, PROFILE_DZ_M)
+    map_depths = np.arange(PROFILE_DZ_M / 2, max_fault_depth, PROFILE_DZ_M)
+    map_along = np.asarray(geometry["fault_s_centres_m"], dtype=float)
     for side, receivers in fault_profile_receivers(geometry, MAIN_DIP).items():
         sign = +1.0 if side == "east" else -1.0
         keep = np.abs(receivers["offsets_m"]) > DIKE_STANDOFF_M
         rec = receivers["points"][keep]
         depths = receivers["depths_m"][keep]
+        columns = receivers["columns"][keep]
+        receiver_offsets = receivers["offsets_m"][keep]
         stress = stress_at(src_patches, src_disl, rec)
         sigma_n, cfs = resolve_normal_slip(stress, perp, sign, MAIN_DIP)
         sigma_n, cfs = sigma_n / 1e6, cfs / 1e6
@@ -294,6 +304,38 @@ def main(requested_fit: Path | None = None) -> None:
             rowsum["p84_sigma_n_mpa"].append(float(np.percentile(sigma_n[selected], 84)))
             rowsum["median_cfs_mpa"].append(float(np.median(cfs[selected])))
         profile[side] = rowsum
+
+        map_shape = (len(map_depths), len(map_along))
+        sigma_grid = np.full(map_shape, np.nan)
+        cfs_grid = np.full(map_shape, np.nan)
+        offset_grid = np.full(map_shape, np.nan)
+        depth_rows = np.rint(
+            (depths - PROFILE_DZ_M / 2) / PROFILE_DZ_M
+        ).astype(int)
+        if np.any(depth_rows < 0) or np.any(depth_rows >= len(map_depths)):
+            raise ValueError(f"{side}: profile receiver depth is outside the map grid")
+        sigma_grid[depth_rows, columns] = sigma_n
+        cfs_grid[depth_rows, columns] = cfs
+        offset_grid[depth_rows, columns] = receiver_offsets / 1e3
+        stress_map_arrays[side] = {
+            "sigma_n_mpa": sigma_grid,
+            "cfs_mpa": cfs_grid,
+            "horizontal_offset_from_dike_km": offset_grid,
+        }
+
+        def nullable_grid(values: np.ndarray) -> list[list[float | None]]:
+            return [[float(value) if np.isfinite(value) else None for value in row]
+                    for row in values]
+
+        stress_maps[side] = {
+            "along_strike_km": [float(value) / 1e3 for value in map_along],
+            "depth_km": [float(value) / 1e3 for value in map_depths],
+            "sigma_n_mpa": nullable_grid(sigma_grid),
+            "cfs_mpa": nullable_grid(cfs_grid),
+            "horizontal_offset_from_dike_km": nullable_grid(offset_grid),
+            "n_receivers": int(keep.sum()),
+            "n_excluded_near_dike": int((~keep).sum()),
+        }
 
     def row_signs(side: str) -> list[str]:
         return [f"{row['mean_receiver_depth_km']:.1f} km: "
@@ -340,9 +382,15 @@ def main(requested_fit: Path | None = None) -> None:
             "rake": "normal (hanging wall down-dip)",
             "friction": FRICTION,
             "standoff_m": DIKE_STANDOFF_M,
+            "map_spacing_m": {
+                "along_strike": (float(np.median(np.diff(map_along)))
+                                 if len(map_along) > 1 else None),
+                "depth": PROFILE_DZ_M,
+            },
         },
         "per_dip": per_dip,
         "depth_profile_dip65": profile,
+        "stress_map_dip65": stress_maps,
         "interpretation": interpretation,
     }
 
@@ -365,6 +413,8 @@ def main(requested_fit: Path | None = None) -> None:
         "fault slip is excluded from the stress source",
         "- receivers: patch centres from the fit's saved trace columns; "
         "dip-specific truncation at the dike plane; 400 m dike standoff",
+        "- spatial output: normal and Coulomb stress on a 250-m-depth by "
+        "saved-column grid for the 65° receiver case",
         "",
         "## Median normal-stress change by receiver depth (dip 65°; "
         "unclamping positive)", "",
@@ -395,12 +445,45 @@ def main(requested_fit: Path | None = None) -> None:
     md_path.write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 6), sharey=True)
+    map_sides = list(stress_map_arrays)
+    fig, axes = plt.subplots(len(map_sides) + 1, 2,
+                             figsize=(13, 4.5 * (len(map_sides) + 1)),
+                             squeeze=False)
+    map_titles = {
+        "sigma_n_mpa": "normal stress change (unclamping +)",
+        "cfs_mpa": "Coulomb stress change (normal slip)",
+    }
+    colour_limits = {
+        key: max(
+            float(np.nanmax(np.abs(values[key])))
+            for values in stress_map_arrays.values()
+        )
+        for key in map_titles
+    }
+    extent = [geometry["fault_s_edges_m"][0] / 1e3,
+              geometry["fault_s_edges_m"][-1] / 1e3,
+              max_fault_depth / 1e3, 0.0]
+    cmap = plt.get_cmap("RdBu_r").copy()
+    cmap.set_bad("white")
+    for row, side in enumerate(map_sides):
+        for column, (key, title) in enumerate(map_titles.items()):
+            ax = axes[row, column]
+            limit = max(colour_limits[key], 1e-9)
+            image = ax.imshow(stress_map_arrays[side][key], cmap=cmap,
+                              vmin=-limit, vmax=limit, extent=extent,
+                              aspect="auto")
+            plt.colorbar(image, ax=ax, shrink=0.82, label="MPa")
+            ax.set_title(f"{side} receiver plane — {title}", fontsize=10)
+            ax.set_xlabel("along strike from centroid (km)")
+            if column == 0:
+                ax.set_ylabel("receiver depth (km)")
+
+    profile_axes = axes[-1]
     colours = {"east": "tab:red", "west": "tab:blue"}
-    for ax, key, title in ((axes[0], "median_sigma_n_mpa",
-                            "normal stress change (unclamping +)"),
-                           (axes[1], "median_cfs_mpa",
-                            "Coulomb stress change (normal slip)")):
+    for ax, key, title in ((profile_axes[0], "median_sigma_n_mpa",
+                            "along-strike median normal stress"),
+                           (profile_axes[1], "median_cfs_mpa",
+                            "along-strike median Coulomb stress")):
         for side, values in profile.items():
             ax.plot(values[key], values["depth_km"], "-",
                     color=colours[side], label=f"{side} plane")
@@ -412,12 +495,13 @@ def main(requested_fit: Path | None = None) -> None:
         ax.set_xlabel("MPa")
         ax.set_title(title, fontsize=10)
         ax.grid(alpha=0.3)
-    axes[0].set_ylabel("receiver depth on the fault plane (km)")
-    axes[0].invert_yaxis()
-    axes[0].legend(fontsize=9)
+    profile_axes[0].set_ylabel("receiver depth on the fault plane (km)")
+    for ax in profile_axes:
+        ax.invert_yaxis()
+    profile_axes[0].legend(fontsize=9)
     fig.suptitle("Stress change from the saved distributed opening, resolved "
-                 "on saved trace-column receivers (65° dip; median with "
-                 "16–84% band)", fontsize=10)
+                 "on saved trace-column receivers (65° dip; maps and "
+                 "along-strike depth summaries)", fontsize=11)
     fig.tight_layout(rect=[0, 0, 1, 0.93])
     fig.savefig(figure_path, dpi=110)
     plt.close(fig)

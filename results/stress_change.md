@@ -3,6 +3,7 @@
 - source fit: `results/distributed_fit_mapped.json` (SHA-256 `8c287924a3eac112f4073cda177240fc86c6b45d46bb9088210a1d0bc8308f32`)
 - source: distributed opening with trace-column geometry; fault slip is excluded from the stress source
 - receivers: patch centres from the fit's saved trace columns; dip-specific truncation at the dike plane; 400 m dike standoff
+- spatial output: normal and Coulomb stress on a 250-m-depth by saved-column grid for the 65° receiver case
 
 ## Median normal-stress change by receiver depth (dip 65°; unclamping positive)
 
