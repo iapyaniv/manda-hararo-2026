@@ -8,4 +8,5 @@ pyrocko 2026.6.2
 rasterio 1.5.1
 pyproj 3.7.2
 earthaccess 0.18.0
+snaphu v2.0.6 (external executable used by mh26.gslc --unwrap)
 pip check: No broken requirements found.

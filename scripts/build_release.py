@@ -33,8 +33,11 @@ from mh26.params import (  # noqa: E402
     DATA_S1,
     PRE_EVENT_NISAR_TAGS,
     S1_FRAME,
+    S1_FRAMES,
     S1_PAIR,
+    S1_TRACK_PAIRS,
 )
+from mh26.gslc import DATA_GSLC  # noqa: E402
 
 
 DATA = ROOT / "data"
@@ -43,6 +46,8 @@ DIST = ROOT / "dist"
 CODE_ARCHIVE = DIST / "manda-hararo-2026_code.zip"
 CORE_ARCHIVE = DIST / "manda-hararo-2026_data-core.zip"
 PREEVENT_ARCHIVE = DIST / "manda-hararo-2026_data-preevent.zip"
+S1TRACKS_ARCHIVE = DIST / "manda-hararo-2026_data-s1tracks.zip"
+GSLC_ARCHIVE = DIST / "manda-hararo-2026_data-gslc.zip"
 
 
 def run_git(*args: str) -> str:
@@ -92,6 +97,32 @@ def preevent_files() -> list[Path]:
     return [DATA_NISAR / f"{tag}.npz" for tag in PRE_EVENT_NISAR_TAGS]
 
 
+def s1tracks_files() -> list[Path]:
+    """Two-track LiCSAR add-on: everything not already in the core archive."""
+    in_core = {
+        f"{S1_PAIR}.geo.unw.tif",
+        f"{S1_PAIR}.geo.cc.tif",
+    } | {f"{S1_FRAME}.geo.{component}.tif" for component in "ENU"}
+    names = {
+        f"{frame}.geo.{component}.tif"
+        for frame in S1_FRAMES for component in "ENU"
+    } | {
+        f"{pair}.geo.{suffix}.tif"
+        for _, pair, _ in S1_TRACK_PAIRS for suffix in ("unw", "cc")
+    }
+    return [DATA_S1 / name for name in sorted(names - in_core)]
+
+
+def gslc_files() -> list[Path]:
+    """Derived 30-m interferograms and unwrapped fields for the two inversion
+    pairs; other mh26.gslc pairs and the 1.6-GB GSLC crops are regenerable
+    from ASF and are not shipped."""
+    from mh26.params import INVERSION_PAIRS
+
+    return [DATA_GSLC / f"{tag}_{kind}.npz"
+            for tag in INVERSION_PAIRS for kind in ("ifg", "unw")]
+
+
 def manifest_text(paths: list[Path]) -> str:
     lines = [f"{sha256(path)}  {path.relative_to(DATA).as_posix()}" for path in paths]
     return "\n".join(sorted(lines)) + "\n"
@@ -107,10 +138,15 @@ def write_if_changed(path: Path, content: str) -> None:
 def write_manifests() -> None:
     core = core_files()
     preevent = preevent_files()
-    require_files(core + preevent)
+    s1tracks = s1tracks_files()
+    gslc = gslc_files()
+    require_files(core + preevent + s1tracks + gslc)
     write_if_changed(DATA / "SHA256SUMS-core.txt", manifest_text(core))
     write_if_changed(DATA / "SHA256SUMS-preevent.txt", manifest_text(preevent))
-    write_if_changed(DATA / "SHA256SUMS.txt", manifest_text(core + preevent))
+    write_if_changed(DATA / "SHA256SUMS-s1tracks.txt", manifest_text(s1tracks))
+    write_if_changed(DATA / "SHA256SUMS-gslc.txt", manifest_text(gslc))
+    write_if_changed(DATA / "SHA256SUMS.txt",
+                     manifest_text(core + preevent + s1tracks + gslc))
 
 
 def commit_datetime() -> tuple[int, int, int, int, int, int]:
@@ -190,11 +226,29 @@ def build_archives() -> None:
     ]
     write_archive(PREEVENT_ARCHIVE, preevent_entries, commit, timestamp)
 
+    s1tracks = s1tracks_files()
+    s1tracks_entries = [(path.relative_to(DATA).as_posix(), path)
+                        for path in s1tracks]
+    s1tracks_entries += [
+        ("README.md", DATA / "README.md"),
+        ("SHA256SUMS-s1tracks.txt", DATA / "SHA256SUMS-s1tracks.txt"),
+    ]
+    write_archive(S1TRACKS_ARCHIVE, s1tracks_entries, commit, timestamp)
+
+    gslc = gslc_files()
+    gslc_entries = [(path.relative_to(DATA).as_posix(), path) for path in gslc]
+    gslc_entries += [
+        ("README.md", DATA / "README.md"),
+        ("SHA256SUMS-gslc.txt", DATA / "SHA256SUMS-gslc.txt"),
+    ]
+    write_archive(GSLC_ARCHIVE, gslc_entries, commit, timestamp)
+
     write_if_changed(
         DIST / "SHA256SUMS.txt",
         "".join(
             f"{sha256(path)}  {path.name}\n"
-            for path in (CODE_ARCHIVE, CORE_ARCHIVE, PREEVENT_ARCHIVE)
+            for path in (CODE_ARCHIVE, CORE_ARCHIVE, PREEVENT_ARCHIVE,
+                         S1TRACKS_ARCHIVE, GSLC_ARCHIVE)
         ),
     )
 
