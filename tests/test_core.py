@@ -23,6 +23,7 @@ from mh26.params import CENTER_E, CENTER_N, FARFIELD_RADIUS, WAVELENGTH_L
 from mh26.s1_check import coherence_fraction
 from mh26.stress import fault_patch_receivers
 from mh26.uncertainty import referenced_noise_draw
+from mh26.wright2006 import DAT_DEFAULT, build_contract, coverage_report
 
 
 class ValidityMaskTests(unittest.TestCase):
@@ -203,6 +204,37 @@ class GeometryConventionTests(unittest.TestCase):
             saved = geometry["patches"][geometry["kinds"] == f"fault_{side}"]
             np.testing.assert_allclose(receivers[side]["points"], saved[:, :3],
                                        atol=1e-9)
+
+
+class Wright2006ContractTests(unittest.TestCase):
+    def test_dat_segments_chain_and_contract_round_trips(self) -> None:
+        geometry = build_contract(DAT_DEFAULT, extend_se=2, with_faults=False)
+        prov = geometry["wright2006_provenance"]
+        # Sub-metre junctions are what validate the inferred column meaning;
+        # growth here means the file format or the parser changed.
+        self.assertLessEqual(max(prov["junction_residuals_m"]), 0.5)
+        restored = geometry_from_json(geometry_to_json(geometry))
+        self.assertEqual(geometry_sha256(restored), geometry_sha256(geometry))
+        # The scalar frame must be the chord of the s axis: origin at s=0,
+        # azimuth toward increasing s, within the recorded chord error.
+        along, _ = _strike_vectors(geometry["strike"])
+        e_c, n_c = geometry["trace_centre"]
+        ns = geometry["dike_shape"][1]
+        top_row = geometry["patches"][:ns]
+        reconstructed = (np.array([n_c, e_c])
+                         + np.outer(geometry["dike_s_centres"], along))
+        errors = np.linalg.norm(top_row[:, :2] - reconstructed, axis=1)
+        self.assertLessEqual(errors.max(),
+                             prov["straight_frame_max_error_m"] + 0.1)
+        self.assertLess(errors.max(), 6_000.0)
+
+    def test_coverage_projection_detects_an_uncovered_trace(self) -> None:
+        geometry = build_contract(DAT_DEFAULT, extend_se=0, with_faults=False)
+        coverage = coverage_report(geometry)
+        # The 2026 uniform trace overruns the unextended 2005 plane SE end
+        # by ~2.8 km; a projection that clamps to the plane cannot see that.
+        self.assertLess(coverage["margin_se_km"], -2.0)
+        self.assertGreater(coverage["margin_nw_km"], 20.0)
 
 
 class ReferenceAndCacheTests(unittest.TestCase):

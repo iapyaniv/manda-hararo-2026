@@ -5,6 +5,7 @@ data/*
 !data/SHA256SUMS-preevent.txt
 !data/SHA256SUMS-s1tracks.txt
 !data/SHA256SUMS-gslc.txt
+!data/complex_geom2_revised_test.dat
 dist/
 .venv/
 __pycache__/

@@ -126,6 +126,38 @@ NPZ atomically, then deletes the HDF5. Expect roughly 45 GB of transfer for all
 product or adds optional lookup cubes; the release manifests identify the
 exact distributed files.
 
+## 2005 dike-plane geometry (Wright et al. 2006)
+
+`complex_geom2_revised_test.dat` is the source-model geometry of the
+September 2005 Dabbahu mega-dike, provided by Juliet Biggs (University of
+Bristol) on 26 August 2026. It is the geometry used in Wright et al. (2006,
+Nature) and in the Hamling et al. (2009, 2010) studies of the 2006–2010 dike
+sequence. Unlike the large data products, it is tiny and is committed to the
+repository directly; it is not part of any data archive.
+
+The file is an ASCII table, one source per row, twelve columns, with
+coordinates in UTM zone 37N kilometres. It carries no header; the column
+meaning below was inferred from the values and is verified numerically every
+time `mh26.wright2006` runs (the five dike-segment traces must chain
+end-to-end; the observed junction residuals are at most 0.1 m):
+
+| column | meaning |
+|---|---|
+| 1–3 | strike, dip, rake (degrees) |
+| 4–5 | easting, northing of the segment centre (km, UTM 37N) |
+| 6 | segment length (km) |
+| 7–8 | top and bottom depth (km) |
+| 9–10 | number of patches along strike and down dip |
+| 11 | group tag |
+| 12 | source type: 1 graben fault, 2 dike, 3 point source |
+
+The five type-2 rows form the continuous 61-km dike plane (vertical,
+0–10 km depth). The type-1 rows are the graben-bounding faults and the
+type-3 rows the two point sources of the 2005 model; `mh26.wright2006`
+records both as metadata but does not model them. See the module docstring
+for how the plane is discretized, extended, and combined with the 2026
+fault term.
+
 ## Terrain tile for the summary figures
 
 `mh26.summary_figures` draws its map backgrounds and profile topography from

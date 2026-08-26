@@ -229,6 +229,13 @@ def main(requested_fit: Path | None = None) -> None:
     fit_path = default_fit if requested_fit is None else requested_fit
     payload = json.loads(fit_path.read_text())
     geometry = geometry_from_json(payload["geometry"])
+    if "wright2006_provenance" in geometry:
+        # The receiver reconstruction below places fault columns in one
+        # straight strike-frame; the segmented 2005 plane has no such frame
+        # (its scalar strike/trace_centre are a chord approximation only).
+        raise SystemExit(
+            f"{fit_path}: fit uses the segmented Wright-2006 plane; this "
+            "module's straight-frame receiver reconstruction does not apply")
     saved_geometry_hash = payload.get("geometry_sha256")
     if saved_geometry_hash != geometry_sha256(geometry):
         raise ValueError(f"{fit_path}: geometry hash does not match its geometry")

@@ -106,6 +106,21 @@
   stress-change and Monte Carlo results inherit the geometry
   and noise-model assumptions in their reports. The Monte Carlo intervals
   cover data noise for the idealized GUNW fit only.
+- The fixed 2005-plane fit (`mh26.wright2006`) is a fixed-historical-plane
+  variant, not proof of co-planarity: the 2026 uniform-fit strike differs
+  from the southernmost 2005 segment by about 4°, and its endpoints lie
+  0.35 and 0.88 km off that segment's line. The plane is the Wright et
+  al. (2006) source geometry, not the longer 1 km × 1 km computational grid
+  of Hamling et al. (2009); same-plane comparisons must say which. Its 10-km
+  SE extension is our addition: about 12% of the fitted volume lies SE of
+  the historic plane's termination, while the opening tapers to zero well
+  before the extended edge (the panel step reports both), so the statement
+  "the 2026 dike extends past the 2005 plane's SE end" is a model result on
+  an invented extension, not an observation independent of it. The reused
+  smoothing weight is a numeric λ on a
+  grid with different patch widths and twice the parameters of the primary
+  fit, so regularization is matched only nominally; the reported λ-envelope
+  brackets the effect.
 
 ## Timing and continuation
 

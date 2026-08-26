@@ -78,8 +78,21 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
   `data/README.md`).
 - `mh26.distributed --geometry FILE` accepts a complete saved geometry,
   validates its patch contract, records file and geometry hashes, and uses
-  hash-suffixed outputs. The exact 2005–2010 files are still required for the
-  requested comparison.
+  hash-suffixed outputs.
+- `mh26.wright2006` builds such a geometry from the 2005 dike-plane source
+  model of Wright et al. (2006) in `data/complex_geom2_revised_test.dat`
+  (five chained vertical segments, 61 km, 0–10 km depth; see
+  `data/README.md`). The 2026 uniform-fit dike is aligned with the
+  southernmost segment (strike differs by ~4°; endpoints 0.35–0.88 km off
+  its line) and overruns its SE end by ~3 km, so the plane is extended 10 km
+  SE. The 2026 joint inversion on that fixed plane gives joint RMS 2.46 cm
+  (trace-supported free-trace fit: 2.42 cm), maximum opening 2.44 m, and
+  volume 0.156 km³ (`results/distributed_fit_geometry_86ffda580122.md`).
+  `results/uperp_2026_wright2006.png` shows the 2026 opening on the 2005
+  plane; the 2005 and 2006–2010 opening distributions for the same-plane
+  comparison are still awaited. This is a fixed-historical-plane variant
+  with nominally transferred smoothing, not a co-planarity result; see
+  `LIMITATIONS.md`.
 
 Sixteen pre-event windows from November 2025 through 15 July 2026 have a
 maximum absolute 1-km probe mean of 3.4 cm (`results/probe_history.md`). Nine
@@ -111,6 +124,9 @@ python -m mh26.faults                 # phase-gradient ridges (needs gslc archiv
 python -m mh26.distributed --mapped   # ridge-anchored fault-geometry variant
 python -m mh26.distributed --mapped --gslc
 python -m mh26.distributed --geometry FILE  # complete external patch geometry
+python -m mh26.wright2006             # 2005 dike-plane contract from data/*.dat
+python -m mh26.distributed --geometry results/geometry_wright2006.json
+python -m mh26.wright2006 --panel results/distributed_fit_geometry_86ffda580122.json
 python -m mh26.stress
 python -m mh26.uncertainty --n 1000
 python -m mh26.figures
