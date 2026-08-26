@@ -284,7 +284,20 @@ def blended_map(
     return result
 
 
+def _require_straight_frame(geometry: dict) -> None:
+    # The Wright-2006 contract's scalar strike/trace_centre are only the
+    # chord of a segmented plane, and its grafted fault-axis metadata refers
+    # to a different frame; rebuilding positions from them here would place
+    # sources tens of kilometres off their saved patches.
+    if "wright2006_provenance" in geometry:
+        raise ValueError(
+            "geometry uses the segmented Wright-2006 plane; this module's "
+            "straight-frame reconstruction does not apply — use the patch "
+            "arrays")
+
+
 def geometry_lines(geometry: dict) -> dict[str, tuple[np.ndarray, np.ndarray]]:
+    _require_straight_frame(geometry)
     e_c, n_c = geometry["trace_centre"]
     strike = np.radians(geometry["strike"])
     along_e = np.sin(strike)
@@ -474,6 +487,7 @@ def add_panel_label(ax: object, index: int, *, right: bool = False) -> None:
 
 
 def local_basis(geometry: dict) -> tuple[np.ndarray, np.ndarray]:
+    _require_straight_frame(geometry)
     strike = np.radians(geometry["strike"])
     along_ne = np.array([np.cos(strike), np.sin(strike)])
     east_side_ne = np.array([np.sin(strike), -np.cos(strike)])

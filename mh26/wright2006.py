@@ -14,6 +14,10 @@ from the values and verified by the segment-chaining check below:
     9 n along-strike patches          10 n down-dip patches
     11 group tag     12 type (1 fault, 2 dike, 3 point source)
 
+For type-3 point rows the shared top/bottom names do not apply: column 7 is
+the source depth (5 km, consistent with the Wright et al. 2006 Mogi sources)
+and column 8 is unused (0).
+
 Coordinates are segment CENTRES: the five type-2 rows chain end-to-end into
 one continuous 61 km trace once each centre is extended by +-length/2 along
 its strike (junction residuals are below 0.1 m, recorded in the output).
@@ -111,6 +115,17 @@ def parse_dat(path: Path) -> dict:
     return out
 
 
+def _point_record(row: dict) -> dict:
+    # For type-3 rows the shared top/bottom names would record an inverted
+    # depth interval (top 5, bottom 0); column 7 is the source depth and
+    # column 8 is unused.
+    record = {k: row[k] for k in COLUMNS
+              if k not in ("top_km", "bottom_km")}
+    record["depth_km"] = row["top_km"]
+    record["column8_unused"] = row["bottom_km"]
+    return record
+
+
 def _segment_ends(row: dict) -> tuple[np.ndarray, np.ndarray]:
     """(NW end, SE end) in metres (north, east)."""
     along, _ = _strike_vectors(row["strike_deg"])
@@ -146,6 +161,12 @@ def build_contract(dat_path: Path, extend_se: int,
     if len(tops) != 1 or len(bottoms) != 1 or len(n_downs) != 1:
         raise ValueError("dike segments disagree on depth extent or rows; "
                          "a single (z, s) grid no longer applies")
+    dips = {row["dip_deg"] for row in segments}
+    if dips != {90.0}:
+        raise ValueError(
+            f"dike segment dips {sorted(dips)} are not supported: patch "
+            "construction assumes a vertical plane, so a non-90 dip in a "
+            "custom --dat table would be silently discarded")
     z_top = 1e3 * tops.pop()
     z_bot = 1e3 * bottoms.pop()
     nz = int(n_downs.pop())
@@ -269,6 +290,9 @@ def build_contract(dat_path: Path, extend_se: int,
                     "'dyke geometry' (geometry of Wright et al. 2006 and the "
                     "Hamling et al. papers)",
         "column_interpretation": " | ".join(COLUMNS),
+        "column_note": "top_km/bottom_km apply to fault and dike rows; for "
+                       "point rows column 7 is the source depth and column 8 "
+                       "is unused (recorded as depth_km/column8_unused)",
         "units": "UTM 37N kilometres, converted to metres here",
         "segments_nw_to_se": [
             {k: row[k] for k in COLUMNS} for row in segments],
@@ -284,15 +308,17 @@ def build_contract(dat_path: Path, extend_se: int,
         "extension_se": {
             "n_patches": extend_se,
             "patch_width_m": ext_width,
-            "reason": "the 2026 dike is co-planar with the southernmost "
-                      "segment but overruns its SE end; the extension lets "
-                      "the data bound the opening instead of the plane edge",
+            "reason": "the 2026 dike is aligned with the southernmost "
+                      "segment (~4 deg strike difference, endpoints 0.35 and "
+                      "0.88 km off its line) and overruns its SE end; the "
+                      "extension lets the data bound the opening instead of "
+                      "the plane edge",
         },
         "unmodeled_rows": {
             "graben_faults_2005": [
                 {k: row[k] for k in COLUMNS} for row in sources["fault"]],
             "point_sources_2005": [
-                {k: row[k] for k in COLUMNS} for row in sources["point"]],
+                _point_record(row) for row in sources["point"]],
         },
         "fault_treatment": fault_source_note,
     }
@@ -435,8 +461,10 @@ def uperp_panel(result_path: Path) -> None:
     areas = (np.diff(geometry["dike_s_edges_m"])[None, :]
              * np.diff(geometry["dike_z_edges_m"])[:, None])
     volume = float((opening * areas).sum())
-    ext_fraction = (float((opening[:, ns - n_ext:] * areas[:, ns - n_ext:])
-                          .sum()) / volume if n_ext else 0.0)
+    ext_fraction = 0.0
+    if n_ext and volume > 0.0:
+        ext_fraction = float((opening[:, ns - n_ext:]
+                              * areas[:, ns - n_ext:]).sum()) / volume
     print(f"wrote {out}.png and .pdf "
           f"(max opening {opening.max():.2f} m; SE-edge column max "
           f"{opening[:, -1].max():.2f} m; extension holds "

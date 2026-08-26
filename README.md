@@ -87,7 +87,7 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
   its line) and overruns its SE end by ~3 km, so the plane is extended 10 km
   SE. The 2026 joint inversion on that fixed plane gives joint RMS 2.46 cm
   (trace-supported free-trace fit: 2.42 cm), maximum opening 2.44 m, and
-  volume 0.156 km³ (`results/distributed_fit_geometry_86ffda580122.md`).
+  volume 0.156 km³ (`results/distributed_fit_geometry_b643c0de55aa.md`).
   `results/uperp_2026_wright2006.png` shows the 2026 opening on the 2005
   plane; the 2005 and 2006–2010 opening distributions for the same-plane
   comparison are still awaited. This is a fixed-historical-plane variant
@@ -126,7 +126,7 @@ python -m mh26.distributed --mapped --gslc
 python -m mh26.distributed --geometry FILE  # complete external patch geometry
 python -m mh26.wright2006             # 2005 dike-plane contract from data/*.dat
 python -m mh26.distributed --geometry results/geometry_wright2006.json
-python -m mh26.wright2006 --panel results/distributed_fit_geometry_86ffda580122.json
+python -m mh26.wright2006 --panel results/distributed_fit_geometry_b643c0de55aa.json
 python -m mh26.stress
 python -m mh26.uncertainty --n 1000
 python -m mh26.figures

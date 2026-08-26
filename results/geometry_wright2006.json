@@ -7199,6 +7199,7 @@
  ],
  "wright2006_provenance": {
   "column_interpretation": "strike_deg | dip_deg | rake_deg | east_km | north_km | length_km | top_km | bottom_km | n_along | n_downdip | group | type",
+  "column_note": "top_km/bottom_km apply to fault and dike rows; for point rows column 7 is the source depth and column 8 is unused (recorded as depth_km/column8_unused)",
   "coverage_2026_uniform_fit": {
    "endpoint_offplane_offsets_m": [
     348.7,
@@ -7220,7 +7221,7 @@
   "extension_se": {
    "n_patches": 5,
    "patch_width_m": 2001.5597272727273,
-   "reason": "the 2026 dike is co-planar with the southernmost segment but overruns its SE end; the extension lets the data bound the opening instead of the plane edge"
+   "reason": "the 2026 dike is aligned with the southernmost segment (~4 deg strike difference, endpoints 0.35 and 0.88 km off its line) and overruns its SE end; the extension lets the data bound the opening instead of the plane edge"
   },
   "fault_frame": {
    "strike_deg": 152.5833023637425,
@@ -7430,7 +7431,8 @@
    ],
    "point_sources_2005": [
     {
-     "bottom_km": 0.0,
+     "column8_unused": 0.0,
+     "depth_km": 5.0,
      "dip_deg": 0.0,
      "east_km": 667.8,
      "group": 0.0,
@@ -7440,11 +7442,11 @@
      "north_km": 1402.0,
      "rake_deg": 0.0,
      "strike_deg": 0.0,
-     "top_km": 5.0,
      "type": 3.0
     },
     {
-     "bottom_km": 0.0,
+     "column8_unused": 0.0,
+     "depth_km": 5.0,
      "dip_deg": 0.0,
      "east_km": 660.7,
      "group": 0.0,
@@ -7454,7 +7456,6 @@
      "north_km": 1394.1,
      "rake_deg": 0.0,
      "strike_deg": 0.0,
-     "top_km": 5.0,
      "type": 3.0
     }
    ]

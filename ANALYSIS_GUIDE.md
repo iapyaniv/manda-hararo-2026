@@ -46,7 +46,7 @@ Manda Hararo intrusion.
   builds that contract from the 2005 dike-plane source model in
   `data/complex_geom2_revised_test.dat` (provenance and format in
   `data/README.md`); the fixed-plane 2026 fit is
-  `results/distributed_fit_geometry_86ffda580122.{json,md}` and
+  `results/distributed_fit_geometry_b643c0de55aa.{json,md}` and
   `results/uperp_2026_wright2006.png` shows the 2026 opening on the
   2005 plane.
   `results/stress_change.md` resolves the dike's stress change as spatial

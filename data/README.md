@@ -146,7 +146,7 @@ end-to-end; the observed junction residuals are at most 0.1 m):
 | 1–3 | strike, dip, rake (degrees) |
 | 4–5 | easting, northing of the segment centre (km, UTM 37N) |
 | 6 | segment length (km) |
-| 7–8 | top and bottom depth (km) |
+| 7–8 | top and bottom depth (km); for type-3 point rows, column 7 is the source depth and column 8 is unused |
 | 9–10 | number of patches along strike and down dip |
 | 11 | group tag |
 | 12 | source type: 1 graben fault, 2 dike, 3 point source |

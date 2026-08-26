@@ -1,6 +1,6 @@
 # Distributed opening + graben-fault model (four geometries; complete external geometry)
 
-- fault geometry: complete patch geometry from results/geometry_wright2006.json (file SHA-256 86ffda58012256c63fe8df4c762604927a8dbf62ba3997eedad55644268f13c0; geometry SHA-256 0e587ed44c3ee32399410621d706e814f877fb6b18b2eabf129fbd7fae53ba7a)
+- fault geometry: complete patch geometry from results/geometry_wright2006.json (file SHA-256 b643c0de55aa324e5683817d587cada1e9b6daebc4383849c45ef813ca5cbbee; geometry SHA-256 9e2429ca3944c943b193c461279ecab180e7facb47e9d9d1be4a046734e969c2)
 - data: NISAR asc 07-08→07-20, NISAR desc 07-07→07-19, S1 asc 07-12→07-18, S1 desc 07-11→07-23 (14053 blocks)
 - decay normalization to 2026-07-18 (factors 1.057, 1.032, 1.000, 1.105)
 - smoothing: λ = 17.78 reused from the primary fit so variants compare at matched regularization
