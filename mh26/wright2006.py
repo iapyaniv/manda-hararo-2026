@@ -68,6 +68,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 
 from .distributed import (
@@ -425,7 +426,7 @@ def write_contract(args: argparse.Namespace) -> None:
 
 
 def uperp_panel(result_path: Path) -> None:
-    """Hamling et al. (2010) Fig 2-style opening panel from a saved fit."""
+    """Render one opening cross-section using Hamling's U_perp panel view."""
     payload = json.loads(Path(result_path).read_text())
     geometry, _ = load_geometry_source(result_path)
     prov = geometry.get("wright2006_provenance")
@@ -437,19 +438,111 @@ def uperp_panel(result_path: Path) -> None:
 
     s_edges = geometry["dike_s_edges_m"] / 1e3
     z_edges = geometry["dike_z_edges_m"] / 1e3
-    fig, ax = plt.subplots(figsize=(9.0, 2.8), constrained_layout=True)
-    mesh = ax.pcolormesh(s_edges, z_edges, opening, cmap="viridis",
-                         vmin=0.0, shading="flat", rasterized=True)
+    s_centres = 0.5 * (s_edges[:-1] + s_edges[1:])
+    z_centres = 0.5 * (z_edges[:-1] + z_edges[1:])
+    # Repeat the boundary patch values at their edges so the contours cover
+    # the saved model domain without extending beyond it.
+    s_plot = np.concatenate(([s_edges[0]], s_centres, [s_edges[-1]]))
+    z_plot = np.concatenate(([z_edges[0]], z_centres, [z_edges[-1]]))
+    opening_plot = np.pad(opening, 1, mode="edge")
+
+    vmax = 2.5
+    fill_levels = np.linspace(0.0, vmax, 21)
+    opening_cmap = LinearSegmentedColormap.from_list(
+        "hamling_opening",
+        [
+            (0.00, "#ffffff"),
+            (0.12, "#fff7bc"),
+            (0.38, "#fec44f"),
+            (0.68, "#f03b20"),
+            (1.00, "#b1006e"),
+        ],
+    )
+    extend = "max" if float(opening.max()) > vmax else "neither"
+
+    fig, ax = plt.subplots(figsize=(9.0, 3.0), constrained_layout=True)
+    filled = ax.contourf(
+        s_plot,
+        z_plot,
+        opening_plot,
+        levels=fill_levels,
+        cmap=opening_cmap,
+        extend=extend,
+        antialiased=True,
+    )
+    filled.set_rasterized(True)
+    line_levels = [level for level in (0.5, 1.0, 1.5, 2.0)
+                   if level < float(opening.max())]
+    if line_levels:
+        ax.contour(
+            s_plot,
+            z_plot,
+            opening_plot,
+            levels=line_levels,
+            colors="0.15",
+            linewidths=0.55,
+        )
+
     n_ext = prov["extension_se"]["n_patches"]
     if n_ext:
-        # Boundary between the original Wright plane and the SE extension.
-        ax.axvline(s_edges[ns - n_ext], color="w", lw=0.8, ls="--")
+        original_se = s_edges[ns - n_ext]
+        ax.axvspan(original_se, s_edges[-1], color="0.65", alpha=0.12,
+                   zorder=2)
+        ax.axvline(original_se, color="0.25", lw=0.9, ls=(0, (4, 3)),
+                   zorder=4)
+        ax.text(
+            original_se + 0.35,
+            0.5,
+            "2005 SE limit",
+            transform=ax.get_xaxis_transform(),
+            rotation=90,
+            ha="left",
+            va="center",
+            fontsize=7.5,
+            color="0.20",
+            bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.78,
+                  "pad": 1.2},
+            zorder=5,
+        )
+        ax.text(
+            0.5 * (original_se + s_edges[-1]),
+            0.035,
+            f"{s_edges[-1] - original_se:.0f} km SE\nextension",
+            transform=ax.get_xaxis_transform(),
+            ha="center",
+            va="bottom",
+            fontsize=7.0,
+            color="0.20",
+            bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.78,
+                  "pad": 1.2},
+            zorder=5,
+        )
+
+    ax.set_xlim(s_edges[0], s_edges[-1])
+    ax.set_ylim(z_edges[0], z_edges[-1])
     ax.set_xlabel("Distance along the 2005 dike plane, NW→SE (km)")
-    ax.set_ylabel("Depth (km)")
+    ax.set_ylabel("Modelled depth (km)")
     ax.invert_yaxis()
-    ax.set_title("July 2026 intrusion: opening on the Wright et al. (2006) "
-                 "plane")
-    fig.colorbar(mesh, ax=ax, label="U$_\\perp$ (m)", shrink=0.9)
+    ax.set_title("July 2026", loc="left", fontsize=11, fontweight="bold",
+                 pad=7)
+    ax.set_title(
+        f"Wright et al. (2006) plane · 0–{z_edges[-1]:g} km model depth",
+        loc="right",
+        fontsize=8.5,
+        color="0.30",
+        pad=8,
+    )
+    ax.text(0.985, 0.92, "U$_\\perp$", transform=ax.transAxes,
+            ha="right", va="top", fontsize=11, fontstyle="italic")
+    colorbar = fig.colorbar(
+        filled,
+        ax=ax,
+        label="U$_\\perp$ (m)",
+        ticks=np.arange(0.0, vmax + 0.01, 0.5),
+        shrink=0.92,
+        pad=0.025,
+    )
+    colorbar.ax.tick_params(labelsize=8)
     out = RESULTS / "uperp_2026_wright2006"
     for ext in ("png", "pdf"):
         fig.savefig(f"{out}.{ext}", dpi=250)

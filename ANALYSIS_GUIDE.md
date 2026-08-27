@@ -47,8 +47,12 @@ Manda Hararo intrusion.
   `data/complex_geom2_revised_test.dat` (provenance and format in
   `data/README.md`); the fixed-plane 2026 fit is
   `results/distributed_fit_geometry_b643c0de55aa.{json,md}` and
-  `results/uperp_2026_wright2006.png` shows the 2026 opening on the
-  2005 plane.
+  `results/uperp_2026_wright2006.png` is one 2026 U⊥ cross-section on
+  the Wright et al. (2006) plane. It uses the along-strike/depth view of an
+  individual U⊥ opening panel in Hamling et al. (2010) Figure 2; it does not
+  reproduce that figure's multi-event opening-and-stress layout. The panel
+  uses a fixed 0–2.5 m scale and labels the added southeast section. Its
+  0–10 km plane is not the later Hamling computational grid.
   `results/stress_change.md` resolves the dike's stress change as spatial
   maps and a depth summary on the supported fault surface;
   `results/distributed_uncertainty.md` gives

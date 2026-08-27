@@ -88,11 +88,15 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
   SE. The 2026 joint inversion on that fixed plane gives joint RMS 2.46 cm
   (trace-supported free-trace fit: 2.42 cm), maximum opening 2.44 m, and
   volume 0.156 km³ (`results/distributed_fit_geometry_b643c0de55aa.md`).
-  `results/uperp_2026_wright2006.png` shows the 2026 opening on the 2005
-  plane; the 2005 and 2006–2010 opening distributions for the same-plane
-  comparison are still awaited. This is a fixed-historical-plane variant
-  with nominally transferred smoothing, not a co-planarity result; see
-  `LIMITATIONS.md`.
+  `results/uperp_2026_wright2006.png` is one 2026 U⊥ cross-section on
+  the Wright plane. It uses the along-strike/depth view of an individual
+  opening panel in Hamling et al. (2010) Figure 2; it is not a reproduction
+  of that multi-event opening-and-stress figure. Its fixed 0–2.5 m scale can
+  support a later comparison after the historical coordinate definitions
+  are checked. The panel labels the 10-km southeast extension and the
+  0–10 km model depth. The historical opening distributions are still
+  awaited. This is a fixed-historical-plane variant with nominally
+  transferred smoothing, not a co-planarity result; see `LIMITATIONS.md`.
 
 Sixteen pre-event windows from November 2025 through 15 July 2026 have a
 maximum absolute 1-km probe mean of 3.4 cm (`results/probe_history.md`). Nine
