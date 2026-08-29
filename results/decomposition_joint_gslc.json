@@ -229,6 +229,67 @@
       }
     }
   },
+  "dike_frame": {
+    "strike_deg": 152.5833023637425,
+    "axes": {
+      "par": "along strike, positive toward the strike azimuth (SSE here)",
+      "perp": "perpendicular-left of strike, positive toward strike \u2212 90\u00b0 (ENE here; the axis of the constrained solve's h)",
+      "u": "up"
+    },
+    "flank_probe_cm": {
+      "perp": {
+        "EAST": 59.166070456726295,
+        "WEST": -61.599985259505274
+      },
+      "par": {
+        "EAST": 5.68615711631329,
+        "WEST": -4.64073118279992
+      },
+      "u": {
+        "EAST": 27.46285042289068,
+        "WEST": 23.1828763760302
+      }
+    },
+    "model_flank_probe_cm": {
+      "perp": {
+        "EAST": 42.511209240183234,
+        "WEST": -48.214820080569815
+      },
+      "par": {
+        "EAST": 0.5524375105797926,
+        "WEST": 0.2896876856123084
+      },
+      "u": {
+        "EAST": 29.793710765534335,
+        "WEST": 33.05704410617442
+      }
+    },
+    "opening_divergence_cm": 120.76605571623156,
+    "median_sigma_cm": {
+      "perp": 2.1040854083870255,
+      "par": 4.131102832481613,
+      "u": 0.7632662353167972
+    },
+    "par_p01_p99_cm_within_18km": [
+      -14.783276911687949,
+      39.675110106966216
+    ],
+    "par_fraction_above_2sigma_within_18km": 0.35514018691588783,
+    "strike_sensitivity": {
+      "alternative_strike_deg": 148.46783,
+      "source": "southernmost Wright et al. (2006) segment (results/geometry_wright2006.json)",
+      "flank_probe_cm": {
+        "perp": {
+          "EAST": 58.605429874359636,
+          "WEST": -61.1080955476041
+        },
+        "par": {
+          "EAST": 9.917654222809743,
+          "WEST": -9.049598246727122
+        }
+      }
+    }
+  },
   "model_probes_cm": {
     "flank_h": {
       "EAST": 42.511209240183234,
@@ -241,6 +302,7 @@
     "sigma = far-field robust scatter per dataset",
     "decay normalization to co-event through 2026-07-18 (mh26.s1_tracks summary); a model choice, not a neutral epoch conversion",
     "closure requires >=3 geometries; values in sigma units",
-    "north motion is constrained to the rift-perpendicular azimuth (from the fitted strike), not zero; the free three-component solve is reported separately"
+    "north motion is constrained to the rift-perpendicular azimuth (from the fitted strike), not zero; the free three-component solve is reported separately",
+    "dike_frame is an exact rotation of the free solve into (along-strike, perpendicular-left, up) with the east\u2013north cross-covariance carried into the rotated sigmas"
   ]
 }

@@ -22,6 +22,11 @@ weighted residual is a cross-sensor closure diagnostic, reported as a map.
 
 Run after `mh26.invert` and `mh26.s1_tracks`:  python -m mh26.decompose3d
 
+The free (east, north, up) solve is also rotated into the dike frame —
+along strike, perpendicular-left of strike (ENE, the same axis as h), and
+up — with the east–north cross-covariance carried into the rotated formal
+sigmas, so the rotation is exact and identical to a solve in that basis.
+
 Writes results/decomposition_joint.{json,md} and
 results/decomposition_joint.png.
 """
@@ -63,7 +68,13 @@ from .s1_tracks import (
     load_pair_los,
     reference,
 )
-from .distributed import NISAR_LABEL, S1_GEOMETRY, decay_factor, robust_sigma
+from .distributed import (
+    NISAR_LABEL,
+    S1_GEOMETRY,
+    _strike_vectors,
+    decay_factor,
+    robust_sigma,
+)
 
 LATTICE_STEP = 1_280.0
 LATTICE_HALF = 40_000.0
@@ -260,7 +271,8 @@ def solve_cells_3d(cells: list[dict]) -> dict:
     """
     shape = cells[0]["los"].shape
     out = {k: np.full(shape, np.nan) for k in
-           ("e", "n", "u", "closure", "sigma_e", "sigma_n", "sigma_u")}
+           ("e", "n", "u", "closure", "sigma_e", "sigma_n", "sigma_u",
+            "cov_en")}
     n_geo = np.zeros(shape, dtype=int)
     stack_los = np.stack([c["los"] for c in cells])
     stack_e = np.stack([c["e"] for c in cells])
@@ -286,10 +298,114 @@ def solve_cells_3d(cells: list[dict]) -> dict:
         out["e"][r, c], out["n"][r, c], out["u"][r, c] = m
         sig = np.sqrt(np.diag(cov))
         out["sigma_e"][r, c], out["sigma_n"][r, c], out["sigma_u"][r, c] = sig
+        out["cov_en"][r, c] = cov[0, 1]
         n_geo[r, c] = int(sel.sum())
         if sel.sum() > 3:
             out["closure"][r, c] = float(np.sqrt(np.mean(resid ** 2)))
     out["n_geometries"] = n_geo
+    return out
+
+
+DIKE_FRAME_AXES = {
+    "par": "along strike, positive toward the strike azimuth (SSE here)",
+    "perp": "perpendicular-left of strike, positive toward strike − 90° "
+            "(ENE here; the axis of the constrained solve's h)",
+    "u": "up",
+}
+
+
+def dike_frame(fields: dict, strike_deg: float) -> dict:
+    """Rotate a free (east, north, up) solve into the dike frame.
+
+    Uses the `_strike_vectors` frame (along strike, perpendicular-left, up),
+    so U⊥ is the same ENE-positive axis as h in `solve_cells`. A linear
+    reparameterization leaves the least-squares solution unchanged; the
+    rotated variances need the east–north cross-covariance, which the near-
+    polar geometries make large, so it is carried explicitly.
+    """
+    along, perp = _strike_vectors(strike_deg)  # (north, east) unit vectors
+    var_e, var_n = fields["sigma_e"] ** 2, fields["sigma_n"] ** 2
+    cov = fields["cov_en"]
+    out = {"u": fields["u"], "sigma_u": fields["sigma_u"],
+           "closure": fields["closure"], "n_geometries": fields["n_geometries"]}
+    for name, (v_n, v_e) in (("par", along), ("perp", perp)):
+        out[name] = v_e * fields["e"] + v_n * fields["n"]
+        out[f"sigma_{name}"] = np.sqrt(
+            v_e ** 2 * var_e + v_n ** 2 * var_n + 2.0 * v_e * v_n * cov)
+    return out
+
+
+def model_dike_frame(model: np.ndarray) -> dict[str, np.ndarray]:
+    """Uniform-model (par, perp, up) on the lattice, for comparison."""
+    centres_e, centres_n = lattice_axes()
+    CE, CN = np.meshgrid(centres_e, centres_n)
+    disp = forward(model, np.column_stack([CN.ravel(), CE.ravel()]))
+    along, perp = _strike_vectors(float(model[2]))
+    out = {}
+    for name, (v_n, v_e) in (("par", along), ("perp", perp)):
+        out[name] = (v_e * disp[:, 1] + v_n * disp[:, 0]).reshape(CE.shape)
+    out["u"] = disp[:, 2].reshape(CE.shape)
+    return out
+
+
+def wright_plane_se_strike(reference_strike_deg: float) -> float | None:
+    """Strike of the southernmost Wright et al. (2006) dike segment.
+
+    Taken from the saved `mh26.wright2006` contract when present, and
+    expressed in the sense within 90° of the reference strike so that the
+    along-strike sign convention is the same as for the fitted dike.
+    """
+    path = RESULTS / "geometry_wright2006.json"
+    if not path.exists():
+        return None
+    provenance = json.loads(path.read_text())["wright2006_provenance"]
+    strike = float(provenance["segments_nw_to_se"][-1]["strike_deg"])
+    if abs(((strike - reference_strike_deg + 180.0) % 360.0) - 180.0) > 90.0:
+        strike = (strike + 180.0) % 360.0
+    return strike
+
+
+def summarize_dike_frame(frame: dict, model_frame: dict, strike_deg: float,
+                         fields_3d: dict, alt_strike_deg: float | None) -> dict:
+    centres_e, centres_n = lattice_axes()
+    CE, CN = np.meshgrid(centres_e, centres_n)
+    near18 = (np.hypot(CE - CENTER_E, CN - CENTER_N) < 18_000) \
+        & np.isfinite(frame["par"])
+    probes = {comp: {"EAST": probe_mean(frame[comp], PROBES["EAST"]),
+                     "WEST": probe_mean(frame[comp], PROBES["WEST"])}
+              for comp in ("perp", "par", "u")}
+    east, west = probes["perp"]["EAST"], probes["perp"]["WEST"]
+    snr = np.abs(frame["par"][near18]) / frame["sigma_par"][near18]
+    out = {
+        "strike_deg": float(strike_deg),
+        "axes": DIKE_FRAME_AXES,
+        "flank_probe_cm": probes,
+        "model_flank_probe_cm": {
+            comp: {"EAST": probe_mean(model_frame[comp], PROBES["EAST"]),
+                   "WEST": probe_mean(model_frame[comp], PROBES["WEST"])}
+            for comp in ("perp", "par", "u")},
+        "opening_divergence_cm": (east - west)
+        if east is not None and west is not None else None,
+        "median_sigma_cm": {
+            comp: float(100 * np.nanmedian(frame[f"sigma_{comp}"]))
+            for comp in ("perp", "par", "u")},
+        "par_p01_p99_cm_within_18km": [
+            float(v) for v in 100 * np.nanpercentile(frame["par"][near18], [1, 99])
+        ] if near18.sum() >= 50 else None,
+        "par_fraction_above_2sigma_within_18km": float(np.mean(snr > 2.0))
+        if near18.sum() >= 50 else None,
+    }
+    if alt_strike_deg is not None:
+        alt = dike_frame(fields_3d, alt_strike_deg)
+        out["strike_sensitivity"] = {
+            "alternative_strike_deg": float(alt_strike_deg),
+            "source": "southernmost Wright et al. (2006) segment "
+                      "(results/geometry_wright2006.json)",
+            "flank_probe_cm": {
+                comp: {"EAST": probe_mean(alt[comp], PROBES["EAST"]),
+                       "WEST": probe_mean(alt[comp], PROBES["WEST"])}
+                for comp in ("perp", "par")},
+        }
     return out
 
 
@@ -528,6 +644,20 @@ def main(nisar_source: str = "gunw") -> None:
         "closure_probes": closure_probes(fields_3d),
     }
 
+    strike = float(model[2])
+    frame = dike_frame(fields_3d, strike)
+    summary_frame = summarize_dike_frame(
+        frame, model_dike_frame(model), strike, fields_3d,
+        wright_plane_se_strike(strike))
+    for side in ("EAST", "WEST"):
+        rotated = summary_frame["flank_probe_cm"]["perp"][side]
+        projected = summary_3d["flank_riftperp_probe_cm"][side]
+        if rotated is None or projected is None \
+                or not np.isclose(rotated, projected, atol=1e-9):
+            raise ValueError(f"dike-frame U⊥ {side} probe {rotated} differs "
+                             f"from the projected rift-perpendicular probe "
+                             f"{projected}")
+
     # The decay normalization is a model choice; report the unnormalized
     # variant so its effect is visible in the results themselves.
     cells_nd = load_cells(model, decay, apply_decay=False,
@@ -549,6 +679,7 @@ def main(nisar_source: str = "gunw") -> None:
         "rift_perpendicular": summary,
         "zero_north_variant": summary_zn,
         "free_3d": summary_3d,
+        "dike_frame": summary_frame,
         "model_probes_cm": {
             "flank_h": {"EAST": probe_mean(model_h, PROBES["EAST"]),
                         "WEST": probe_mean(model_h, PROBES["WEST"])},
@@ -564,6 +695,9 @@ def main(nisar_source: str = "gunw") -> None:
             "north motion is constrained to the rift-perpendicular azimuth "
             "(from the fitted strike), not zero; the free three-component "
             "solve is reported separately",
+            "dike_frame is an exact rotation of the free solve into "
+            "(along-strike, perpendicular-left, up) with the east–north "
+            "cross-covariance carried into the rotated sigmas",
         ],
     }
     (RESULTS / f"decomposition_joint{suffix}.json").write_text(
@@ -656,6 +790,47 @@ def main(nisar_source: str = "gunw") -> None:
              else f"{name} no redundant cells")
             for name, st in summary_3d["closure_probes"].items()),
         "",
+        "## Dike-frame components (rotated free three-component solve)",
+        "",
+        f"- frame from the fitted strike {strike:.1f}°: U∥ along strike "
+        f"(positive toward azimuth {strike:.1f}°, SSE), U⊥ perpendicular-left "
+        f"(positive toward azimuth {(strike - 90) % 360:.1f}°, ENE), up; an "
+        "exact rotation of the free solve, so coverage and closure are "
+        "unchanged",
+        f"- flank U⊥ probes: EAST "
+        f"{fmt(summary_frame['flank_probe_cm']['perp']['EAST'])}, WEST "
+        f"{fmt(summary_frame['flank_probe_cm']['perp']['WEST'])} ⇒ divergence "
+        f"{fmt(summary_frame['opening_divergence_cm'])} (identical to the "
+        "projected values above)",
+        f"- flank U∥ probes: EAST "
+        f"{fmt(summary_frame['flank_probe_cm']['par']['EAST'])}, WEST "
+        f"{fmt(summary_frame['flank_probe_cm']['par']['WEST'])} (uniform "
+        f"model: EAST {fmt(summary_frame['model_flank_probe_cm']['par']['EAST'])}, "
+        f"WEST {fmt(summary_frame['model_flank_probe_cm']['par']['WEST'])})",
+        f"- median formal sigmas: U⊥ "
+        f"{summary_frame['median_sigma_cm']['perp']:.1f} cm, U∥ "
+        f"{summary_frame['median_sigma_cm']['par']:.1f} cm, up "
+        f"{summary_frame['median_sigma_cm']['u']:.1f} cm — U∥ is nearly "
+        "north–south, the direction the near-polar looks observe weakly, so "
+        "it inherits most of the north uncertainty",
+        (f"- U∥ within 18 km: p01/p99 "
+         f"{summary_frame['par_p01_p99_cm_within_18km'][0]:+.1f}/"
+         f"{summary_frame['par_p01_p99_cm_within_18km'][1]:+.1f} cm; "
+         f"{100 * summary_frame['par_fraction_above_2sigma_within_18km']:.0f}% "
+         "of cells exceed 2 σ∥"
+         if summary_frame["par_p01_p99_cm_within_18km"] else
+         "- U∥ within 18 km: too few cells"),
+        (f"- strike sensitivity: with the southernmost 2005 segment strike "
+         f"{summary_frame['strike_sensitivity']['alternative_strike_deg']:.1f}° "
+         "the flank probes become U⊥ EAST "
+         f"{fmt(summary_frame['strike_sensitivity']['flank_probe_cm']['perp']['EAST'])}, "
+         f"WEST {fmt(summary_frame['strike_sensitivity']['flank_probe_cm']['perp']['WEST'])}; "
+         "U∥ EAST "
+         f"{fmt(summary_frame['strike_sensitivity']['flank_probe_cm']['par']['EAST'])}, "
+         f"WEST {fmt(summary_frame['strike_sensitivity']['flank_probe_cm']['par']['WEST'])}"
+         if "strike_sensitivity" in summary_frame else
+         "- strike sensitivity: no saved Wright et al. (2006) contract"),
+        "",
         "## Scope",
         "",
         "- The EAST-flank redundant cells close poorly (see the probe-disk",
@@ -675,6 +850,9 @@ def main(nisar_source: str = "gunw") -> None:
         "  field and grows in the deforming area, where window differences and",
         "  steep gradients dominate; see the regional closure line above.",
         "- Formal sigmas propagate the far-field dataset scatter only.",
+        "- The dike frame depends on the chosen strike; the along-strike",
+        "  component is the weakly observed one, and a few degrees of strike",
+        "  moves a few percent of U⊥ into U∥ (see the sensitivity line).",
         "- The decay normalization assumes the post-event transient shares the",
         "  co-event dike pattern; it is a model choice (see LIMITATIONS.md).",
     ]

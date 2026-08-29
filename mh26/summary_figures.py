@@ -23,6 +23,9 @@ files; nothing is refitted.
 5. ``summary_fault_stress``: dike-induced normal and Coulomb stress change
    on the trace-supported east-fault receivers, with map-space fields at a
    fixed depth and a GSLC/GUNW input comparison on identical receivers.
+6. ``summary_decomposition_dike_frame``: the same free solve rotated into
+   the dike frame — dike-perpendicular, dike-parallel, and up — with the
+   rotated formal uncertainties (``mh26.decompose3d.dike_frame``).
 
 Inputs: the gslc data archive (or a rebuild, see ``data/README.md``), the
 saved results listed above, and one Copernicus GLO-30 terrain tile used
@@ -36,7 +39,7 @@ Its SHA-256 hash is pinned below and verified at run time.
 Run after ``mh26.distributed --mapped --gslc``, ``mh26.decompose3d --gslc``,
 ``mh26.faults``, and ``mh26.stress``:
 
-    python -m mh26.summary_figures              # all five figures
+    python -m mh26.summary_figures              # all six figures
     python -m mh26.summary_figures --only los   # one figure
 
 Writes ``results/summary_*.png`` (300 dpi) with matching vector PDF files,
@@ -80,7 +83,7 @@ import rasterio
 from scipy.interpolate import RegularGridInterpolator
 from scipy.ndimage import gaussian_filter
 
-from .decompose3d import lattice_axes, load_cells, solve_cells_3d
+from .decompose3d import dike_frame, lattice_axes, load_cells, solve_cells_3d
 from .distributed import (
     NISAR_LABEL,
     S1_GEOMETRY,
@@ -148,9 +151,10 @@ RESIDUAL_LIMIT_M = 0.10
 DISPLACEMENT_LIMIT_CM = 60.0
 SIGMA_LIMIT_CM = 8.0
 CLOSURE_LIMIT_SIGMA = 2.0
-# Display stipple only: north cells above this formal sigma are dotted so a
-# clipped near-axis cell cannot read as signal. The solve is unchanged.
-NORTH_SIGMA_STIPPLE_CM = 6.0
+# Display stipple only: cells of the weakly observed horizontal component
+# (north, or dike-parallel) above this formal sigma are dotted so a clipped
+# near-axis cell cannot read as signal. The solve is unchanged.
+WEAK_SIGMA_STIPPLE_CM = 6.0
 
 # Source figure display.
 DIKE_LIMIT_M = 2.6
@@ -1267,9 +1271,10 @@ def draw_enu_background(
     )
 
 
-def build_decomposition_figure() -> list[Path]:
+def decomposition_inputs() -> tuple[dict, dict, np.ndarray, dict]:
+    """Recompute the free E–N–U solve from the GSLC inputs and check it."""
     summary = json.loads((RESULTS / "decomposition_joint_gslc.json").read_text())
-    fit_payload, geometry, _ = load_mapped_gslc_fit()
+    _, geometry, _ = load_mapped_gslc_fit()
     model = np.asarray(
         json.loads((RESULTS / "okada_fit.json").read_text())["values"][:7],
         dtype=float,
@@ -1278,8 +1283,54 @@ def build_decomposition_figure() -> list[Path]:
     cells = load_cells(model, decay, nisar_source="gslc")
     fields = solve_cells_3d(cells)
     validate_recomputed_fields(fields, summary)
-    centres_e, centres_n = lattice_axes()
+    return summary, geometry, model, fields
 
+
+def draw_frame_axes(ax: object, strike_deg: float) -> None:
+    """Arrows for +U⊥ and +U∥ of the dike frame, lower right of a map."""
+    along, perp = _strike_vectors(strike_deg)
+    x0, y0 = X_MAX - 7_500.0, Y_MIN + 7_000.0
+    length = 4_500.0
+    for (v_n, v_e), label in ((perp, "U⊥"), (along, "U∥")):
+        ax.annotate(
+            "",
+            xy=(x0 + length * v_e, y0 + length * v_n),
+            xytext=(x0, y0),
+            arrowprops={"arrowstyle": "-|>", "lw": 1.0, "color": "black"},
+            zorder=8,
+        )
+        ax.text(
+            x0 + 1.4 * length * v_e,
+            y0 + 1.4 * length * v_n,
+            label,
+            ha="center",
+            va="center",
+            fontsize=6.4,
+            fontweight="bold",
+            bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.82,
+                  "pad": 0.8},
+            zorder=9,
+        )
+
+
+def three_component_figure(
+    fields: dict,
+    geometry: dict,
+    components: tuple[tuple[str, str, str, str | None], ...],
+    *,
+    stem: str,
+    title: str,
+    subtitle: str,
+    footnote: str,
+    frame_strike_deg: float | None = None,
+) -> list[Path]:
+    """Two-row map figure: three components with formal σ, coverage, closure.
+
+    ``components`` gives (field key, panel title, σ panel title, weak-note)
+    per column; the column with a weak-note is stippled where its formal σ
+    exceeds WEAK_SIGMA_STIPPLE_CM.
+    """
+    centres_e, centres_n = lattice_axes()
     terrain_x, terrain_y, terrain_transform = display_grid()
     terrain = load_terrain(terrain_transform, (len(terrain_y), len(terrain_x)))
 
@@ -1352,51 +1403,41 @@ def build_decomposition_figure() -> list[Path]:
     )
     axes = [[fig.add_subplot(grid[row, column]) for column in range(4)]
             for row in range(2)]
-    solution_panels = (
-        (100 * fields["e"], "East"),
-        (100 * fields["n"], "North"),
-        (100 * fields["u"], "Up"),
-    )
-    sigma_panels = (
-        (100 * fields["sigma_e"], "Formal σ east"),
-        (100 * fields["sigma_n"], "Formal σ north"),
-        (100 * fields["sigma_u"], "Formal σ up"),
-    )
-    for column, (values, title) in enumerate(solution_panels):
-        draw_field(axes[0][column], values, cmc.vik, displacement_norm)
-        axes[0][column].set_title(title, fontweight="bold", pad=3)
-    for column, (values, title) in enumerate(sigma_panels):
-        draw_field(axes[1][column], values, cmc.batlowW, sigma_norm)
-        axes[1][column].set_title(title, fontweight="bold", pad=3)
-        median = np.nanmedian(np.where(visible_mask, values, np.nan))
+    for column, (key, panel_title, sigma_title, weak_note) in enumerate(components):
+        draw_field(axes[0][column], 100 * fields[key], cmc.vik, displacement_norm)
+        axes[0][column].set_title(panel_title, fontweight="bold", pad=3)
+        sigma = 100 * fields[f"sigma_{key}"]
+        draw_field(axes[1][column], sigma, cmc.batlowW, sigma_norm)
+        axes[1][column].set_title(sigma_title, fontweight="bold", pad=3)
+        median = np.nanmedian(np.where(visible_mask, sigma, np.nan))
         add_annotation(axes[1][column], f"display median {median:.2f} cm")
-
-    north_stipple = np.isfinite(fields["n"]) & (
-        100 * fields["sigma_n"] > NORTH_SIGMA_STIPPLE_CM
-    )
-    east_grid, north_grid = np.meshgrid(centres_e, centres_n)
-    axes[0][1].plot(
-        east_grid[north_stipple],
-        north_grid[north_stipple],
-        ls="none",
-        marker=".",
-        ms=0.9,
-        color="#454545",
-        alpha=0.65,
-        zorder=4,
-    )
-    axes[0][1].text(
-        0.975,
-        0.025,
-        f"weak LOS sensitivity\ndots: σN > {NORTH_SIGMA_STIPPLE_CM:.0f} cm",
-        transform=axes[0][1].transAxes,
-        ha="right",
-        va="bottom",
-        fontsize=6.0,
-        linespacing=1.35,
-        bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.84, "pad": 1.3},
-        zorder=9,
-    )
+        if weak_note is None:
+            continue
+        stipple = np.isfinite(fields[key]) & (sigma > WEAK_SIGMA_STIPPLE_CM)
+        east_grid, north_grid = np.meshgrid(centres_e, centres_n)
+        axes[0][column].plot(
+            east_grid[stipple],
+            north_grid[stipple],
+            ls="none",
+            marker=".",
+            ms=0.9,
+            color="#454545",
+            alpha=0.65,
+            zorder=4,
+        )
+        axes[0][column].text(
+            0.975,
+            0.025,
+            f"{weak_note}\ndots: σ > {WEAK_SIGMA_STIPPLE_CM:.0f} cm",
+            transform=axes[0][column].transAxes,
+            ha="right",
+            va="bottom",
+            fontsize=6.0,
+            linespacing=1.35,
+            bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.84,
+                  "pad": 1.3},
+            zorder=9,
+        )
 
     draw_field(
         axes[0][3],
@@ -1429,6 +1470,8 @@ def build_decomposition_figure() -> list[Path]:
             add_panel_label(ax, panel_index)
             if row == 0 and column == 0:
                 add_scale_and_north(ax)
+                if frame_strike_deg is not None:
+                    draw_frame_axes(ax, frame_strike_deg)
             panel_index += 1
 
     fig.canvas.draw()
@@ -1495,17 +1538,11 @@ def build_decomposition_figure() -> list[Path]:
         ["0", "1", "2"],
     )
 
-    fig.suptitle(
-        "Manda Hararo 2026 — free E–N–U decomposition",
-        x=0.5,
-        y=0.992,
-        fontweight="bold",
-    )
+    fig.suptitle(title, x=0.5, y=0.992, fontweight="bold")
     fig.text(
         0.5,
         0.947,
-        "reprocessed 30-m (GSLC) inputs · 1.28-km cells · weighted solve on "
-        "≥3 of 4 LOS geometries · positive east, north, and up",
+        subtitle,
         ha="center",
         va="bottom",
         fontsize=7.0,
@@ -1514,22 +1551,82 @@ def build_decomposition_figure() -> list[Path]:
     fig.text(
         0.5,
         0.006,
-        "No smoothing; gray = no solution; in the closure panel gray also covers "
-        "three-geometry cells, which have no closure value.\n"
-        "Formal σ uses far-field scatter only. Red/dashed lines show the mapped "
-        "dike and east-ridge context, not a solve constraint.",
+        footnote,
         ha="center",
         va="bottom",
         fontsize=6.0,
         color="#4a4a4a",
     )
 
-    png = RESULTS / "summary_decomposition_enu.png"
-    pdf = RESULTS / "summary_decomposition_enu.pdf"
+    png = RESULTS / f"{stem}.png"
+    pdf = RESULTS / f"{stem}.pdf"
     fig.savefig(png, dpi=300)
     fig.savefig(pdf)
     plt.close(fig)
     return [png, pdf]
+
+
+def build_decomposition_figure() -> list[Path]:
+    _, geometry, _, fields = decomposition_inputs()
+    return three_component_figure(
+        fields,
+        geometry,
+        (
+            ("e", "East", "Formal σ east", None),
+            ("n", "North", "Formal σ north", "weak LOS sensitivity"),
+            ("u", "Up", "Formal σ up", None),
+        ),
+        stem="summary_decomposition_enu",
+        title="Manda Hararo 2026 — free E–N–U decomposition",
+        subtitle=(
+            "reprocessed 30-m (GSLC) inputs · 1.28-km cells · weighted solve on "
+            "≥3 of 4 LOS geometries · positive east, north, and up"
+        ),
+        footnote=(
+            "No smoothing; gray = no solution; in the closure panel gray also "
+            "covers three-geometry cells, which have no closure value.\n"
+            "Formal σ uses far-field scatter only. Red/dashed lines show the "
+            "mapped dike and east-ridge context, not a solve constraint."
+        ),
+    )
+
+
+def build_dike_frame_figure() -> list[Path]:
+    summary, geometry, model, fields = decomposition_inputs()
+    strike = float(model[2])
+    perp_azimuth = (strike - 90.0) % 360.0
+    if not np.isclose(perp_azimuth, float(summary["perp_azimuth_deg"]), atol=1e-6):
+        raise ValueError(
+            f"strike frame changed: figure azimuth {perp_azimuth}, "
+            f"saved {summary['perp_azimuth_deg']}"
+        )
+    frame = dike_frame(fields, strike)
+    return three_component_figure(
+        frame,
+        geometry,
+        (
+            ("perp", "Dike-perpendicular U⊥", "Formal σ U⊥", None),
+            ("par", "Dike-parallel U∥", "Formal σ U∥", "weak LOS sensitivity"),
+            ("u", "Up", "Formal σ up", None),
+        ),
+        stem="summary_decomposition_dike_frame",
+        title="Manda Hararo 2026 — dike-frame decomposition",
+        subtitle=(
+            "same solve as the E–N–U figure, rotated · strike "
+            f"{strike:.1f}° from the uniform fit · U⊥ positive toward "
+            f"{perp_azimuth:.1f}° (ENE) · U∥ positive toward {strike:.1f}° "
+            "(SSE) · up positive"
+        ),
+        footnote=(
+            "Exact rotation of the free E–N–U solve; σ includes the east–north "
+            "cross-covariance. U∥ is nearly north–south, which near-polar SAR "
+            "observes weakly.\n"
+            "No smoothing; gray = no solution (three-geometry cells in the "
+            "closure panel). Red/dashed lines show the mapped dike and "
+            "east-ridge context, not a solve constraint."
+        ),
+        frame_strike_deg=strike,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -2924,6 +3021,7 @@ BUILDERS = {
     "source": build_source_figure,
     "gradient": build_gradient_figure,
     "stress": build_stress_figure,
+    "dike_frame": build_dike_frame_figure,
 }
 
 RESULT_INPUTS = (

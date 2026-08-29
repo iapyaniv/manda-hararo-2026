@@ -30,7 +30,9 @@ Manda Hararo intrusion.
   observations and model fields plus continuous residuals for all four looks.
 - `results/decomposition_joint.md` and `results/decomposition_joint.png`
   contain the four-geometry decomposition (rift-perpendicular horizontal +
-  vertical) with the cross-sensor closure map.
+  vertical) with the cross-sensor closure map, the free three-component
+  solve, and that solve rotated into the dike frame (U⊥, U∥, up) with a
+  strike sensitivity.
 - `mh26/gslc.py` rebuilds the co-event interferograms from the 10-m GSLC
   products (crops, interferogram, snaphu unwrapping); see
   `PROCESSING_NOTES.md`. The saved SMOOTH-cost sensitivity for the ascending
@@ -60,12 +62,14 @@ Manda Hararo intrusion.
   (pivotal, about the noiseless refit); `results/fringes_model_comparison.png`
   compares rewrapped observed and modelled fringes with a cross-axis
   profile.
-- `results/summary_*.png` (with matching PDF files) are five draft
+- `results/summary_*.png` (with matching PDF files) are six draft
   publication-style figures built by `mh26.summary_figures` from the saved
   results: the four-geometry trace-supported fit with residuals and
   profiles, the free E–N–U decomposition with uncertainties and closure,
-  the physical source geometry, the signed phase-gradient faulting
-  evidence, and the dike-induced stress on the east-fault receivers.
+  the same solve in the dike frame (U⊥, U∥, up;
+  `summary_decomposition_dike_frame`), the physical source geometry, the
+  signed phase-gradient faulting evidence, and the dike-induced stress on
+  the east-fault receivers.
   `results/summary_figures.json` records the input and output hashes.
 - `granules/` records the NISAR (GUNW + GSLC) and LiCSAR source products.
 - `data/` contains archive manifests and instructions for the data files.

@@ -196,6 +196,51 @@ class GeometryConventionTests(unittest.TestCase):
         calm = aliasing_flag(0.1 * los, y, strike, WAVELENGTH_L / 4.0)
         self.assertFalse(calm[1:-1, 1:-1].any())
 
+    def test_dike_frame_rotation_matches_a_direct_rotated_solve(self) -> None:
+        # The rotated formal sigmas need the east–north cross-covariance
+        # (large for near-polar looks); dropping it fails silently, so the
+        # rotation is checked against a solve done in the rotated basis.
+        from mh26.decompose3d import dike_frame, solve_cells_3d
+        rng = np.random.default_rng(7)
+        shape = (2, 3)
+        cells = []
+        for k, tilt in enumerate((0.15, -0.15, 0.25, -0.05)):
+            unit = np.array([tilt, 0.6 + 0.05 * k, 0.75])
+            unit /= np.linalg.norm(unit)
+            cells.append({"los": rng.normal(size=shape),
+                          "n": np.full(shape, unit[0]),
+                          "e": np.full(shape, unit[1]),
+                          "u": np.full(shape, unit[2]),
+                          "sigma": 0.5 + 0.2 * k})
+        fields = solve_cells_3d(cells)
+        strike = self.MODEL[2]
+        frame = dike_frame(fields, strike)
+        along, perp = _strike_vectors(strike)
+        weights = np.array([1.0 / c["sigma"] for c in cells])
+        for r in range(shape[0]):
+            for c in range(shape[1]):
+                A = np.column_stack([
+                    [cl["e"][r, c] * along[1] + cl["n"][r, c] * along[0]
+                     for cl in cells],
+                    [cl["e"][r, c] * perp[1] + cl["n"][r, c] * perp[0]
+                     for cl in cells],
+                    [cl["u"][r, c] for cl in cells],
+                ])
+                d = np.array([cl["los"][r, c] for cl in cells])
+                cov = np.linalg.inv((A * weights[:, None]).T @ (A * weights[:, None]))
+                m = cov @ ((A * weights[:, None]).T @ (d * weights))
+                sigma = np.sqrt(np.diag(cov))
+                for i, key in enumerate(("par", "perp", "u")):
+                    self.assertAlmostEqual(frame[key][r, c], m[i], places=9)
+                    self.assertAlmostEqual(frame[f"sigma_{key}"][r, c],
+                                           sigma[i], places=9)
+        # Strike 90° makes along = east and perpendicular-left = north.
+        identity = dike_frame(fields, 90.0)
+        np.testing.assert_allclose(identity["par"], fields["e"], atol=1e-12)
+        np.testing.assert_allclose(identity["perp"], fields["n"], atol=1e-12)
+        np.testing.assert_allclose(identity["sigma_perp"], fields["sigma_n"],
+                                   atol=1e-12)
+
     def test_idealized_geometry_has_stress_receivers(self) -> None:
         geometry = build_geometry(self.MODEL)
         receivers = fault_patch_receivers(geometry, 65.0)

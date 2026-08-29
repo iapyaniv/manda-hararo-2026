@@ -23,6 +23,15 @@
 - axial vertical probe: decorrelated (three-look cells at best near the axis; 0 probe cells)
 - probe-disk closure: EAST median 2.84 σ (n=5); WEST median 0.64 σ (n=3); AXIS no redundant cells
 
+## Dike-frame components (rotated free three-component solve)
+
+- frame from the fitted strike 152.6°: U∥ along strike (positive toward azimuth 152.6°, SSE), U⊥ perpendicular-left (positive toward azimuth 62.6°, ENE), up; an exact rotation of the free solve, so coverage and closure are unchanged
+- flank U⊥ probes: EAST +55.0 cm, WEST -62.4 cm ⇒ divergence +117.4 cm (identical to the projected values above)
+- flank U∥ probes: EAST +10.3 cm, WEST -3.9 cm (uniform model: EAST +0.6 cm, WEST +0.3 cm)
+- median formal sigmas: U⊥ 2.1 cm, U∥ 4.1 cm, up 0.8 cm — U∥ is nearly north–south, the direction the near-polar looks observe weakly, so it inherits most of the north uncertainty
+- U∥ within 18 km: p01/p99 -15.0/+30.7 cm; 37% of cells exceed 2 σ∥
+- strike sensitivity: with the southernmost 2005 segment strike 148.5° the flank probes become U⊥ EAST +54.1 cm, WEST -61.9 cm; U∥ EAST +14.3 cm, WEST -8.3 cm
+
 ## Scope
 
 - The EAST-flank redundant cells close poorly (see the probe-disk
@@ -42,5 +51,8 @@
   field and grows in the deforming area, where window differences and
   steep gradients dominate; see the regional closure line above.
 - Formal sigmas propagate the far-field dataset scatter only.
+- The dike frame depends on the chosen strike; the along-strike
+  component is the weakly observed one, and a few degrees of strike
+  moves a few percent of U⊥ into U∥ (see the sensitivity line).
 - The decay normalization assumes the post-event transient shares the
   co-event dike pattern; it is a model choice (see LIMITATIONS.md).

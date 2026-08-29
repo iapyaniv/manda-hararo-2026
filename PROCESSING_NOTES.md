@@ -118,6 +118,26 @@ solve); with three or more, the weighted residual is a cross-sensor closure
 diagnostic (median 0.55 σ). Inputs are decay-normalized as in the
 distributed inversion.
 
+The free three-component solve (cells with at least three looks) is also
+rotated into the dike frame of `mh26.distributed._strike_vectors`: U∥
+along the fitted strike (152.6°, SSE positive), U⊥ perpendicular-left (ENE
+positive; the same axis as the constrained h), and up. A linear
+reparameterization leaves the least-squares solution unchanged, so
+coverage and closure are identical; the rotated formal variances include
+the east–north cross-covariance, which the near-polar looks make large, and
+the module checks that the rotated U⊥ flank probes equal the projected
+rift-perpendicular probes. U∥ is nearly north–south and inherits the north
+uncertainty (median σ 4.1 cm against 2.1 cm for U⊥ and 0.8 cm for up). Two
+saved sensitivities bound it: the input chain (GUNW versus 30-m fields)
+moves the flank U∥ probes by several cm, and using the southernmost Wright
+et al. (2006) segment strike (148.5°, 4° from the fit) moves them by about
+4 cm, because a strike error of δ moves U⊥·sin δ into U∥ (≈4 cm for 60 cm
+of U⊥). The east-flank U∥ lobe also sits in the cells where the four looks
+disagree on the east-lobe amplitude (probe-disk closure ≈3 σ), where a
+cross-sensor amplitude difference can only be absorbed by the weakly
+constrained component. U∥ is therefore reported with these caveats and not
+interpreted.
+
 ## GSLC reprocessing (mh26.gslc)
 
 The GUNW chain works at the product's 80-m unwrapped posting and inherits
@@ -328,7 +348,7 @@ All files in `results/` use the current processing.
 
 ## Summary figures (mh26.summary_figures)
 
-The five `results/summary_*` figures are display products built from the
+The six `results/summary_*` figures are display products built from the
 saved results; they change no analysis quantity. Display choices that
 matter for reading them:
 
@@ -341,9 +361,11 @@ matter for reading them:
 - Rewrapped maps use one colour cycle per 10 cm of LOS displacement toward
   the satellite. Residual maps are clipped at ±10 cm and keep coherent
   near-axis residuals visible.
-- The decomposition panels show the unsmoothed 1.28-km solve. The North
-  panel dots cells with formal σ above 6 cm as a display mark; the values
-  under the dots are unchanged.
+- The decomposition panels show the unsmoothed 1.28-km solve. The weakly
+  observed horizontal panel (North in the E–N–U figure, U∥ in the
+  dike-frame figure) dots cells with formal σ above 6 cm as a display mark;
+  the values under the dots are unchanged. The dike-frame figure is the
+  same solve rotated; its frame arrows show +U⊥ (ENE) and +U∥ (SSE).
 - The signed cross-rift phase change is the wrapped one-pixel forward
   difference projected ENE (rift-perpendicular). It aliases where the
   cross-rift phase rate exceeds π per 30-m pixel (λ/4 of LOS per pixel);

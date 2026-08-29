@@ -22,7 +22,13 @@
   That is exact only if horizontal motion is opening-normal; along-strike
   motion maps into the closure residual, not into the solved components. The
   free three-component variant removes the constraint at the price of
-  several-cm formal north sigmas. The axial subsidence probe rests on
+  several-cm formal north sigmas. Its dike-frame rotation inherits that:
+  U∥ (along strike, nearly north–south) has a median formal σ of 4.1 cm,
+  its flank values change by several cm between the GUNW and 30-m input
+  chains and with a 4° change of the frame strike, and its east-flank lobe
+  sits where the looks disagree on amplitude, so U∥ is reported but not
+  resolved; U⊥ is the same axis as the constrained h. The axial
+  subsidence probe rests on
   two-look NISAR-only cells: Sentinel-1 does not survive at the axis. All
   joint products also depend on the decay normalization that maps the four
   windows to a common 18 July epoch; it assumes the post-event transient

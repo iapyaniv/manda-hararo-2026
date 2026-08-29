@@ -48,6 +48,16 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
 - The joint decomposition, free three-component variant, closure diagnostics,
   and 30-m-input repeat are in `results/decomposition_joint*.md`. Counts now
   distinguish exactly three geometries from four geometries.
+- The free three-component solve is also rotated into the dike frame: U⊥
+  perpendicular to the fitted strike (ENE positive, the same axis as the
+  constrained solve), U∥ along strike (SSE positive), and up. The rotation
+  is exact and the rotated formal sigmas carry the east–north
+  cross-covariance. U∥ is the weakly observed component: with the 30-m
+  inputs its flank probes are +5.7 cm (east) and −4.6 cm (west) against a
+  median formal σ of 4.1 cm; the GUNW inputs give +10.3 and −3.9 cm, and
+  replacing the fitted strike by the southernmost 2005 segment strike (4°
+  different) moves them by about 4 cm. U∥ is therefore reported but not
+  resolved. See the dike-frame section of `results/decomposition_joint*.md`.
 - The GSLC reprocessing comparison and its near-axis differences are in
   `results/gslc_gunw_compare_*.json`.
 - A single-tile SMOOTH/MCF sensitivity changes 6.1% of near-axis pixels by
@@ -69,10 +79,11 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
   geometries are in `results/distributed_fit_fringe_panels_mapped_gslc.png`.
   The separate GUNW-fit-to-GSLC check is in
   `results/fringes_model_comparison.png`.
-- Five draft publication-style figures summarize the trace-supported fit,
-  the free E–N–U decomposition, the physical source, the phase-gradient
-  faulting evidence, and the dike-induced stress on the east-fault
-  receivers: `results/summary_*.png` with matching vector PDF files and the
+- Six draft publication-style figures summarize the trace-supported fit,
+  the free E–N–U decomposition, the same solve in the dike frame (U⊥, U∥,
+  up), the physical source, the phase-gradient faulting evidence, and the
+  dike-induced stress on the east-fault receivers: `results/summary_*.png`
+  with matching vector PDF files and the
   identity manifest `results/summary_figures.json`
   (`mh26.summary_figures`; needs the terrain tile described in
   `data/README.md`).
@@ -196,11 +207,31 @@ data/                   archive layout and verification guide
 - Local product LOS vectors are interpolated at 500 m ellipsoidal height. The
   two-geometry decompositions fix north displacement to zero and are reported
   as quasi-East and quasi-Up displacement; the four-geometry decomposition
-  instead constrains the horizontal direction to rift-perpendicular
+  instead constrains the horizontal direction to rift-perpendicular, and its
+  free three-component variant is also reported in the dike frame
   (`results/decomposition_joint.md`).
 - The source is a vertical, uniform-opening rectangle in a homogeneous elastic
   half-space with λ = μ = 30 GPa. `μV` is a geodetic comparison scale, not a
   measured seismic moment.
+
+## Collaborator-supplied Sentinel-1 time-series maps
+
+`Sentinel_1_Cumulative_Disp/` holds four cumulative LOS displacement maps
+from the Sentinel-1 time series of Pedro Espin Bedon (Leeds), committed by
+Ben Ireland (Bristol) on 28 August 2026 for the pre-dike context panels:
+one pre-dike and one dike-spanning map per LiCSAR frame (014A:
+2014-10-30→2026-07-06 and 2014-10-06→2026-08-11; 079D: 2014-10-23→2026-07-11
+and 2014-10-23→2026-08-16). They are EPSG:4326 GeoTIFFs at ≈0.00054°
+posting, float32 millimetres, NaN where empty, without a nodata tag. They
+are outside the data archives and checksum manifests, and no `mh26` result
+uses them. One empirical check was made: the dike-spanning minus pre-dike
+difference of each frame correlates with this repository's referenced
+LiCSAR co-event field at r = 0.97 (014A) and 0.99 (079D), with slopes 1.22
+and 1.10 in the positive-toward-satellite sense used here, so the two
+products share a sign convention, and the excess over 1 is consistent with
+the post-event tail inside those longer windows. The sign, reference area,
+and corrections still need confirmation from the processors before the maps
+are used in a figure.
 
 ## Data sources and reuse
 
