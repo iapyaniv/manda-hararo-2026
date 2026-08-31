@@ -348,8 +348,12 @@ All files in `results/` use the current processing.
 
 ## Summary figures (mh26.summary_figures)
 
-The six `results/summary_*` figures are display products built from the
-saved results; they change no analysis quantity. Display choices that
+The eight `results/summary_*` figures are display products built from the
+saved results; they change no analysis quantity. The two Wright-plane
+figures draw the saved 30-m-input fixed-plane fit; because the segmented
+plane has no single straight frame, their map trace and profile frame come
+from the saved patch arrays (opening-weighted centre and local segment
+strike), not from the chord fields. Display choices that
 matter for reading them:
 
 - Model fields are evaluated on a 200-m display grid. The inversion support

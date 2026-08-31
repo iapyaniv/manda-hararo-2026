@@ -282,6 +282,58 @@ class Wright2006ContractTests(unittest.TestCase):
         self.assertGreater(coverage["margin_nw_km"], 20.0)
 
 
+class SummaryPatchFrameTests(unittest.TestCase):
+    MODEL = GeometryConventionTests.MODEL
+
+    def test_patch_frame_matches_the_straight_frame_on_a_straight_plane(self) -> None:
+        from mh26.faults import strike_frame
+        from mh26.summary_figures import (
+            patch_fault_offset_km,
+            patch_profile_frame,
+            patch_top_trace,
+            straight_profile_frame,
+        )
+        geometry = build_geometry(self.MODEL, fault_offset=1_500.0)
+        magnitudes = np.where(geometry["kinds"] == "dike", 1.0, 0.0)
+        frame = patch_profile_frame(geometry, magnitudes)
+        reference = straight_profile_frame(geometry)
+        self.assertAlmostEqual(frame["strike_deg"] % 360.0,
+                               reference["strike_deg"] % 360.0, places=6)
+        _, perp_origin = strike_frame(np.array([frame["origin_e"]]),
+                                      np.array([frame["origin_n"]]),
+                                      self.MODEL)
+        self.assertLess(abs(float(perp_origin[0])), 1e-6)
+        east, north = patch_top_trace(geometry, "dike")
+        finite = np.isfinite(east)
+        along, perp = strike_frame(east[finite], north[finite], self.MODEL)
+        np.testing.assert_allclose(perp, 0.0, atol=1e-6)
+        self.assertAlmostEqual(float(along.min()),
+                               float(geometry["dike_s_edges_m"][0]), places=4)
+        self.assertAlmostEqual(float(along.max()),
+                               float(geometry["dike_s_edges_m"][-1]), places=4)
+        self.assertAlmostEqual(patch_fault_offset_km(geometry, frame), 1.5,
+                               places=5)
+
+    def test_patch_frame_follows_the_local_segment_on_the_wright_plane(self) -> None:
+        # The chord frame is ~4° off the southernmost segment and its origin
+        # sits at the plane's NW end; a profile built from it would cross
+        # tens of kilometres from the 2026 opening. The patch frame must
+        # follow the weighted local segment, flipped into the chord sense.
+        from mh26.summary_figures import patch_profile_frame
+        geometry = build_contract(DAT_DEFAULT, extend_se=2, with_faults=False)
+        kinds = geometry["kinds"]
+        magnitudes = np.zeros(kinds.shape)
+        ns = geometry["dike_shape"][1]
+        dike = np.flatnonzero(kinds == "dike")
+        magnitudes[dike[ns - 3:ns]] = 1.0
+        frame = patch_profile_frame(geometry, magnitudes)
+        segment_strike = float(geometry["patches"][dike[ns - 1], 3])
+        self.assertAlmostEqual(frame["strike_deg"],
+                               (segment_strike + 180.0) % 360.0, places=6)
+        self.assertNotAlmostEqual(frame["strike_deg"],
+                                  float(geometry["strike"]) % 360.0, places=1)
+
+
 class ReferenceAndCacheTests(unittest.TestCase):
     MODEL = GeometryConventionTests.MODEL
 

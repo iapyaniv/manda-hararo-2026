@@ -48,7 +48,9 @@ Manda Hararo intrusion.
   builds that contract from the 2005 dike-plane source model in
   `data/complex_geom2_revised_test.dat` (provenance and format in
   `data/README.md`); the fixed-plane 2026 fit is
-  `results/distributed_fit_geometry_b643c0de55aa.{json,md}` and
+  `results/distributed_fit_geometry_b643c0de55aa.{json,md}` (GUNW inputs;
+  `--gslc` writes `..._gslc.{json,md}`, the chain the summary figures
+  draw) and
   `results/uperp_2026_wright2006.png` is one 2026 U⊥ cross-section on
   the Wright et al. (2006) plane. It uses the along-strike/depth view of an
   individual U⊥ opening panel in Hamling et al. (2010) Figure 2; it does not
@@ -62,14 +64,16 @@ Manda Hararo intrusion.
   (pivotal, about the noiseless refit); `results/fringes_model_comparison.png`
   compares rewrapped observed and modelled fringes with a cross-axis
   profile.
-- `results/summary_*.png` (with matching PDF files) are six draft
+- `results/summary_*.png` (with matching PDF files) are eight draft
   publication-style figures built by `mh26.summary_figures` from the saved
   results: the four-geometry trace-supported fit with residuals and
   profiles, the free E–N–U decomposition with uncertainties and closure,
   the same solve in the dike frame (U⊥, U∥, up;
   `summary_decomposition_dike_frame`), the physical source geometry, the
-  signed phase-gradient faulting evidence, and the dike-induced stress on
-  the east-fault receivers.
+  signed phase-gradient faulting evidence, the dike-induced stress on
+  the east-fault receivers, and the fixed 2005-plane fit — map view
+  (`summary_los_model_residual_wright2006`) and U⊥ cross-section
+  (`summary_uperp_wright2006`).
   `results/summary_figures.json` records the input and output hashes.
 - `granules/` records the NISAR (GUNW + GSLC) and LiCSAR source products.
 - `data/` contains archive manifests and instructions for the data files.
@@ -161,6 +165,7 @@ python -m mh26.faults
 python -m mh26.distributed --mapped
 python -m mh26.distributed --mapped --gslc
 python -m mh26.distributed --geometry FILE  # after an external contract arrives
+python -m mh26.distributed --geometry FILE --gslc  # same plane, 30-m chain
 python -m mh26.stress
 python -m mh26.uncertainty --n 1000
 python -m mh26.figures

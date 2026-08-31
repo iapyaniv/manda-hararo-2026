@@ -1,6 +1,6 @@
 """Publication-style summary figures from the saved analysis results.
 
-Five multi-panel figures in the presentation of Xu et al. (2026,
+Eight figures in the presentation of Xu et al. (2026,
 doi:10.1016/j.geog.2026.06.002). Every figure reads saved results and data
 files; nothing is refitted.
 
@@ -26,6 +26,15 @@ files; nothing is refitted.
 6. ``summary_decomposition_dike_frame``: the same free solve rotated into
    the dike frame — dike-perpendicular, dike-parallel, and up — with the
    rotated formal uncertainties (``mh26.decompose3d.dike_frame``).
+7. ``summary_los_model_residual_wright2006``: the observed/model/residual
+   view for the fit constrained to the Wright et al. (2006) 2005 dike
+   plane (``results/distributed_fit_geometry_<hash>_gslc.json``). The
+   segmented plane has no single straight frame, so its map trace and
+   profile frame come from the saved patch arrays.
+8. ``summary_uperp_wright2006``: the opening cross-section on that plane
+   (distance along the 2005 plane versus depth, after Hamling et al.,
+   2010, Fig. 2) from the same fit — the publication-grade version of
+   ``results/uperp_2026_wright2006.png``.
 
 Inputs: the gslc data archive (or a rebuild, see ``data/README.md``), the
 saved results listed above, and one Copernicus GLO-30 terrain tile used
@@ -36,10 +45,11 @@ only for the map background and profiles:
 Place the tile at ``data/dem/Copernicus_DSM_COG_10_N12_00_E040_00_DEM.tif``.
 Its SHA-256 hash is pinned below and verified at run time.
 
-Run after ``mh26.distributed --mapped --gslc``, ``mh26.decompose3d --gslc``,
-``mh26.faults``, and ``mh26.stress``:
+Run after ``mh26.distributed --mapped --gslc``, ``mh26.distributed
+--geometry results/geometry_wright2006.json --gslc``, ``mh26.decompose3d
+--gslc``, ``mh26.faults``, and ``mh26.stress``:
 
-    python -m mh26.summary_figures              # all six figures
+    python -m mh26.summary_figures              # all eight figures
     python -m mh26.summary_figures --only los   # one figure
 
 Writes ``results/summary_*.png`` (300 dpi) with matching vector PDF files,
@@ -215,14 +225,36 @@ def require_dem() -> Path:
     return DEM_PATH
 
 
-def load_mapped_gslc_fit() -> tuple[dict, dict, np.ndarray]:
-    payload = json.loads((RESULTS / "distributed_fit_mapped_gslc.json").read_text())
+WRIGHT_FIT_GSLC = "distributed_fit_geometry_b643c0de55aa_gslc.json"
+
+
+def load_gslc_fit(name: str) -> tuple[dict, dict, np.ndarray]:
+    payload = json.loads((RESULTS / name).read_text())
+    if payload.get("nisar_source") != "gslc":
+        raise ValueError(
+            f"{name}: nisar_source is {payload.get('nisar_source')!r}; the "
+            "summary figures draw GSLC observations, so the fit must use "
+            "the same chain")
     geometry = geometry_from_json(payload["geometry"])
     if payload.get("geometry_sha256") != geometry_sha256(geometry):
-        raise ValueError("distributed_fit_mapped_gslc.json geometry hash mismatch")
+        raise ValueError(f"{name} geometry hash mismatch")
     magnitudes = np.asarray(payload["dislocation_magnitudes_m"], dtype=float)
     if magnitudes.shape != geometry["kinds"].shape:
         raise ValueError("saved dislocations do not match the saved geometry")
+    return payload, geometry, magnitudes
+
+
+def load_mapped_gslc_fit() -> tuple[dict, dict, np.ndarray]:
+    return load_gslc_fit("distributed_fit_mapped_gslc.json")
+
+
+def load_wright_gslc_fit() -> tuple[dict, dict, np.ndarray]:
+    # The file name pins the geometry-contract hash: a revised contract
+    # changes the hash, so this figure cannot silently rebuild from a
+    # stale fit of the old plane.
+    payload, geometry, magnitudes = load_gslc_fit(WRIGHT_FIT_GSLC)
+    if "wright2006_provenance" not in geometry:
+        raise ValueError(f"{WRIGHT_FIT_GSLC} was not fitted on the Wright plane")
     return payload, geometry, magnitudes
 
 
@@ -780,15 +812,15 @@ def profile_values(
     field: np.ndarray,
     xs: np.ndarray,
     ys: np.ndarray,
-    geometry: dict,
+    frame: dict,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Median across a 1-km swath of seven rift-perpendicular lines."""
     interpolator = RegularGridInterpolator(
         (ys[::-1], xs), field[::-1], bounds_error=False, fill_value=np.nan
     )
     distance = np.linspace(-18_000.0, 18_000.0, 361)
-    strike = np.radians(geometry["strike"])
-    e_c, n_c = geometry["trace_centre"]
+    strike = np.radians(frame["strike_deg"])
+    e_c, n_c = frame["origin_e"], frame["origin_n"]
     samples = []
     for along_offset in np.linspace(-500.0, 500.0, 7):
         east = e_c + along_offset * np.sin(strike) - distance * np.cos(strike)
@@ -801,18 +833,18 @@ def profile_values(
     return distance / 1e3, output
 
 
-def profile_line(geometry: dict) -> tuple[np.ndarray, np.ndarray]:
+def profile_line(frame: dict) -> tuple[np.ndarray, np.ndarray]:
     distance = np.array([-18_000.0, 18_000.0])
-    strike = np.radians(geometry["strike"])
-    e_c, n_c = geometry["trace_centre"]
+    strike = np.radians(frame["strike_deg"])
+    e_c, n_c = frame["origin_e"], frame["origin_n"]
     return (
         e_c - distance * np.cos(strike),
         n_c + distance * np.sin(strike),
     )
 
 
-def draw_profile_line(ax: object, geometry: dict, *, labels: bool = False) -> None:
-    east, north = profile_line(geometry)
+def draw_profile_line(ax: object, frame: dict, *, labels: bool = False) -> None:
+    east, north = profile_line(frame)
     line = ax.plot(
         east, north, color="#303030", lw=0.65, ls=(0, (3, 2)), zorder=5
     )[0]
@@ -824,6 +856,87 @@ def draw_profile_line(ax: object, geometry: dict, *, labels: bool = False) -> No
                 ha="right", va="top", zorder=8)
         ax.text(east[1], north[1], "A′", fontsize=6.5, fontweight="bold",
                 ha="left", va="bottom", zorder=8)
+
+
+def straight_profile_frame(geometry: dict) -> dict:
+    _require_straight_frame(geometry)
+    centre_e, centre_n = geometry["trace_centre"]
+    return {"origin_e": float(centre_e), "origin_n": float(centre_n),
+            "strike_deg": float(geometry["strike"])}
+
+
+def patch_top_trace(geometry: dict, kind: str) -> tuple[np.ndarray, np.ndarray]:
+    """Surface trace of one source sheet from its saved shallowest patch
+    edges, as NaN-separated (easting, northing) segments.
+
+    Segmented geometries have no usable scalar chord frame (see
+    ``_require_straight_frame``), so the trace must come from the patches.
+    """
+    kinds = np.asarray(geometry["kinds"])
+    patches = np.asarray(geometry["patches"], dtype=float)[kinds == kind]
+    if patches.size == 0:
+        raise ValueError(f"geometry has no {kind!r} patches")
+    strike = np.radians(patches[:, 3])
+    dip = np.radians(patches[:, 4])
+    # Up-dip edge midpoints, in the patch frame of patch_corners_local.
+    edge_n = patches[:, 0] - patches[:, 7] * np.sin(strike) * np.cos(dip)
+    edge_e = patches[:, 1] + patches[:, 7] * np.cos(strike) * np.cos(dip)
+    edge_z = patches[:, 2] + patches[:, 7] * np.sin(dip)
+    top = edge_z < edge_z.min() + 1.0
+    along_n, along_e = np.cos(strike), np.sin(strike)
+    mean_n, mean_e = along_n[top].mean(), along_e[top].mean()
+    order = np.argsort(edge_n[top] * mean_n + edge_e[top] * mean_e)
+    east, north = [], []
+    for index in np.flatnonzero(top)[order]:
+        for along in (patches[index, 5], patches[index, 6]):
+            east.append(edge_e[index] + along * along_e[index])
+            north.append(edge_n[index] + along * along_n[index])
+        east.append(np.nan)
+        north.append(np.nan)
+    return np.asarray(east), np.asarray(north)
+
+
+def patch_profile_frame(geometry: dict, magnitudes: np.ndarray) -> dict:
+    """Profile frame from the saved patches: origin at the opening-weighted
+    dike centre, azimuth the opening-weighted patch strike.
+
+    The 180° flip keeps the along axis within 90° of the saved chord, so
+    positive profile distance stays ENE (the map figures' reading order)
+    whichever sense the patch strikes are stored in.
+    """
+    kinds = np.asarray(geometry["kinds"])
+    dike = kinds == "dike"
+    patches = np.asarray(geometry["patches"], dtype=float)[dike]
+    if not np.allclose(patches[:, 4], 90.0):
+        raise ValueError("the profile origin assumes a vertical dike")
+    weights = (np.clip(np.asarray(magnitudes, dtype=float)[dike], 0.0, None)
+               * np.asarray(geometry["areas"], dtype=float)[dike])
+    total = weights.sum()
+    if total <= 0.0:
+        raise ValueError("no positive dike opening to place the profile on")
+    weights = weights / total
+    strikes = np.radians(patches[:, 3])
+    mean = np.arctan2(weights @ np.sin(strikes), weights @ np.cos(strikes))
+    if np.cos(mean - np.radians(float(geometry["strike"]))) < 0.0:
+        mean += np.pi
+    return {"origin_e": float(weights @ patches[:, 1]),
+            "origin_n": float(weights @ patches[:, 0]),
+            "strike_deg": float(np.degrees(mean) % 360.0)}
+
+
+def patch_fault_offset_km(geometry: dict, frame: dict) -> float | None:
+    """Signed profile-axis distance (km, ENE positive) where the east-fault
+    trace passes closest to the profile origin."""
+    if "east" not in geometry["enabled_fault_sides"]:
+        return None
+    east, north = patch_top_trace(geometry, "fault_east")
+    finite = np.isfinite(east)
+    relative_e = east[finite] - frame["origin_e"]
+    relative_n = north[finite] - frame["origin_n"]
+    strike = np.radians(frame["strike_deg"])
+    along = relative_e * np.sin(strike) + relative_n * np.cos(strike)
+    perpendicular = -relative_e * np.cos(strike) + relative_n * np.sin(strike)
+    return float(perpendicular[np.argmin(np.abs(along))] / 1e3)
 
 
 def draw_look_direction(ax: object, unit: np.ndarray, kind: str) -> None:
@@ -922,8 +1035,18 @@ def draw_los_map_axes(
         spine.set_color("#303030")
 
 
-def build_los_figure() -> list[Path]:
-    payload, geometry, magnitudes = load_mapped_gslc_fit()
+def los_model_residual_figure(
+    payload: dict,
+    geometry: dict,
+    magnitudes: np.ndarray,
+    *,
+    lines: dict,
+    profile_frame: dict,
+    fault_offset_km: float | None,
+    stem: str,
+    suptitle: str,
+    subtitle: str,
+) -> list[Path]:
     model_okada = np.asarray(
         json.loads((RESULTS / "okada_fit.json").read_text())["values"][:7],
         dtype=float,
@@ -966,7 +1089,6 @@ def build_los_figure() -> list[Path]:
     residual_norm = TwoSlopeNorm(
         vmin=-RESIDUAL_LIMIT_M, vcenter=0, vmax=RESIDUAL_LIMIT_M
     )
-    lines = geometry_lines(geometry)
 
     fig = plt.figure(figsize=(7.5, 8.0))
     # The fourth, empty column keeps the profile axis text and the residual
@@ -1013,7 +1135,7 @@ def build_los_figure() -> list[Path]:
                 zorder=1,
             )
             draw_los_map_axes(ax, row, column, terrain, xs, ys)
-            draw_profile_line(ax, geometry, labels=(row == 0 and column == 0))
+            draw_profile_line(ax, profile_frame, labels=(row == 0 and column == 0))
             draw_geometry(ax, lines, legend=(row == 0 and column == 1))
             if row == 0 and column == 1:
                 for text in ax.get_legend().get_texts():
@@ -1072,9 +1194,10 @@ def build_los_figure() -> list[Path]:
 
         profile_ax = fig.add_subplot(grid[row, 4])
         profile_axes.append(profile_ax)
-        distance, observation_profile = profile_values(observation, xs, ys, geometry)
-        _, model_profile = profile_values(model_field, xs, ys, geometry)
-        _, terrain_profile = profile_values(terrain, xs, ys, geometry)
+        distance, observation_profile = profile_values(
+            observation, xs, ys, profile_frame)
+        _, model_profile = profile_values(model_field, xs, ys, profile_frame)
+        _, terrain_profile = profile_values(terrain, xs, ys, profile_frame)
         topography_ax = profile_ax.twinx()
         topography_ax.fill_between(
             distance, 0, terrain_profile,
@@ -1089,11 +1212,8 @@ def build_los_figure() -> list[Path]:
         profile_ax.plot(distance, 100 * model_profile, color="#c43c39",
                         lw=1.35, label="model", zorder=5)
         profile_ax.axvline(0, color="#b21f2d", lw=0.8, zorder=3)
-        if "east" in geometry["enabled_fault_sides"]:
-            offsets = np.asarray(geometry["fault_column_offsets_m"]["east"])
-            s_centres = np.asarray(geometry["fault_s_centres_m"])
-            fault_offset = float(offsets[np.argmin(np.abs(s_centres))]) / 1e3
-            profile_ax.axvline(fault_offset, color="#202020", lw=0.75,
+        if fault_offset_km is not None:
+            profile_ax.axvline(fault_offset_km, color="#202020", lw=0.75,
                                ls=(0, (4, 2)), zorder=3)
         profile_ax.axhline(0, color="#777777", lw=0.45, zorder=2)
         profile_ax.set_xlim(-18, 18)
@@ -1180,7 +1300,7 @@ def build_los_figure() -> list[Path]:
     )
 
     fig.suptitle(
-        "Manda Hararo 2026 — four-geometry distributed-source fit",
+        suptitle,
         x=0.5,
         y=0.992,
         fontweight="bold",
@@ -1188,16 +1308,197 @@ def build_los_figure() -> list[Path]:
     fig.text(
         0.5,
         0.965,
-        "reprocessed 30-m (GSLC) inputs · 18 July reference · "
-        "distributed opening + trace-supported east fault",
+        subtitle,
         ha="center",
         va="bottom",
         fontsize=7.2,
         color="#3a3a3a",
     )
 
-    png = RESULTS / "summary_los_model_residual.png"
-    pdf = RESULTS / "summary_los_model_residual.pdf"
+    png = RESULTS / f"{stem}.png"
+    pdf = RESULTS / f"{stem}.pdf"
+    fig.savefig(png, dpi=300)
+    fig.savefig(pdf)
+    plt.close(fig)
+    return [png, pdf]
+
+
+def build_los_figure() -> list[Path]:
+    payload, geometry, magnitudes = load_mapped_gslc_fit()
+    fault_offset_km = None
+    if "east" in geometry["enabled_fault_sides"]:
+        offsets = np.asarray(geometry["fault_column_offsets_m"]["east"])
+        s_centres = np.asarray(geometry["fault_s_centres_m"])
+        fault_offset_km = float(offsets[np.argmin(np.abs(s_centres))]) / 1e3
+    return los_model_residual_figure(
+        payload,
+        geometry,
+        magnitudes,
+        lines=geometry_lines(geometry),
+        profile_frame=straight_profile_frame(geometry),
+        fault_offset_km=fault_offset_km,
+        stem="summary_los_model_residual",
+        suptitle="Manda Hararo 2026 — four-geometry distributed-source fit",
+        subtitle="reprocessed 30-m (GSLC) inputs · 18 July reference · "
+                 "distributed opening + trace-supported east fault",
+    )
+
+
+def build_wright_los_figure() -> list[Path]:
+    payload, geometry, magnitudes = load_wright_gslc_fit()
+    profile_frame = patch_profile_frame(geometry, magnitudes)
+    lines = {"dike": patch_top_trace(geometry, "dike")}
+    if "east" in geometry["enabled_fault_sides"]:
+        lines["fault"] = patch_top_trace(geometry, "fault_east")
+    return los_model_residual_figure(
+        payload,
+        geometry,
+        magnitudes,
+        lines=lines,
+        profile_frame=profile_frame,
+        fault_offset_km=patch_fault_offset_km(geometry, profile_frame),
+        stem="summary_los_model_residual_wright2006",
+        suptitle="Manda Hararo 2026 — fit on the 2005 dike plane",
+        subtitle="reprocessed 30-m (GSLC) inputs · 18 July reference · "
+                 "SE-extended Wright et al. (2006) plane + "
+                 "trace-supported east fault",
+    )
+
+
+def build_wright_uperp_figure() -> list[Path]:
+    payload, geometry, magnitudes = load_wright_gslc_fit()
+    provenance = geometry["wright2006_provenance"]
+    nz, ns = geometry["dike_shape"]
+    opening = np.asarray(magnitudes, dtype=float)[:nz * ns].reshape(nz, ns)
+
+    s_edges = np.asarray(geometry["dike_s_edges_m"], dtype=float) / 1e3
+    z_edges = np.asarray(geometry["dike_z_edges_m"], dtype=float) / 1e3
+    s_centres = 0.5 * (s_edges[:-1] + s_edges[1:])
+    z_centres = 0.5 * (z_edges[:-1] + z_edges[1:])
+    # Boundary patch values repeat at the edges so the contours cover the
+    # saved model domain without extending beyond it (as in
+    # wright2006.uperp_panel).
+    s_plot = np.concatenate(([s_edges[0]], s_centres, [s_edges[-1]]))
+    z_plot = np.concatenate(([z_edges[0]], z_centres, [z_edges[-1]]))
+    opening_plot = np.pad(opening, 1, mode="edge")
+
+    plt.rcParams.update(RC_PARAMS)
+    dike_norm = Normalize(0, DIKE_LIMIT_M)
+    extend = "max" if float(opening.max()) > DIKE_LIMIT_M else "neither"
+    fig = plt.figure(figsize=(7.5, 3.0))
+    ax = fig.add_axes([0.075, 0.175, 0.815, 0.545])
+    filled = ax.contourf(
+        s_plot,
+        z_plot,
+        opening_plot,
+        levels=np.linspace(0.0, DIKE_LIMIT_M, 27),
+        cmap=cmc.lajolla_r,
+        extend=extend,
+        antialiased=True,
+    )
+    filled.set_rasterized(True)
+    line_levels = [level for level in (0.5, 1.0, 1.5, 2.0)
+                   if level < float(opening.max())]
+    if line_levels:
+        ax.contour(s_plot, z_plot, opening_plot, levels=line_levels,
+                   colors="0.15", linewidths=0.5)
+
+    n_ext = provenance["extension_se"]["n_patches"]
+    if n_ext:
+        original_se = s_edges[ns - n_ext]
+        ax.axvspan(original_se, s_edges[-1], color="0.65", alpha=0.12,
+                   zorder=2)
+        ax.axvline(original_se, color="0.25", lw=0.85, ls=(0, (4, 3)),
+                   zorder=4)
+        ax.text(
+            original_se + 0.35,
+            0.5,
+            "2005 SE limit",
+            transform=ax.get_xaxis_transform(),
+            rotation=90,
+            ha="left",
+            va="center",
+            fontsize=6.4,
+            color="0.20",
+            bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.78,
+                  "pad": 1.2},
+            zorder=5,
+        )
+        ax.text(
+            0.5 * (original_se + s_edges[-1]),
+            0.04,
+            f"{s_edges[-1] - original_se:.0f} km SE\nextension",
+            transform=ax.get_xaxis_transform(),
+            ha="center",
+            va="bottom",
+            fontsize=6.2,
+            color="0.20",
+            bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.78,
+                  "pad": 1.2},
+            zorder=5,
+        )
+
+    ax.set_xlim(s_edges[0], s_edges[-1])
+    ax.set_ylim(z_edges[0], z_edges[-1])
+    ax.invert_yaxis()
+    ax.set_xlabel("distance along the 2005 dike plane, NW → SE (km)")
+    ax.set_ylabel("depth (km)")
+    ax.tick_params(length=2.5, width=0.6, labelsize=6.8, pad=1.5)
+    for spine in ax.spines.values():
+        spine.set_linewidth(0.65)
+    ax.set_title("July 2026", loc="left", fontsize=9.0, fontweight="bold",
+                 pad=5)
+    ax.set_title(
+        f"0–{z_edges[-1]:g} km model depth · contours every 0.5 m",
+        loc="right",
+        fontsize=6.8,
+        color="0.30",
+        pad=6,
+    )
+    ax.text(
+        0.985,
+        0.94,
+        f"max {payload['dike']['max_opening_m']:.2f} m · "
+        f"{payload['dike']['dike_volume_km3']:.3f} km³",
+        transform=ax.transAxes,
+        ha="right",
+        va="top",
+        fontsize=6.4,
+        bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.82,
+              "pad": 1.4},
+        zorder=6,
+    )
+
+    colorbar_axis = fig.add_axes([0.905, 0.175, 0.016, 0.545])
+    colorbar = fig.colorbar(
+        ScalarMappable(norm=dike_norm, cmap=cmc.lajolla_r),
+        cax=colorbar_axis,
+        extend=extend,
+    )
+    colorbar.set_ticks([0, 1, 2, DIKE_LIMIT_M])
+    colorbar.set_label("U$_\\perp$ (m)", fontsize=7)
+    colorbar.ax.tick_params(labelsize=6.5, length=2)
+
+    fig.suptitle(
+        "Manda Hararo 2026 — dike opening on the Wright et al. (2006) "
+        "2005 plane",
+        x=0.5,
+        y=0.985,
+        fontweight="bold",
+    )
+    fig.text(
+        0.5,
+        0.86,
+        "reprocessed 30-m (GSLC) inputs · 18 July reference · "
+        "same fit as the map-view figure · s = 0 at the plane's NW end",
+        ha="center",
+        va="bottom",
+        fontsize=7.2,
+        color="#3a3a3a",
+    )
+
+    png = RESULTS / "summary_uperp_wright2006.png"
+    pdf = RESULTS / "summary_uperp_wright2006.pdf"
     fig.savefig(png, dpi=300)
     fig.savefig(pdf)
     plt.close(fig)
@@ -3022,11 +3323,14 @@ BUILDERS = {
     "gradient": build_gradient_figure,
     "stress": build_stress_figure,
     "dike_frame": build_dike_frame_figure,
+    "wright_los": build_wright_los_figure,
+    "wright_uperp": build_wright_uperp_figure,
 }
 
 RESULT_INPUTS = (
     "distributed_fit_mapped.json",
     "distributed_fit_mapped_gslc.json",
+    "distributed_fit_geometry_b643c0de55aa_gslc.json",
     "decomposition_joint_gslc.json",
     "fault_traces.json",
     "okada_fit.json",

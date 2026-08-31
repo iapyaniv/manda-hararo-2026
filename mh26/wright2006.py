@@ -55,6 +55,10 @@ into spurious shallow opening; --no-faults writes a dike-only contract.
 Build the contract:   python -m mh26.wright2006
 Then invert:          python -m mh26.distributed --geometry results/geometry_wright2006.json
 U_perp panel:         python -m mh26.wright2006 --panel results/distributed_fit_geometry_<hash>.json
+
+A --gslc fit keeps a _gslc panel name, so the two chains cannot overwrite
+each other. The publication-style version of this panel is
+``mh26.summary_figures --only wright_uperp``.
 """
 
 from __future__ import annotations
@@ -543,7 +547,8 @@ def uperp_panel(result_path: Path) -> None:
         pad=0.025,
     )
     colorbar.ax.tick_params(labelsize=8)
-    out = RESULTS / "uperp_2026_wright2006"
+    chain = "_gslc" if payload.get("nisar_source") == "gslc" else ""
+    out = RESULTS / f"uperp_2026_wright2006{chain}"
     for ext in ("png", "pdf"):
         fig.savefig(f"{out}.{ext}", dpi=250)
     plt.close(fig)

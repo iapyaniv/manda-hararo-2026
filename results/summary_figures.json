@@ -4,6 +4,7 @@
   "results_inputs": {
     "distributed_fit_mapped.json": "8c287924a3eac112f4073cda177240fc86c6b45d46bb9088210a1d0bc8308f32",
     "distributed_fit_mapped_gslc.json": "ab2d7b3e13fe60388f9614de3b2337309a31ec109b1f985db8a08695ac19be7d",
+    "distributed_fit_geometry_b643c0de55aa_gslc.json": "2dff07a50fc4e2e073c18ebe8a7781916b7fc86d72c10870474b53f56e633e4b",
     "decomposition_joint_gslc.json": "d3096b5301f99e23e30a8796d62a0957997b2ccbae51e69c5230a97d78cefba6",
     "fault_traces.json": "76328d6ce925d064359d0fd2befe02a7aa02084e55fe258f152f891fc18dc5cf",
     "okada_fit.json": "9fd137519c73b8743caaed21eac64529cfd21eca1d6715757a119c1fa319e7b3",
@@ -15,17 +16,21 @@
     "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N12_00_E040_00_DEM/Copernicus_DSM_COG_10_N12_00_E040_00_DEM.tif"
   },
   "outputs": {
-    "summary_decomposition_dike_frame.pdf": "cdde42dd3cf5b8d6fad9179d5c7c7021e47dcbd082413440fd20dfbdcc372dd9",
+    "summary_decomposition_dike_frame.pdf": "76f2c952e5dda37f729bf14905314acc2d83e8ff0c1749b6ff3c7365943e6cac",
     "summary_decomposition_dike_frame.png": "0a6ca25ab37eda21fc61ce049c48e561a4e72bda40442ff6f28c06e62bfa377e",
-    "summary_decomposition_enu.pdf": "33734fac9d77e0c050231d89d37d04e4a15c32220cb567c0c0369b8822920fdb",
+    "summary_decomposition_enu.pdf": "21c3026704cd912de93bdac9c623be8c00322d3b61dfe64187e6055deb5da677",
     "summary_decomposition_enu.png": "aa70f9e3dbb976a22e0263df6c72b30b60e197db5b865027059a5ff4dca4da7c",
-    "summary_fault_stress.pdf": "de1c5a570bda3a3addccea71a425fbd3262b65951d324d182969e09356f7ec8c",
+    "summary_fault_stress.pdf": "ec4103afd4622cf02e6ecd3a939d8b058492f00dbbe3e9ac2fdc8ef677f91c14",
     "summary_fault_stress.png": "181120ba35e03a9e333283c3e6980483ec33d46fd0cbba6c4ebd1baf3af9430f",
-    "summary_los_model_residual.pdf": "6219c8a4cb08ca9a6048e8a70717bc573741a4639c0935928bd60e675bcb70c9",
+    "summary_los_model_residual.pdf": "3c536759264c94471f970d39b856668c685d48e46de9c292030dcff2d324ba61",
     "summary_los_model_residual.png": "3145573bee3f5e1ba610837a9fa9a870d6224ed5a8799752d391325d8b66656a",
-    "summary_phase_gradient.pdf": "2f3e16e78649837bcc2ce28da136d9efa2441e60715c60ee02b296946811a23c",
+    "summary_los_model_residual_wright2006.pdf": "0df9fa2dee2b18d074110180914dfd778f1d29b26ec2e3b615a20dbb301f18ff",
+    "summary_los_model_residual_wright2006.png": "967d9813bf180064cc66df8a13b6e173242c6f2f4b8f9b5aafe2ad13ab18adc4",
+    "summary_phase_gradient.pdf": "7db09ca8dc0e083a4102280006d9b03433db32eac93d005f2b9236351c081087",
     "summary_phase_gradient.png": "be3f3e6b6c31c809197c39419ede6af2838b9e7c2cb5ab60393add2e5f969b89",
-    "summary_source_geometry.pdf": "bbca0b5224a0b881c3c02710d717f7bea2ebbc4c48e16d38a319911ab4060c40",
-    "summary_source_geometry.png": "6158a099704d2596a51afa614ac88c8f3d167cf3f64b3a810f09b59cd341da45"
+    "summary_source_geometry.pdf": "4a4e82c16f3c7d07567f91d27230689377a7739bdb709f3fe580c231c4734cf3",
+    "summary_source_geometry.png": "6158a099704d2596a51afa614ac88c8f3d167cf3f64b3a810f09b59cd341da45",
+    "summary_uperp_wright2006.pdf": "170e32aab59266a4426cf487394ced7d2e8828b014a63a1dff3ad56f5c5d8485",
+    "summary_uperp_wright2006.png": "63fb87995eb4a6657916ae4fea9b39e31510971191a2b5c004a29cd3884e5aa6"
   }
 }

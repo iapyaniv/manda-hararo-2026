@@ -79,10 +79,11 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
   geometries are in `results/distributed_fit_fringe_panels_mapped_gslc.png`.
   The separate GUNW-fit-to-GSLC check is in
   `results/fringes_model_comparison.png`.
-- Six draft publication-style figures summarize the trace-supported fit,
+- Eight draft publication-style figures summarize the trace-supported fit,
   the free E–N–U decomposition, the same solve in the dike frame (U⊥, U∥,
-  up), the physical source, the phase-gradient faulting evidence, and the
-  dike-induced stress on the east-fault receivers: `results/summary_*.png`
+  up), the physical source, the phase-gradient faulting evidence, the
+  dike-induced stress on the east-fault receivers, and the fit on the
+  fixed 2005 plane (map view and U⊥ cross-section): `results/summary_*.png`
   with matching vector PDF files and the
   identity manifest `results/summary_figures.json`
   (`mh26.summary_figures`; needs the terrain tile described in
@@ -98,9 +99,13 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
   its line) and overruns its SE end by ~3 km, so the plane is extended 10 km
   SE. The 2026 joint inversion on that fixed plane gives joint RMS 2.46 cm
   (trace-supported free-trace fit: 2.42 cm), maximum opening 2.44 m, and
-  volume 0.156 km³ (`results/distributed_fit_geometry_b643c0de55aa.md`).
+  volume 0.156 km³ (`results/distributed_fit_geometry_b643c0de55aa.md`);
+  on the reprocessed 30-m (GSLC) inputs the same comparison is 2.81 cm
+  against 2.80 cm, with maximum opening 2.42 m and volume 0.154 km³
+  (`results/distributed_fit_geometry_b643c0de55aa_gslc.md`).
   `results/uperp_2026_wright2006.png` is one 2026 U⊥ cross-section on
-  the Wright plane. It uses the along-strike/depth view of an individual
+  the Wright plane, from the GUNW-input fit (a `--gslc` fit writes a
+  `_gslc` name). It uses the along-strike/depth view of an individual
   opening panel in Hamling et al. (2010) Figure 2; it is not a reproduction
   of that multi-event opening-and-stress figure. Its fixed 0–2.5 m scale can
   support a later comparison after the historical coordinate definitions
@@ -108,6 +113,11 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
   0–10 km model depth. The historical opening distributions are still
   awaited. This is a fixed-historical-plane variant with nominally
   transferred smoothing, not a co-planarity result; see `LIMITATIONS.md`.
+  The publication-style versions of the fixed-plane results are
+  `results/summary_los_model_residual_wright2006.png` (observed, model,
+  residual, and profile, in the layout of the free-trace figure) and
+  `results/summary_uperp_wright2006.png` (the cross-section restyled),
+  both from the 30-m-input fit.
 
 Sixteen pre-event windows from November 2025 through 15 July 2026 have a
 maximum absolute 1-km probe mean of 3.4 cm (`results/probe_history.md`). Nine
@@ -141,6 +151,7 @@ python -m mh26.distributed --mapped --gslc
 python -m mh26.distributed --geometry FILE  # complete external patch geometry
 python -m mh26.wright2006             # 2005 dike-plane contract from data/*.dat
 python -m mh26.distributed --geometry results/geometry_wright2006.json
+python -m mh26.distributed --geometry results/geometry_wright2006.json --gslc
 python -m mh26.wright2006 --panel results/distributed_fit_geometry_b643c0de55aa.json
 python -m mh26.stress
 python -m mh26.uncertainty --n 1000
