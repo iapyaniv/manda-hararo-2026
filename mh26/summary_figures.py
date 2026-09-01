@@ -1098,7 +1098,7 @@ def los_model_residual_figure(
         5,
         width_ratios=[1, 1, 1, 0.40, 1.18],
         left=0.075,
-        right=0.955,
+        right=0.945,
         bottom=0.16,
         top=0.91,
         hspace=0.10,
@@ -1307,7 +1307,7 @@ def los_model_residual_figure(
     )
     fig.text(
         0.5,
-        0.965,
+        0.944,
         subtitle,
         ha="center",
         va="bottom",
@@ -2296,8 +2296,8 @@ def build_source_figure() -> list[Path]:
         f"{dike_summary['fault_east_max_slip_m']:.2f} m · fault/dike potency "
         f"{potency['fault_to_dike_potency_ratio']:.2f} "
         "(area × slip over area × opening; not a moment-tensor ratio).\n"
-        "The 2005–2010 geometry-reuse comparison awaits the external "
-        "geometry files.",
+        "The 2005-plane refit is in the Wright-2006 summary figures; the "
+        "2006–2010 geometry and opening files are still awaited.",
         ha="center",
         va="bottom",
         fontsize=6.0,

@@ -7,7 +7,8 @@ Examples::
 
 The core profile covers event, control, and continuation NISAR crops, the
 two-track Sentinel-1 inputs, and reported results. The full profile also
-requires all 15 pre-event crops. SHA-256 verification is enabled by default.
+requires all 15 pre-event crops and the GSLC unwrap source files (core
+checks those only when present). SHA-256 verification is enabled by default.
 """
 
 from __future__ import annotations
@@ -413,7 +414,7 @@ def validate_distributed_result(name: str, expected_source: str) -> None:
             raise ValueError(f"{name}: lambda selection is inconsistent")
 
 
-def validate_new_products() -> None:
+def validate_new_products(require_gslc_sources: bool = True) -> None:
     """Contract checks on the distributed, decomposition, and GSLC results."""
     import json as _json
 
@@ -424,6 +425,8 @@ def validate_new_products() -> None:
         ("distributed_fit_gslc.json", "gslc"),
         ("distributed_fit_mapped.json", "gunw"),
         ("distributed_fit_mapped_gslc.json", "gslc"),
+        ("distributed_fit_geometry_b643c0de55aa.json", "gunw"),
+        ("distributed_fit_geometry_b643c0de55aa_gslc.json", "gslc"),
     ):
         validate_distributed_result(name, expected_source)
 
@@ -471,6 +474,11 @@ def validate_new_products() -> None:
     for source_key in ("ifg", "primary_unwrap"):
         source = unwrap_sensitivity[source_key]
         source_path = REPO / source["path"]
+        if not source_path.exists() and not require_gslc_sources:
+            # The unwrap sources live in the GSLC archive, a full-profile
+            # input; a core-profile install still validates the stored
+            # contract values without those files.
+            continue
         if sha256(source_path) != source["sha256"]:
             raise ValueError(f"unwrap sensitivity {source_key} hash mismatch")
     for variant in unwrap_sensitivity["variants"].values():
@@ -676,7 +684,7 @@ def main() -> None:
     print("PASS Sentinel-1 grids and coherence encoding")
     validate_results(require_continuation=True)
     print("PASS result contracts and derived-summary consistency")
-    validate_new_products()
+    validate_new_products(require_gslc_sources=args.profile == "full")
     print("PASS distributed, decomposition, GSLC-comparison, ridge/stress/"
           "uncertainty contracts and strict-JSON results")
     if not args.skip_checksums:

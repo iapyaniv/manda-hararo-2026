@@ -244,10 +244,11 @@ validates the patch arrays, dislocation rows, surface shapes, masks, axes,
 areas, and patch order. It then uses those patches without rebuilding them
 from current code constants. The result uses a content-hash suffix and records
 the source path, source-file hash, and geometry hash. This closes the generic
-input and provenance gap. It does not supply the missing 2005–2010 geometry or
-convert an unknown legacy file format. The exact old source files are still
-needed for Juliet's requested test. A format-specific conversion can be added
-after those files arrive.
+input and provenance gap. The 2005 plane arrived exactly this way
+(`data/complex_geom2_revised_test.dat` converted to
+`results/geometry_wright2006.json`), and its refit is complete on both input
+chains. The 2006–2010 geometry and opening files are still missing, and an
+unknown legacy format can still require a converter when they arrive.
 
 ## Dike-induced stress on the fault surfaces (mh26.stress)
 

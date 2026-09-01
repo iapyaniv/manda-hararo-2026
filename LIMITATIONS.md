@@ -86,9 +86,10 @@
   moment-tensor ratio. Dike volumes from different model classes are not
   directly comparable: the distributed model moves near-axis signal from
   opening into fault slip, so its 0.14 km³ sits below the uniform-rectangle
-  0.169 km³ without contradiction. Whether the 2026 plane coincides with the
-  2005–2010 dike geometry remains untested until those geometry files are
-  available. The complete JSON geometry contract and hash-safe input command
+  0.169 km³ without contradiction. The 2005 plane itself is now refit
+  directly (the fixed 2005-plane entry below); whether the 2026 plane
+  coincides with the 2006–2010 dike geometries remains untested until those
+  geometry files are available. The complete JSON geometry contract and hash-safe input command
   are ready, but an unknown legacy file format can still require a converter.
 - The phase-gradient ridges are candidate scarp lines: the picker selects
   at most one ridge per side and bin, and only the east ridge passes the

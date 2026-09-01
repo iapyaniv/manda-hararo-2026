@@ -240,8 +240,10 @@ difference of each frame correlates with this repository's referenced
 LiCSAR co-event field at r = 0.97 (014A) and 0.99 (079D), with slopes 1.22
 and 1.10 in the positive-toward-satellite sense used here, so the two
 products share a sign convention, and the excess over 1 is consistent with
-the post-event tail inside those longer windows. The sign, reference area,
-and corrections still need confirmation from the processors before the maps
+the post-event tail inside those longer windows. The sign, the reference area, the
+temporal reference (the 014A pair starts 24 days apart: 2014-10-06 and
+2014-10-30, so their difference contains a short unmatched interval), and
+the corrections still need confirmation from the processors before the maps
 are used in a figure.
 
 ## Data sources and reuse
