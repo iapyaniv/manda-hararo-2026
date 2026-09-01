@@ -296,6 +296,8 @@ def validate_results(require_continuation: bool = True) -> None:
                 or not np.isclose(envelope[0], min(variants)) \
                 or not np.isclose(envelope[1], max(variants)):
             raise ValueError("continuation summary does not match its records")
+        if continuation["model_fit_sha256"] != sha256(RESULTS / "okada_fit.json"):
+            raise ValueError("continuation product predates the current okada fit")
 
     tracks = json.loads((RESULTS / "s1_tracks.json").read_text())
     expected_pairs = {(frame, pair, role) for frame, pair, role in S1_TRACK_PAIRS}
@@ -425,8 +427,8 @@ def validate_new_products(require_gslc_sources: bool = True) -> None:
         ("distributed_fit_gslc.json", "gslc"),
         ("distributed_fit_mapped.json", "gunw"),
         ("distributed_fit_mapped_gslc.json", "gslc"),
-        ("distributed_fit_geometry_b643c0de55aa.json", "gunw"),
-        ("distributed_fit_geometry_b643c0de55aa_gslc.json", "gslc"),
+        ("distributed_fit_geometry_4a7b2386c8b5.json", "gunw"),
+        ("distributed_fit_geometry_4a7b2386c8b5_gslc.json", "gslc"),
     ):
         validate_distributed_result(name, expected_source)
 

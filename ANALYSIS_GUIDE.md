@@ -48,7 +48,7 @@ Manda Hararo intrusion.
   builds that contract from the 2005 dike-plane source model in
   `data/complex_geom2_revised_test.dat` (provenance and format in
   `data/README.md`); the fixed-plane 2026 fit is
-  `results/distributed_fit_geometry_b643c0de55aa.{json,md}` (GUNW inputs;
+  `results/distributed_fit_geometry_4a7b2386c8b5.{json,md}` (GUNW inputs;
   `--gslc` writes `..._gslc.{json,md}`, the chain the summary figures
   draw) and
   `results/uperp_2026_wright2006.png` is one 2026 U⊥ cross-section on
@@ -107,10 +107,10 @@ The effects of these choices are described in `PROCESSING_NOTES.md`.
 
 For the NISAR descending 19 July–12 August pair, the projection onto the
 co-event dike pattern is +0.107 with a processing-choice range of +0.100 to
-+0.123.
++0.121.
 
 The two-track Sentinel-1 tests confirm this signal and resolve it in time.
-The early windows give +0.136 (ascending, 18–30 July) and +0.052 (descending,
+The early windows give +0.140 (ascending, 18–30 July) and +0.053 (descending,
 23 July–4 August). The late windows (from 30 July and from 4 August) lie at
 the level of the nine pre-event nulls (maximum magnitude 0.021). A
 window-integral exponential fit gives a total of about 0.15 of the co-event

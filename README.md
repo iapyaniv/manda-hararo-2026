@@ -23,9 +23,10 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
   2.05–2.40 m opening. Geometric volume is 0.187 km³, with a
   processing-choice range of 0.186–0.208 km³. See
   `results/model_sensitivity.md`.
-- The Sentinel-1 ascending comparison gives r = 0.953, amplitude ratio 0.85,
-  and RMS 2.4 cm. The descending comparison gives r = 0.915, amplitude ratio
-  0.81, and RMS 2.9 cm. See `results/s1_crosscheck.md` and
+- The Sentinel-1 ascending comparison gives r = 0.974, amplitude ratio 0.92,
+  and RMS 1.8 cm. The descending comparison gives r = 0.933, amplitude ratio
+  0.88, and RMS 2.7 cm. The model passes through the same far-field plane
+  projection as the observations in these comparisons. See `results/s1_crosscheck.md` and
   `results/s1_tracks.md`.
 - The NISAR post-event projection is +0.107 for 19 July–12 August, with a
   processing-choice range of +0.100–+0.123. See `results/continuation.md`.
@@ -98,12 +99,12 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
   `data/README.md`). The 2026 uniform-fit dike is aligned with the
   southernmost segment (strike differs by ~4.5°; endpoints 0.45–0.92 km off
   its line) and overruns its SE end by ~2.8 km, so the plane is extended 10 km
-  SE. The 2026 joint inversion on that fixed plane gives joint RMS 2.24 cm
-  (trace-supported free-trace fit: 2.15 cm), maximum opening 2.35 m, and
-  volume 0.183 km³ (`results/distributed_fit_geometry_b643c0de55aa.md`);
-  on the reprocessed 30-m (GSLC) inputs the same comparison is 2.63 cm
-  against 2.56 cm, with maximum opening 2.33 m and volume 0.181 km³
-  (`results/distributed_fit_geometry_b643c0de55aa_gslc.md`).
+  SE. The 2026 joint inversion on that fixed plane gives joint RMS 2.20 cm
+  (trace-supported free-trace fit: 2.15 cm), maximum opening 2.30 m, and
+  volume 0.182 km³ (`results/distributed_fit_geometry_4a7b2386c8b5.md`);
+  on the reprocessed 30-m (GSLC) inputs the same comparison is 2.61 cm
+  against 2.55 cm, with maximum opening 2.31 m and volume 0.180 km³
+  (`results/distributed_fit_geometry_4a7b2386c8b5_gslc.md`).
   `results/uperp_2026_wright2006.png` is one 2026 U⊥ cross-section on
   the Wright plane, from the GUNW-input fit (a `--gslc` fit writes a
   `_gslc` name). It uses the along-strike/depth view of an individual
@@ -153,7 +154,7 @@ python -m mh26.distributed --geometry FILE  # complete external patch geometry
 python -m mh26.wright2006             # 2005 dike-plane contract from data/*.dat
 python -m mh26.distributed --geometry results/geometry_wright2006.json
 python -m mh26.distributed --geometry results/geometry_wright2006.json --gslc
-python -m mh26.wright2006 --panel results/distributed_fit_geometry_b643c0de55aa.json
+python -m mh26.wright2006 --panel results/distributed_fit_geometry_4a7b2386c8b5.json
 python -m mh26.stress
 python -m mh26.uncertainty --n 1000
 python -m mh26.figures
