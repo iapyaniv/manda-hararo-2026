@@ -104,6 +104,8 @@ from .distributed import (
 from .gslc import DATA_GSLC, UNWRAP_COHERENCE_MIN
 from .gunw import load_pair, los_unit_neu
 from .params import (
+    CENTER_E,
+    CENTER_N,
     EPSG_UTM37N,
     INVERSION_PAIRS,
     LAME_LAMBDA,
@@ -1076,10 +1078,18 @@ def los_model_residual_figure(
         print(f"loaded {look['label']}")
 
     total_neu = model_surface_neu(geometry, magnitudes, points).reshape(*shape, 3)
+    planes = {row["name"]: row["model_farfield_plane_m"]
+              for row in payload["datasets"]}
     models = {}
     for look in LOOKS:
         prediction = np.einsum("ijk,ijk->ij", total_neu, look_units[look["key"]])
         prediction += payload["dataset_offsets_m"][look["payload_name"]]
+        coef = planes[look["payload_name"]]
+        # The observed fields are far-field plane referenced; show the model
+        # through the estimator's matching projection so the residual panels
+        # equal the fitted residuals.
+        prediction -= (coef[0] + coef[1] * (X - CENTER_E)
+                       + coef[2] * (Y - CENTER_N))
         models[look["key"]] = prediction
 
     plt.rcParams.update(RC_PARAMS)

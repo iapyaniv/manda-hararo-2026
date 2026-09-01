@@ -55,6 +55,7 @@ from .gunw import (
     los_unit_neu,
     pair_window,
     reference_farfield,
+    remove_farfield_plane,
 )
 from .okada import forward
 from .params import (
@@ -609,7 +610,13 @@ def assemble(datasets: list[dict], geometry: dict, with_faults: bool = True):
     geometry_key = _greens_geometry_key(geometry)
     for i, ds in enumerate(datasets):
         if "_greens" not in ds or ds.get("_greens_geometry_key") != geometry_key:
-            ds["_greens"] = greens_los(geometry, ds["pts"], ds["units"])
+            greens = greens_los(geometry, ds["pts"], ds["units"])
+            # The observations are far-field plane referenced; the Green
+            # functions must pass through the same projection, or the
+            # model's missing plane is absorbed into the source magnitudes.
+            greens, plane = remove_farfield_plane(ds["pts"], greens)
+            ds["_greens"] = greens
+            ds["_greens_plane_coef"] = plane
             ds["_greens_geometry_key"] = geometry_key
         G = ds["_greens"]
         G = G[:, keep]
@@ -657,8 +664,11 @@ def solve(A: np.ndarray, b: np.ndarray, keep: np.ndarray, geometry: dict,
     upper = np.where(kinds == "dike", OPENING_MAX, SLIP_MAX)
     lo = np.concatenate([np.zeros(n_par), -OFFSET_BOUND * np.ones(n_sets)])
     hi = np.concatenate([upper, OFFSET_BOUND * np.ones(n_sets)])
+    # The reference projection of the Green columns worsens conditioning at
+    # the small-lambda end of the CV grid; the bounded solver needs more
+    # iterations there than the unprojected system did.
     res = lsq_linear(A_full, b_full, bounds=(lo, hi), method="trf",
-                     max_iter=400, tol=1e-12)
+                     max_iter=2000, tol=1e-12)
     if not res.success:
         raise RuntimeError(f"lsq_linear failed at lambda={lam}: {res.message}")
     return res.x
@@ -688,6 +698,7 @@ def uniform_reference_rms(datasets: list[dict], model: np.ndarray) -> dict:
     residuals = []
     for ds in datasets:
         pred = np.sum(forward(model, ds["pts"]) * ds["units"], axis=1)
+        pred, _ = remove_farfield_plane(ds["pts"], pred)
         offset = float(np.mean(ds["vals"] - pred))
         r = ds["vals"] - pred - offset
         out[ds["name"]] = float(np.sqrt(np.mean(r ** 2)))
@@ -1321,6 +1332,8 @@ def main(nisar_source: str = "gunw", fault_source: str = "idealized",
 
     for ds in datasets:
         ds.pop("_greens", None)
+        ds.pop("_greens_plane_coef", None)
+        ds.pop("_greens_geometry_key", None)
     datasets_nd = load_datasets(model, decay, apply_decay=False,
                                 nisar_source=nisar_source)
     A_nd, b_nd, keep_nd = assemble(datasets_nd, geometry, with_faults=True)
@@ -1348,6 +1361,9 @@ def main(nisar_source: str = "gunw", fault_source: str = "idealized",
         "comparison with the 2005-2010 dike and fault geometries requires "
         "those exact geometry files"
     )
+    # The variants above rebuilt the per-dataset Green cache for their own
+    # geometries; the payload rows and the panels must describe this fit.
+    assemble(datasets, geometry, with_faults=True)
     payload = {
         "geometry": geometry_to_json(geometry),
         "geometry_sha256": geometry_sha256(geometry),
@@ -1358,9 +1374,19 @@ def main(nisar_source: str = "gunw", fault_source: str = "idealized",
             for index, ds in enumerate(datasets)
         },
         "n_parameters": int(keep.sum()) + n_sets,
+        "reference_operator": "observations and Green functions both pass "
+                              "through the block-space far-field plane "
+                              "projection (basis: constant, east, north; "
+                              "fit region beyond the far-field radius); "
+                              "model_farfield_plane_m is the fitted "
+                              "model's removed plane per dataset",
         "datasets": [{"name": ds["name"], "n_blocks": int(len(ds["vals"])),
                       "decay_factor": ds["decay_factor"],
-                      "sigma_cm": 100 * ds["sigma"]} for ds in datasets],
+                      "sigma_cm": 100 * ds["sigma"],
+                      "model_farfield_plane_m": [
+                          float(v) for v in
+                          (ds["_greens_plane_coef"][:, keep]
+                           @ x[:keep.sum()])]} for ds in datasets],
         "lambda_selection": {k: v for k, v in selection.items()
                              if k != "solution"},
         "lambda_chosen": lam,

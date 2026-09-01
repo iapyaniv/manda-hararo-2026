@@ -361,24 +361,64 @@ class ReferenceAndCacheTests(unittest.TestCase):
     def test_greens_cache_is_reused_only_for_the_same_geometry(self) -> None:
         first = build_geometry(self.MODEL)
         second = build_geometry(self.MODEL, fault_offset=1_500.0)
+        pts = np.array([
+            [CENTER_N + 40e3, CENTER_E + 40e3],
+            [CENTER_N + 40e3, CENTER_E - 40e3],
+            [CENTER_N - 40e3, CENTER_E + 40e3],
+            [CENTER_N - 40e3, CENTER_E - 40e3],
+        ])
+        # Orthogonal to the reference-plane basis over these four points, so
+        # the values pass through assemble's projection unchanged.
+        pattern = np.array([1.0, -1.0, -1.0, 1.0])
         dataset = {
-            "pts": np.zeros((2, 2)),
-            "units": np.zeros((2, 3)),
-            "vals": np.zeros(2),
+            "pts": pts,
+            "units": np.zeros((4, 3)),
+            "vals": np.zeros(4),
             "sigma": 1.0,
         }
         calls = []
 
         def fake_greens(geometry, points, units):
             calls.append(geometry["fault_offset"])
-            return np.full((len(points), len(geometry["kinds"])), len(calls))
+            return len(calls) * pattern[:, None] * np.ones(
+                (len(points), len(geometry["kinds"])))
 
         with patch("mh26.distributed.greens_los", side_effect=fake_greens):
             assemble([dataset], first)
             assemble([dataset], first)
             matrix, _, _ = assemble([dataset], second)
         self.assertEqual(calls, [2_000.0, 1_500.0])
-        np.testing.assert_array_equal(matrix[:, :-1], 2.0)
+        np.testing.assert_allclose(
+            matrix[:, :-1],
+            2.0 * pattern[:, None] * np.ones((4, matrix.shape[1] - 1)),
+            atol=1e-9)
+
+
+class ReferenceOperatorTests(unittest.TestCase):
+    def test_model_projection_matches_observation_operator(self):
+        from mh26.gunw import remove_farfield_plane
+        from mh26.params import CENTER_E, CENTER_N, FARFIELD_RADIUS
+
+        rng = np.random.default_rng(7)
+        pts = np.column_stack([
+            CENTER_N + rng.uniform(-45e3, 45e3, 4000),
+            CENTER_E + rng.uniform(-45e3, 45e3, 4000),
+        ])
+        plane = (0.012 + 2.0e-7 * (pts[:, 1] - CENTER_E)
+                 - 1.0e-7 * (pts[:, 0] - CENTER_N))
+        out, coef = remove_farfield_plane(pts, plane)
+        self.assertLess(float(np.abs(out).max()), 1e-9)
+        np.testing.assert_allclose(coef, [0.012, 2.0e-7, -1.0e-7], rtol=1e-6)
+
+        columns = rng.normal(size=(len(pts), 3))
+        projected, _ = remove_farfield_plane(pts, columns)
+        far = np.hypot(pts[:, 1] - CENTER_E,
+                       pts[:, 0] - CENTER_N) > FARFIELD_RADIUS
+        basis = np.column_stack([np.ones(len(pts)), pts[:, 1] - CENTER_E,
+                                 pts[:, 0] - CENTER_N])
+        refit, *_ = np.linalg.lstsq(basis[far], projected[far], rcond=None)
+        self.assertLess(float(np.abs(refit[0]).max()), 1e-9)
+        self.assertLess(float(np.abs(refit[1:]).max()) * 4.5e4, 1e-9)
 
 
 if __name__ == "__main__":

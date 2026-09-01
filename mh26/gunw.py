@@ -129,6 +129,29 @@ def reference_farfield(los: np.ndarray, x: np.ndarray, y: np.ndarray,
     return los - plane
 
 
+def remove_farfield_plane(pts: np.ndarray, values: np.ndarray,
+                          r_in: float = FARFIELD_RADIUS,
+                          cx: float = CENTER_E, cy: float = CENTER_N):
+    """Apply the observation reference operator to model values.
+
+    ``reference_farfield`` removes a plane fitted on the far field from every
+    observation, and part of the true deformation signal goes with it. A
+    model compared against those observations must lose its own far-field
+    plane through the same operator; otherwise the missing plane is absorbed
+    into the source parameters and biases the source low. Accepts a vector
+    or column-stacked values (e.g. Green-function columns). Returns the
+    referenced values and the plane coefficients [constant, east, north].
+    """
+    radius = np.hypot(pts[:, 1] - cx, pts[:, 0] - cy)
+    far = radius > r_in
+    if int(far.sum()) < 3:
+        raise ValueError("too few far-field samples for the reference plane")
+    basis = np.column_stack([np.ones(len(pts)), pts[:, 1] - cx,
+                             pts[:, 0] - cy])
+    coef, *_ = np.linalg.lstsq(basis[far], values[far], rcond=None)
+    return values - basis @ coef, coef
+
+
 def block_average(arr: np.ndarray, x: np.ndarray, y: np.ndarray,
                   block: int = BLOCK_PIXELS):
     """Block-average a grid; blocks under 30% valid become NaN.

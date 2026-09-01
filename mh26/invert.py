@@ -23,7 +23,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import least_squares
 
-from .gunw import block_average, corrected_los, load_pair, los_unit_neu, reference_farfield
+from .gunw import (block_average, corrected_los, load_pair, los_unit_neu,
+                   reference_farfield, remove_farfield_plane)
 from .okada import forward
 from .params import (
     BLOCK_PIXELS,
@@ -64,15 +65,29 @@ def load_observations(block: int = BLOCK_PIXELS,
         los, _ = corrected_los(d)
         ref = reference_farfield(los, d["x"], d["y"], r_in=farfield_radius)
         pts, vals, grid = block_average(ref, d["x"], d["y"], block=block)
+        units = los_unit_neu(d, pts, height=los_height)
+        keep = np.ones(len(vals), dtype=bool)
         if max_radius is not None:
             radius = np.hypot(pts[:, 1] - CENTER_E, pts[:, 0] - CENTER_N)
-            use = radius < max_radius
-            pts, vals = pts[use], vals[use]
-        units = los_unit_neu(d, pts, height=los_height)
-        data[tag] = dict(pts=pts, vals=vals, units=units, grid=grid)
-        print(f"{tag}: {len(vals)} block obs, mean local LOS unit (n,e,up)="
-              f"{units.mean(axis=0).round(3)}")
+            keep = radius < max_radius
+        # The model must pass through the same far-field plane projection as
+        # the referenced observations, evaluated on the full block set even
+        # when the fitted blocks are radius-limited.
+        data[tag] = dict(pts=pts[keep], vals=vals[keep], units=units[keep],
+                         grid=grid, ref_pts=pts, ref_units=units,
+                         ref_keep=keep, ref_r_in=farfield_radius)
+        print(f"{tag}: {int(keep.sum())} block obs, mean local LOS unit (n,e,up)="
+              f"{units[keep].mean(axis=0).round(3)}")
     return data
+
+
+def predicted_los(p: np.ndarray, dd: dict) -> np.ndarray:
+    """Model LOS through the observation reference operator, kept blocks."""
+    displacement = forward(p, dd["ref_pts"])
+    los_pred = np.sum(displacement * dd["ref_units"], axis=1)
+    los_pred, _ = remove_farfield_plane(dd["ref_pts"], los_pred,
+                                        r_in=dd["ref_r_in"])
+    return los_pred[dd["ref_keep"]]
 
 
 def residual_vector(theta: np.ndarray, data: dict,
@@ -82,9 +97,7 @@ def residual_vector(theta: np.ndarray, data: dict,
     out = []
     for i, tag in enumerate(INVERSION_PAIRS):
         dd = data[tag]
-        displacement = forward(p, dd["pts"])
-        los_pred = np.sum(displacement * dd["units"], axis=1)
-        residual = los_pred + offsets[i] - dd["vals"]
+        residual = predicted_los(p, dd) + offsets[i] - dd["vals"]
         if equal_geometry_weight:
             residual = residual / np.sqrt(len(residual))
         out.append(residual)
@@ -176,12 +189,14 @@ def fit(data: dict, starts: list[list[float]] | list[np.ndarray] | None = None,
 
 
 def write_report(p: np.ndarray, sig: np.ndarray, rms: float, n_obs: int,
-                 diagnostics: dict) -> None:
+                 diagnostics: dict, model_planes: dict) -> None:
     lines = ["# Okada dike fit — Manda Hararo July 2026", "",
              f"- observations: {n_obs} (block-avg {BLOCK_PIXELS * GRID_POSTING:.0f} m), "
              f"RMS misfit **{100*rms:.1f} cm**",
              "- screening is entirely a priori: coherence, connected component, and the",
              "  product valid-sample mask; no blocks were rejected using model residuals",
+             "- the model LOS passes through the same far-field plane projection as the",
+             "  referenced observations (reference-operator consistency)",
              f"- optimizer: {diagnostics['starts_completed']}/{diagnostics['starts_attempted']} "
              f"starts completed; best optimality {diagnostics['optimality']:.3g}",
              "", "| param | value | formal 1σ* | unit |", "|---|---|---|---|"]
@@ -217,6 +232,12 @@ def write_report(p: np.ndarray, sig: np.ndarray, rms: float, n_obs: int,
         "geodetic_moment_Nm": moment,
         "screening": "coherence + connected component + GUNW valid-sample mask",
         "unit_vectors": "cube-interpolated @500m",
+        "reference_operator": "model LOS passes through the block-space "
+                              "far-field plane projection matching "
+                              "reference_farfield (basis: constant, east, "
+                              "north; fit region beyond the far-field "
+                              "radius)",
+        "model_farfield_plane_m": model_planes,
         "optimizer": diagnostics,
     }, indent=2) + "\n")
 
@@ -228,8 +249,7 @@ def plot_panels(data: dict, p: np.ndarray) -> None:
     for i, tag in enumerate(INVERSION_PAIRS):
         dd = data[tag]
         xs, ys, m = dd["grid"]
-        displacement = forward(p[:7], dd["pts"])
-        los_pred = np.sum(displacement * dd["units"], axis=1) + p[7 + i]
+        los_pred = predicted_los(p[:7], dd) + p[7 + i]
         pred_grid = np.full_like(m, np.nan)
         pred_grid[np.isfinite(m)] = los_pred
         resid = m - pred_grid
@@ -260,7 +280,14 @@ def main() -> None:
     RESULTS.mkdir(exist_ok=True)
     data = load_observations()
     p, sig, rms, n_obs, diagnostics = fit(data)
-    write_report(p, sig, rms, n_obs, diagnostics)
+    model_planes = {}
+    for tag in INVERSION_PAIRS:
+        dd = data[tag]
+        pred = np.sum(forward(p[:7], dd["ref_pts"]) * dd["ref_units"], axis=1)
+        _, coef = remove_farfield_plane(dd["ref_pts"], pred,
+                                        r_in=dd["ref_r_in"])
+        model_planes[tag] = [float(v) for v in coef]
+    write_report(p, sig, rms, n_obs, diagnostics, model_planes)
     plot_panels(data, p)
 
 

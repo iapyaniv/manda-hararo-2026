@@ -34,7 +34,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pyrocko.modelling import okada_ext
 
-from .distributed import decay_factor, geometry_from_json, geometry_sha256
+from .distributed import (NISAR_LABEL, decay_factor, geometry_from_json,
+                          geometry_sha256)
 from .gslc import DATA_GSLC, UNWRAP_COHERENCE_MIN
 from .gunw import load_pair, los_unit_neu, pair_window
 from .params import (
@@ -97,6 +98,10 @@ def main() -> None:
         disp = np.column_stack([res[:, 0], res[:, 1], -res[:, 2]])
         units = los_unit_neu(d, pts)
         pred = np.sum(disp * units, axis=1).reshape(obs.shape)
+        coef = {row["name"]: row["model_farfield_plane_m"]
+                for row in fit["datasets"]}[NISAR_LABEL[tag]]
+        pred = pred - (coef[0] + coef[1] * (X - CENTER_E)
+                       + coef[2] * (Y - CENTER_N))
         far = (np.hypot(X - CENTER_E, Y - CENTER_N) > FARFIELD_RADIUS) \
             & np.isfinite(obs)
         pred = pred + np.nanmedian(obs[far] - pred[far])

@@ -55,13 +55,14 @@ from .distributed import (
     moment_summary,
     solve,
 )
+from .gunw import remove_farfield_plane as _remove_farfield_plane
 from .params import CENTER_E, CENTER_N, FARFIELD_RADIUS, RESULTS
 
 RNG_SEED = 20260819
 VARIOGRAM_MAX_BLOCKS = 1500
 VARIOGRAM_BIN_M = 2_000.0
-VARIOGRAM_MAX_LAG_M = 40_000.0
-RANGE_GRID_M = np.arange(500.0, 30_001.0, 250.0)
+VARIOGRAM_MAX_LAG_M = 60_000.0
+RANGE_GRID_M = np.arange(500.0, 60_001.0, 250.0)
 QUANTITY_KEYS = ("dike_volume_km3", "max_opening_m", "fault_east_max_slip_m",
                  "fault_west_max_slip_m", "fault_to_dike_potency_ratio",
                  "opening_centroid_depth_km")
@@ -115,14 +116,7 @@ def fit_covariance(pts: np.ndarray, vals: np.ndarray,
 
 def remove_farfield_plane(pts: np.ndarray, vals: np.ndarray) -> np.ndarray:
     """Apply the block-space form of the far-field datum/ramp projection."""
-    radius = np.hypot(pts[:, 1] - CENTER_E, pts[:, 0] - CENTER_N)
-    far = radius > FARFIELD_RADIUS
-    M = np.column_stack([np.ones(far.sum()), pts[far, 1] - CENTER_E,
-                         pts[far, 0] - CENTER_N])
-    coef, *_ = np.linalg.lstsq(M, vals[far], rcond=None)
-    full = np.column_stack([np.ones(len(vals)), pts[:, 1] - CENTER_E,
-                            pts[:, 0] - CENTER_N])
-    return vals - full @ coef
+    return _remove_farfield_plane(pts, vals)[0]
 
 
 def referenced_noise_draw(pts: np.ndarray, factor: np.ndarray,
@@ -245,10 +239,11 @@ def main() -> None:
             "covariances": covariances,
             "best_fit": q_best,
             "noiseless_refit": q_ref,
-            "noiseless_refit_meaning": "combined estimator bias: the "
-                                       "smoothing penalty acting again plus "
-                                       "the far-field referencing removing "
-                                       "part of the model's own signal",
+            "noiseless_refit_meaning": "estimator bias: the smoothing "
+                                       "penalty acting again (the reference "
+                                       "projection is applied inside the "
+                                       "estimator itself, so it no longer "
+                                       "adds bias here)",
             "interval_method": "pivotal (basic bootstrap): refit errors "
                                "about the noiseless refit, re-centred on the "
                                "best fit; conditional data-noise dispersion "
