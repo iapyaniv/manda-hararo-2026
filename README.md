@@ -17,15 +17,15 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
   See `results/los_summary.md`.
 - The onset is after 15 July and present by 18 July, based on the NISAR
   control and LiCSAR event pairs.
-- The uniform dike has strike 152.6°, length 17.15 km, depth 1.49–4.99 km,
-  opening 2.81 m, and RMS 3.05 cm. See `results/okada_fit.md`.
-- Processing cases span 17.1–17.5 km length, 1.3–6.0 km depth, and
-  2.31–2.92 m opening. Geometric volume is 0.169 km³, with a
-  processing-choice range of 0.167–0.188 km³. See
+- The uniform dike has strike 153.0°, length 17.31 km, depth 1.30–5.94 km,
+  opening 2.32 m, and RMS 2.91 cm. See `results/okada_fit.md`.
+- Processing cases span 17.3–17.7 km length, 1.1–6.9 km depth, and
+  2.05–2.40 m opening. Geometric volume is 0.187 km³, with a
+  processing-choice range of 0.186–0.208 km³. See
   `results/model_sensitivity.md`.
-- The Sentinel-1 ascending comparison gives r = 0.954, amplitude ratio 0.88,
-  and RMS 2.3 cm. The descending comparison gives r = 0.917, amplitude ratio
-  0.85, and RMS 2.8 cm. See `results/s1_crosscheck.md` and
+- The Sentinel-1 ascending comparison gives r = 0.953, amplitude ratio 0.85,
+  and RMS 2.4 cm. The descending comparison gives r = 0.915, amplitude ratio
+  0.81, and RMS 2.9 cm. See `results/s1_crosscheck.md` and
   `results/s1_tracks.md`.
 - The NISAR post-event projection is +0.107 for 19 July–12 August, with a
   processing-choice range of +0.100–+0.123. See `results/continuation.md`.
@@ -41,9 +41,10 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
 ## Model extensions and checks
 
 - The trace-supported distributed fit includes only the east fault. It
-  reduces joint RMS from 2.59 to 2.42 cm and improves both 5-km holdout
-  splits. The 2.30 cm two-fault idealization remains a geometry sensitivity.
-  NISAR→Sentinel-1 is the stronger held-out-sensor transfer direction. See
+  reduces joint RMS from 2.37 to 2.15 cm and improves both 5-km holdout
+  splits. The 2.09 cm two-fault idealization remains a geometry sensitivity.
+  The held-out-sensor transfer gain belongs to the idealized two-fault
+  geometry; the mapped east-fault term is constrained mainly by NISAR. See
   `results/distributed_fit_mapped.md` and `LIMITATIONS.md`.
 - The joint decomposition, free three-component variant, closure diagnostics,
   and 30-m-input repeat are in `results/decomposition_joint*.md`. Counts now
@@ -53,10 +54,10 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
   constrained solve), U∥ along strike (SSE positive), and up. The rotation
   is exact and the rotated formal sigmas carry the east–north
   cross-covariance. U∥ is the weakly observed component: with the 30-m
-  inputs its flank probes are +5.7 cm (east) and −4.6 cm (west) against a
-  median formal σ of 4.1 cm; the GUNW inputs give +10.3 and −3.9 cm, and
-  replacing the fitted strike by the southernmost 2005 segment strike (4°
-  different) moves them by about 4 cm. U∥ is therefore reported but not
+  inputs its flank probes are +5.4 cm (east) and −4.2 cm (west) against a
+  median formal σ of 4.2 cm; the GUNW inputs give +10.1 and −3.5 cm, and
+  replacing the fitted strike by the southernmost 2005 segment strike (4.5°
+  different) moves them by about 5 cm. U∥ is therefore reported but not
   resolved. See the dike-frame section of `results/decomposition_joint*.md`.
 - The GSLC reprocessing comparison and its near-axis differences are in
   `results/gslc_gunw_compare_*.json`.
@@ -95,13 +96,13 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
   model of Wright et al. (2006) in `data/complex_geom2_revised_test.dat`
   (five chained vertical segments, 61 km, 0–10 km depth; see
   `data/README.md`). The 2026 uniform-fit dike is aligned with the
-  southernmost segment (strike differs by ~4°; endpoints 0.35–0.88 km off
-  its line) and overruns its SE end by ~3 km, so the plane is extended 10 km
-  SE. The 2026 joint inversion on that fixed plane gives joint RMS 2.46 cm
-  (trace-supported free-trace fit: 2.42 cm), maximum opening 2.44 m, and
-  volume 0.156 km³ (`results/distributed_fit_geometry_b643c0de55aa.md`);
-  on the reprocessed 30-m (GSLC) inputs the same comparison is 2.81 cm
-  against 2.80 cm, with maximum opening 2.42 m and volume 0.154 km³
+  southernmost segment (strike differs by ~4.5°; endpoints 0.45–0.92 km off
+  its line) and overruns its SE end by ~2.8 km, so the plane is extended 10 km
+  SE. The 2026 joint inversion on that fixed plane gives joint RMS 2.24 cm
+  (trace-supported free-trace fit: 2.15 cm), maximum opening 2.35 m, and
+  volume 0.183 km³ (`results/distributed_fit_geometry_b643c0de55aa.md`);
+  on the reprocessed 30-m (GSLC) inputs the same comparison is 2.63 cm
+  against 2.56 cm, with maximum opening 2.33 m and volume 0.181 km³
   (`results/distributed_fit_geometry_b643c0de55aa_gslc.md`).
   `results/uperp_2026_wright2006.png` is one 2026 U⊥ cross-section on
   the Wright plane, from the GUNW-input fit (a `--gslc` fit writes a

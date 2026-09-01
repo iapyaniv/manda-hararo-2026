@@ -96,14 +96,14 @@ correlation lengths. NISAR→Sentinel-1 is therefore reported as the stronger
 held-out-sensor check. S1→NISAR is only a conditional reverse transfer because
 the NISAR fields affected geometry selection.
 
-Joint RMS on the four geometries: uniform rectangle 2.71 cm → distributed
-opening 2.59 cm → opening + graben faults 2.30 cm. The graben faults carry
-about a quarter of the dike's potency (Σ area·dislocation; ratio 0.235,
+Joint RMS on the four geometries: uniform rectangle 2.49 cm → distributed
+opening 2.37 cm → opening + graben faults 2.09 cm. The graben faults carry
+about a fifth of the dike's potency (Σ area·dislocation; ratio 0.196,
 not a moment-tensor ratio). The dike volume
-of the distributed model (0.145 km³; 0.137–0.166 across the smoothing
+of the distributed model (0.170 km³; 0.164–0.187 across the smoothing
 envelope, geometry variants, sensor subsets, and the
 no-decay-normalization variant) is not the same quantity as the
-uniform-rectangle volume (0.169 km³): part of the near-axis signal moves
+uniform-rectangle volume (0.187 km³): part of the near-axis signal moves
 from opening into fault slip. A volume is meaningful only together with
 its model class.
 
@@ -120,7 +120,7 @@ distributed inversion.
 
 The free three-component solve (cells with at least three looks) is also
 rotated into the dike frame of `mh26.distributed._strike_vectors`: U∥
-along the fitted strike (152.6°, SSE positive), U⊥ perpendicular-left (ENE
+along the fitted strike (153.0°, SSE positive), U⊥ perpendicular-left (ENE
 positive; the same axis as the constrained h), and up. A linear
 reparameterization leaves the least-squares solution unchanged, so
 coverage and closure are identical; the rotated formal variances include
@@ -212,13 +212,13 @@ the vertical dike plane (depth = |offset| × tan dip), so no fault patch
 continues through the dike onto the far side of the rift; ridge offsets
 under ~1.9 km truncate their columns. The default mapped fit includes the
 33 of 42 nominal east patches that remain and excludes the west trace because
-it fails the cross-geometry LOS-step test. This east-trace fit has 2.42 cm
-joint RMS, compared with 2.30 cm for the two-plane idealization; its 5-km
+it fails the cross-geometry LOS-step test. This east-trace fit has 2.15 cm
+joint RMS, compared with 2.09 cm for the two-plane idealization; its 5-km
 checkerboard holdout improves on both splits. The regularized east slip
-maximum is 0.67 m, and the fault/dike potency ratio is 0.112 (idealized:
-0.235 — the partition between opening and slip shifts with the assumed fault
-area). In the saved 55–75° dip sweep, the GUNW chain spans 0.021 cm joint RMS
-and the GSLC chain spans 0.092 cm. Their minima do not agree, and the GSLC
+maximum is 0.67 m, and the fault/dike potency ratio is 0.102 (idealized:
+0.196 — the partition between opening and slip shifts with the assumed fault
+area). In the saved 55–75° dip sweep, the GUNW chain spans 0.019 cm joint RMS
+and the GSLC chain spans 0.058 cm. Their minima do not agree, and the GSLC
 minimum is at the grid boundary, so the data do not give a stable dip
 estimate. Two scope points apply to the validation. The checkerboard holdout
 is conditional — the ridge geometry
@@ -316,7 +316,7 @@ and subsidence values. The
 EAST-flank redundant cells close at ≈3.1 σ (all above 1 σ) while WEST
 closes at ≈0.6 σ and the axis disk has no redundant cells: the four looks
 disagree systematically on the east-lobe amplitude, consistent with the
-Sentinel-1-vs-NISAR amplitude ratios (0.85–0.88) of the independent S1
+Sentinel-1-vs-NISAR amplitude ratios (0.81–0.85) of the independent S1
 cross-checks. Rerunning the decomposition with the 30-m reprocessed NISAR
 fields (`--gslc`) moves the divergence by 2–3 cm and leaves the EAST
 closure unchanged (≈3.2 σ), which locates the systematic between the
@@ -339,11 +339,11 @@ The valid-sample and optimization changes alter the fitted geometry:
 
 | parameter | earlier processing | current processing |
 |---|---:|---:|
-| length | 18.1 km | 17.15 km |
-| depth | 0.8–7.0 km | 1.49–4.99 km |
-| uniform opening | 1.58 m | 2.81 m |
-| geometric volume | 0.18 km³ | 0.169 km³ |
-| NISAR RMS | 3.8 cm | 3.05 cm |
+| length | 18.1 km | 17.31 km |
+| depth | 0.8–7.0 km | 1.30–5.94 km |
+| uniform opening | 1.58 m | 2.32 m |
+| geometric volume | 0.18 km³ | 0.187 km³ |
+| NISAR RMS | 3.8 cm | 2.91 cm |
 
 All files in `results/` use the current processing.
 

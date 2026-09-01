@@ -1,9 +1,9 @@
 {
   "method": "wrapped-phase-gradient ridge per 500-m along-strike bin, 0.3-4 km each side of the fitted dike trace, detected per NISAR geometry and merged. The picker follows the phase-gradient idea of Xu et al. 2026 (doi:10.1016/j.geog.2026.06.002) but automates a narrower task (per-bin ridge localization with a peak/median threshold); it selects at most one ridge per side and does not by itself establish a fault break \u2014 see los_step_across_ridges",
-  "strike_deg": 152.5833023637425,
+  "strike_deg": 152.9957527591619,
   "trace_centre_utm": [
-    683225.3599892573,
-    1350366.906241735
+    683169.8841275336,
+    1350402.253224933
   ],
   "s_centres_m": [
     -13750.0,
@@ -69,134 +69,134 @@
       350.0,
       350.0,
       350.0,
+      350.0,
       450.0,
-      450.0,
-      600.0,
-      600.0,
-      600.0,
-      500.0,
-      500.0,
-      500.0,
-      800.0,
-      800.0,
-      900.0,
-      900.0,
-      900.0,
+      550.0,
+      550.0,
+      550.0,
+      550.0,
+      550.0,
+      550.0,
+      950.0,
+      950.0,
+      950.0,
+      950.0,
+      950.0,
       650.0,
       650.0,
       650.0,
       650.0,
       800.0,
-      900.0,
+      950.0,
+      1000.0,
       1250.0,
+      1350.0,
       1550.0,
-      1550.0,
-      1650.0,
-      1650.0,
-      1650.0,
-      1800.0,
-      1950.0,
-      1950.0,
-      2000.0,
-      2000.0,
+      1850.0,
+      1850.0,
+      2150.0,
       2200.0,
-      2200.0,
+      2250.0,
+      2300.0,
+      2300.0,
+      2300.0,
+      2300.0,
+      2100.0,
+      2100.0,
       2150.0,
-      2150.0,
-      2150.0,
-      2150.0,
-      2150.0,
-      2150.0,
-      2450.0,
+      2250.0,
+      2250.0,
+      2250.0,
       2550.0,
-      2550.0,
-      2600.0,
-      2600.0,
-      2550.0,
-      2550.0,
-      3000.0,
-      3300.0,
-      3300.0,
-      3450.0,
-      3500.0,
-      3475.0,
-      3500.0
+      2650.0,
+      2650.0,
+      2650.0,
+      2650.0,
+      2750.0,
+      2750.0,
+      3100.0,
+      3250.0,
+      3400.0,
+      3650.0,
+      3650.0,
+      3625.0,
+      3650.0
     ],
-    "n_bins_detected": 56,
-    "n_bins_both_geometries": 52,
+    "n_bins_detected": 55,
+    "n_bins_both_geometries": 54,
     "median_cross_geometry_spread_m": 300.0
   },
   "west": {
     "offset_m": [
+      -1300.0,
+      -1225.0,
       -1150.0,
       -1100.0,
-      -1050.0,
-      -1050.0,
-      -1050.0,
-      -1050.0,
-      -1050.0,
-      -1050.0,
-      -1000.0,
-      -1000.0,
-      -1000.0,
-      -1400.0,
-      -1500.0,
-      -1500.0,
-      -1550.0,
-      -1550.0,
-      -1650.0,
-      -1650.0,
-      -1600.0,
-      -1600.0,
-      -1750.0,
-      -1750.0,
-      -1750.0,
-      -1750.0,
-      -1700.0,
-      -1500.0,
-      -1400.0,
-      -1400.0,
-      -1300.0,
       -1150.0,
-      -800.0,
-      -750.0,
+      -1150.0,
+      -1100.0,
+      -1150.0,
+      -1150.0,
+      -1150.0,
+      -1150.0,
+      -1250.0,
+      -1400.0,
+      -1550.0,
+      -1600.0,
+      -1550.0,
+      -1650.0,
+      -1700.0,
+      -1750.0,
+      -2200.0,
+      -2200.0,
+      -2000.0,
+      -1750.0,
+      -1750.0,
+      -1750.0,
+      -1750.0,
+      -1650.0,
+      -1550.0,
+      -1500.0,
+      -1250.0,
+      -950.0,
+      -950.0,
+      -650.0,
+      -600.0,
+      -525.0,
+      -450.0,
+      -400.0,
+      null,
+      null,
+      null,
       -650.0,
       -650.0,
-      -550.0,
-      -450.0,
-      -450.0,
-      null,
-      null,
-      null,
+      -675.0,
+      -700.0,
       -750.0,
-      -750.0,
-      -750.0,
-      -750.0,
-      -750.0,
-      -850.0,
-      -1900.0,
-      -2200.0,
-      -2200.0,
-      -2200.0,
-      -1450.0,
-      -1450.0,
-      -1450.0,
-      -1450.0,
-      -1950.0,
-      -2450.0
+      -1200.0,
+      -1300.0,
+      -1300.0,
+      -1300.0,
+      -1300.0,
+      -1300.0,
+      -1300.0,
+      -1350.0,
+      -2000.0,
+      -2150.0,
+      -2300.0
     ],
     "n_bins_detected": 51,
-    "n_bins_both_geometries": 46,
-    "median_cross_geometry_spread_m": 300.0
+    "n_bins_both_geometries": 48,
+    "median_cross_geometry_spread_m": 250.0
   },
   "per_geometry_quality_median": {
     "172_008_A": {
-      "east": 4.041635956177021,
-      "west": 3.897048093116882
+      "east": 3.927466605296269,
+      "west": 3.990947306141359
     },
     "165_082_D": {
-      "east": 4.895672194826263,
-      "west": 3.739283621785429
+      "east": 4.590287532893648,
+      "west": 3.505562645176305
     }
   },
   "los_step_across_ridges": {
@@ -205,25 +205,25 @@
       "172_008_A": {
         "east": {
           "n_bins": 56,
-          "median_step_cm": -4.824039086826324,
-          "fraction_axis_side_down": 0.7857142857142857
+          "median_step_cm": -5.579401324267924,
+          "fraction_axis_side_down": 0.7678571428571429
         },
         "west": {
           "n_bins": 46,
-          "median_step_cm": 2.8548263245431347,
-          "fraction_axis_side_down": 0.3695652173913043
+          "median_step_cm": 4.482488614677528,
+          "fraction_axis_side_down": 0.2608695652173913
         }
       },
       "165_082_D": {
         "east": {
           "n_bins": 56,
-          "median_step_cm": -1.7162371393495357,
-          "fraction_axis_side_down": 0.625
+          "median_step_cm": -1.281618390729039,
+          "fraction_axis_side_down": 0.6071428571428571
         },
         "west": {
-          "n_bins": 46,
-          "median_step_cm": -2.9094375070719223,
-          "fraction_axis_side_down": 0.8260869565217391
+          "n_bins": 47,
+          "median_step_cm": -3.829465421237188,
+          "fraction_axis_side_down": 0.7872340425531915
         }
       }
     }
@@ -284,7 +284,7 @@
           "median_abs_change_from_baseline_m": 0.0
         },
         "west": {
-          "n_merged_bins": 56,
+          "n_merged_bins": 54,
           "n_bins_compared_with_baseline": 53,
           "median_abs_change_from_baseline_m": 50.0
         }
@@ -298,12 +298,12 @@
         "east": {
           "n_merged_bins": 56,
           "n_bins_compared_with_baseline": 56,
-          "median_abs_change_from_baseline_m": 0.0
+          "median_abs_change_from_baseline_m": 25.0
         },
         "west": {
-          "n_merged_bins": 52,
-          "n_bins_compared_with_baseline": 52,
-          "median_abs_change_from_baseline_m": 50.0
+          "n_merged_bins": 51,
+          "n_bins_compared_with_baseline": 51,
+          "median_abs_change_from_baseline_m": 100.0
         }
       }
     }
@@ -312,26 +312,26 @@
     "east": {
       "method": "circularly shift the second geometry along strike; preserve each trace's values and smoothness",
       "observed_median_spread_m": 300.0,
-      "n_common_bins": 52,
+      "n_common_bins": 54,
       "n_null_shifts": 55,
       "null_median_spread_m_p05_p50_p95": [
-        335.0,
-        1150.0,
-        1700.0
+        400.0,
+        1200.0,
+        1829.9999999999998
       ],
-      "fraction_null_as_good_or_better": 0.05454545454545454
+      "fraction_null_as_good_or_better": 0.03636363636363636
     },
     "west": {
       "method": "circularly shift the second geometry along strike; preserve each trace's values and smoothness",
-      "observed_median_spread_m": 300.0,
-      "n_common_bins": 46,
+      "observed_median_spread_m": 250.0,
+      "n_common_bins": 48,
       "n_null_shifts": 55,
       "null_median_spread_m_p05_p50_p95": [
-        300.0,
+        370.0,
         600.0,
         800.0
       ],
-      "fraction_null_as_good_or_better": 0.07272727272727272
+      "fraction_null_as_good_or_better": 0.01818181818181818
     }
   },
   "parameters": {

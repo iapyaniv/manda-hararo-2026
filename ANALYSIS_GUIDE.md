@@ -89,14 +89,14 @@ already contains the corresponding GeoTIFFs.
 The reference model is a vertical, uniform-opening rectangle in a homogeneous
 elastic half-space. Its fitted parameters are:
 
-- strike: 152.6°;
-- length: 17.15 km;
-- depth: 1.49–4.99 km;
-- opening: 2.81 m;
-- geometric volume: 0.169 km³;
-- NISAR RMS residual: 3.05 cm.
+- strike: 153.0°;
+- length: 17.31 km;
+- depth: 1.30–5.94 km;
+- opening: 2.32 m;
+- geometric volume: 0.187 km³;
+- NISAR RMS residual: 2.91 cm.
 
-The processing-choice runs span 0.167–0.188 km³. This range is not a
+The processing-choice runs span 0.186–0.208 km³. This range is not a
 confidence interval. The separate depth and opening estimates are more
 sensitive to processing choices than their product.
 
@@ -110,9 +110,9 @@ co-event dike pattern is +0.107 with a processing-choice range of +0.100 to
 +0.123.
 
 The two-track Sentinel-1 tests confirm this signal and resolve it in time.
-The early windows give +0.140 (ascending, 18–30 July) and +0.053 (descending,
+The early windows give +0.136 (ascending, 18–30 July) and +0.052 (descending,
 23 July–4 August). The late windows (from 30 July and from 4 August) lie at
-the level of the nine pre-event nulls (maximum magnitude 0.022). A
+the level of the nine pre-event nulls (maximum magnitude 0.021). A
 window-integral exponential fit gives a total of about 0.15 of the co-event
 pattern with a decay time of about 4–5 days from 18 July (point fit 4.3 days;
 the one fit uses all six windows, is descriptive, has no formal uncertainty,
@@ -125,7 +125,7 @@ five days at each end, so the decomposition is illustrative and the
 per-geometry projections are the quantitative result (see `LIMITATIONS.md`).
 
 The deformation therefore continued after the main intrusion in a dike-like
-pattern and stopped by early August. The coefficients are still not converted
+pattern; no dike-template deformation was detected after early August. The coefficients are still not converted
 to an added-volume estimate; that requires source modelling of the post-event
 signal itself.
 

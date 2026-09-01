@@ -1,48 +1,48 @@
 # Distributed opening + graben-fault model (four geometries; NISAR from GSLC reprocessing; fault-trace geometry)
 
-- fault geometry: anchored at trace columns from results/fault_traces.json (SHA-256 76328d6ce925d064359d0fd2befe02a7aa02084e55fe258f152f891fc18dc5cf); dip 65° inward; each column ends where it meets the dike plane
+- fault geometry: anchored at trace columns from results/fault_traces.json (SHA-256 2bab6737597afb4633bee4b716ef8ed1cdf002b9b3c8edeadd3fef81a16cc09e); dip 65° inward; each column ends where it meets the dike plane
 - trace evidence rule: west lacks a consistent LOS step across geometries and is excluded from this fit; the retained trace geometry remains a sensitivity, not a fault map
 - data: NISAR/GSLC asc 07-08→07-20, NISAR/GSLC desc 07-07→07-19, S1 asc 07-12→07-18, S1 desc 07-11→07-23 (14388 blocks)
-- decay normalization to 2026-07-18 (factors 1.057, 1.032, 1.000, 1.105)
+- decay normalization to 2026-07-18 (factors 1.055, 1.031, 1.000, 1.102)
 - smoothing: λ = 17.78 reused from the primary fit so variants compare at matched regularization
 
 | model | RMS all | NISAR asc | NISAR desc | S1 asc | S1 desc |
 |---|---|---|---|---|---|
-| uniform rectangle (fixed, offsets refit) | 3.07 cm | 3.48 cm | 3.52 cm | 2.25 cm | 2.56 cm |
-| distributed opening | 2.98 cm | 3.49 cm | 3.61 cm | 1.91 cm | 2.09 cm |
-| distributed opening + graben faults | 2.80 cm | 3.45 cm | 3.18 cm | 1.93 cm | 2.08 cm |
+| uniform rectangle (fixed, offsets refit) | 2.87 cm | 3.41 cm | 3.37 cm | 1.70 cm | 2.32 cm |
+| distributed opening | 2.76 cm | 3.31 cm | 3.44 cm | 1.35 cm | 1.90 cm |
+| distributed opening + graben faults | 2.56 cm | 3.26 cm | 2.98 cm | 1.36 cm | 1.89 cm |
 
 - the fault term's in-sample test is the distributed-opening row against the with-faults row; the uniform row is a fixed reference with many fewer parameters, not a fault test
 
-- dike volume **0.152 km³** (opening-only variant 0.161); max opening **2.52 m** at 3.6 km centroid depth
-- retained fault term: regularized maximum normal slip east 0.61 m; fault/dike potency ratio 0.110 (Σ area·slip / Σ area·opening; not a moment-tensor ratio)
+- dike volume **0.176 km³** (opening-only variant 0.185); max opening **2.38 m** at 4.1 km centroid depth
+- retained fault term: regularized maximum normal slip east 0.61 m; fault/dike potency ratio 0.097 (Σ area·slip / Σ area·opening; not a moment-tensor ratio)
 
 ## Spatial holdout (5-km checkerboard)
 
-- train parity 0: held-out RMS opening-only 3.13 cm → with faults 2.99 cm
-- train parity 1: held-out RMS opening-only 3.41 cm → with faults 3.21 cm
+- train parity 0: held-out RMS opening-only 2.92 cm → with faults 2.76 cm
+- train parity 1: held-out RMS opening-only 3.15 cm → with faults 2.93 cm
 
 ## Sensitivities (volume km³ / max opening m / east max slip m / RMS cm)
 
-- smoothing λ×1/3.2: 0.145 / 2.76 / 1.03 / 2.70
-- smoothing λ×3.2: 0.169 / 1.88 / 0.38 / 3.06
-- NISAR only: 0.172 / 2.42 / 0.71 / 3.24
-- Sentinel-1 only: 0.149 / 2.12 / 0.07 / 1.92
-- trace columns 250 m inward: 0.154 / 2.55 / 0.56 / 2.83
-- trace columns 250 m outward: 0.151 / 2.49 / 0.65 / 2.77
-- fault dip 55°: 0.153 / 2.54 / 0.53 / 2.86
-- fault dip 75°: 0.154 / 2.51 / 0.67 / 2.77
-- no decay normalization: 0.158 / 2.59 / 0.68 / 2.92
+- smoothing λ×1/3.2: 0.173 / 2.54 / 0.89 / 2.46
+- smoothing λ×3.2: 0.194 / 1.91 / 0.37 / 2.80
+- NISAR only: 0.187 / 2.35 / 0.71 / 3.03
+- Sentinel-1 only: 0.179 / 2.04 / 0.08 / 1.54
+- trace columns 250 m inward: 0.178 / 2.42 / 0.53 / 2.60
+- trace columns 250 m outward: 0.175 / 2.37 / 0.64 / 2.54
+- fault dip 55°: 0.176 / 2.41 / 0.52 / 2.62
+- fault dip 75°: 0.178 / 2.38 / 0.65 / 2.53
+- no decay normalization: 0.183 / 2.45 / 0.68 / 2.66
 
 ## Dip sweep (trace-column anchoring; truncation depth scales with tan dip)
 
 | dip | RMS all | potency ratio | east max slip |
 |---|---|---|---|
-| 55° | 2.8595 cm | 0.087 | 0.53 m |
-| 60° | 2.8257 cm | 0.102 | 0.57 m |
-| 65° | 2.7982 cm | 0.110 | 0.61 m |
-| 70° | 2.7773 cm | 0.115 | 0.65 m |
-| 75° | 2.7672 cm | 0.113 | 0.67 m |
+| 55° | 2.6222 cm | 0.082 | 0.52 m |
+| 60° | 2.5872 cm | 0.092 | 0.56 m |
+| 65° | 2.5578 cm | 0.097 | 0.61 m |
+| 70° | 2.5372 cm | 0.099 | 0.64 m |
+| 75° | 2.5288 cm | 0.095 | 0.65 m |
 
 ## Scope
 

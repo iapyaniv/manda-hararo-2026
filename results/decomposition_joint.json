@@ -3,14 +3,14 @@
   "datasets": [
     {
       "name": "NISAR asc 07-08\u219207-20",
-      "decay_factor": 1.056827415909799,
-      "sigma_cm": 1.218358638770132,
+      "decay_factor": 1.0548902802658011,
+      "sigma_cm": 1.2205959576557883,
       "n_cells": 2357
     },
     {
       "name": "NISAR desc 07-07\u219207-19",
-      "decay_factor": 1.031709789421209,
-      "sigma_cm": 1.7423221501850161,
+      "decay_factor": 1.0305955406197618,
+      "sigma_cm": 1.7442058963211688,
       "n_cells": 3809
     },
     {
@@ -21,25 +21,25 @@
     },
     {
       "name": "S1 desc 07-11\u219207-23",
-      "decay_factor": 1.1049665095165895,
-      "sigma_cm": 1.0046935489928763,
+      "decay_factor": 1.1016643957259153,
+      "sigma_cm": 1.0077050036939648,
       "n_cells": 3177
     }
   ],
   "no_normalization_variant": {
-    "opening_divergence_cm": 117.24374418616003,
-    "axis_w_probe_cm": -15.224199069483845
+    "opening_divergence_cm": 116.85741859814578,
+    "axis_w_probe_cm": -15.156380401283956
   },
-  "perp_azimuth_deg": 62.58330236374249,
+  "perp_azimuth_deg": 62.99575275916189,
   "rift_perpendicular": {
-    "label": "rift-perpendicular (az 62.6\u00b0)",
+    "label": "rift-perpendicular (az 63.0\u00b0)",
     "n_cells": 3453,
     "n_cells_ge3": 3220,
     "n_cells_3geo": 1209,
     "n_cells_4geo": 2011,
     "flank_h_probe_cm": {
-      "EAST": 52.253923049893515,
-      "WEST": -59.92216196628962
+      "EAST": 52.18747025525732,
+      "WEST": -59.774204370202874
     },
     "flank_probe_geometries": {
       "EAST": {
@@ -53,46 +53,46 @@
         "max_geometries": 4
       }
     },
-    "opening_divergence_cm": 112.17608501618314,
-    "axis_w_probe_cm": -14.946090595159776,
+    "opening_divergence_cm": 111.96167462546019,
+    "axis_w_probe_cm": -14.891056556869668,
     "axis_probe_geometries": {
       "n_cells": 6,
       "min_geometries": 2,
       "max_geometries": 2
     },
-    "median_sigma_h_cm": 1.00561336046533,
-    "median_sigma_w_cm": 0.7259202803989709,
+    "median_sigma_h_cm": 1.0037151921120742,
+    "median_sigma_w_cm": 0.7269079652288691,
     "closure": {
       "all": {
         "n_cells": 3220,
-        "median_sigma_units": 0.5500886861235402,
-        "fraction_above_1sigma": 0.1512422360248447
+        "median_sigma_units": 0.5489046547344774,
+        "fraction_above_1sigma": 0.15279503105590062
       },
       "within_25km": {
         "n_cells": 1102,
-        "median_sigma_units": 0.7861166171723618,
-        "fraction_above_1sigma": 0.308529945553539
+        "median_sigma_units": 0.7843142101896927,
+        "fraction_above_1sigma": 0.31125226860254085
       },
       "within_15km": {
         "n_cells": 352,
-        "median_sigma_units": 1.1740286701069227,
-        "fraction_above_1sigma": 0.6193181818181818
+        "median_sigma_units": 1.1710018866728302,
+        "fraction_above_1sigma": 0.6164772727272727
       },
       "beyond_28km": {
         "n_cells": 1819,
-        "median_sigma_units": 0.4071692545419472,
-        "fraction_above_1sigma": 0.06981858163826278
+        "median_sigma_units": 0.4068679193480444,
+        "fraction_above_1sigma": 0.07036833424958769
       }
     },
     "closure_probes": {
       "EAST": {
         "n_redundant_cells": 6,
-        "median_sigma_units": 3.1430354152387463,
+        "median_sigma_units": 3.15115596760754,
         "fraction_above_1sigma": 1.0
       },
       "WEST": {
         "n_redundant_cells": 4,
-        "median_sigma_units": 0.6194194796135778,
+        "median_sigma_units": 0.5876584279419541,
         "fraction_above_1sigma": 0.25
       },
       "AXIS": {
@@ -107,8 +107,8 @@
     "n_cells_3geo": 1209,
     "n_cells_4geo": 2011,
     "flank_h_probe_cm": {
-      "EAST": 47.7078563611841,
-      "WEST": -53.18813915494853
+      "EAST": 47.79850053630529,
+      "WEST": -53.24860577842251
     },
     "flank_probe_geometries": {
       "EAST": {
@@ -122,46 +122,46 @@
         "max_geometries": 4
       }
     },
-    "opening_divergence_cm": 100.89599551613263,
-    "axis_w_probe_cm": -11.257593656650675,
+    "opening_divergence_cm": 101.0471063147278,
+    "axis_w_probe_cm": -11.26297370902063,
     "axis_probe_geometries": {
       "n_cells": 6,
       "min_geometries": 2,
       "max_geometries": 2
     },
-    "median_sigma_h_cm": 0.9160787515803853,
-    "median_sigma_w_cm": 0.7269211150863768,
+    "median_sigma_h_cm": 0.9173072321582552,
+    "median_sigma_w_cm": 0.7278480173981366,
     "closure": {
       "all": {
         "n_cells": 3220,
-        "median_sigma_units": 0.587680020981513,
-        "fraction_above_1sigma": 0.2204968944099379
+        "median_sigma_units": 0.5873922979611639,
+        "fraction_above_1sigma": 0.2201863354037267
       },
       "within_25km": {
         "n_cells": 1102,
-        "median_sigma_units": 0.9291881490515814,
+        "median_sigma_units": 0.9286317541735272,
         "fraction_above_1sigma": 0.45644283121597096
       },
       "within_15km": {
         "n_cells": 352,
-        "median_sigma_units": 1.9445997526638799,
+        "median_sigma_units": 1.941256907470587,
         "fraction_above_1sigma": 0.7528409090909091
       },
       "beyond_28km": {
         "n_cells": 1819,
-        "median_sigma_units": 0.4046027463328701,
-        "fraction_above_1sigma": 0.09400769653655855
+        "median_sigma_units": 0.4046627445595572,
+        "fraction_above_1sigma": 0.09345794392523364
       }
     },
     "closure_probes": {
       "EAST": {
         "n_redundant_cells": 6,
-        "median_sigma_units": 5.413220564475605,
+        "median_sigma_units": 5.394290118325132,
         "fraction_above_1sigma": 1.0
       },
       "WEST": {
         "n_redundant_cells": 4,
-        "median_sigma_units": 2.938561158704374,
+        "median_sigma_units": 2.9312575729016572,
         "fraction_above_1sigma": 1.0
       },
       "AXIS": {
@@ -174,54 +174,54 @@
     "n_cells_3geo": 1209,
     "n_cells_4geo": 2011,
     "flank_riftperp_probe_cm": {
-      "EAST": 55.01619408036249,
-      "WEST": -62.36971984123954
+      "EAST": 55.15148043208416,
+      "WEST": -62.43325956996757
     },
-    "opening_divergence_cm": 117.38591392160203,
+    "opening_divergence_cm": 117.58474000205173,
     "axis_u_probe_cm": null,
     "axis_probe_geometries": {
       "n_cells": 0
     },
     "north_p01_p99_cm_within_18km": [
-      -30.728453627007408,
-      39.0236134178676
+      -30.70921962760223,
+      38.953051477
     ],
     "median_sigma_cm": {
-      "east": 0.9336231559804277,
-      "north": 4.486661299219351,
-      "up": 0.7563439746212767
+      "east": 0.9349913218333024,
+      "north": 4.493915707219874,
+      "up": 0.7572942323458256
     },
     "closure": {
       "all": {
         "n_cells": 2011,
-        "median_sigma_units": 0.4136793283984189,
+        "median_sigma_units": 0.41223521806598296,
         "fraction_above_1sigma": 0.05668821481849826
       },
       "within_25km": {
         "n_cells": 795,
-        "median_sigma_units": 0.5185208090311447,
+        "median_sigma_units": 0.5169308677042096,
         "fraction_above_1sigma": 0.13836477987421383
       },
       "within_15km": {
         "n_cells": 289,
-        "median_sigma_units": 0.526485925690874,
+        "median_sigma_units": 0.5195689256711328,
         "fraction_above_1sigma": 0.28719723183391005
       },
       "beyond_28km": {
         "n_cells": 1028,
-        "median_sigma_units": 0.31218464261845336,
+        "median_sigma_units": 0.31202227093500545,
         "fraction_above_1sigma": 0.0038910505836575876
       }
     },
     "closure_probes": {
       "EAST": {
         "n_redundant_cells": 5,
-        "median_sigma_units": 2.8406547997235165,
+        "median_sigma_units": 2.8303219584502717,
         "fraction_above_1sigma": 1.0
       },
       "WEST": {
         "n_redundant_cells": 3,
-        "median_sigma_units": 0.6389754409742591,
+        "median_sigma_units": 0.6502940918282006,
         "fraction_above_1sigma": 0.3333333333333333
       },
       "AXIS": {
@@ -230,7 +230,7 @@
     }
   },
   "dike_frame": {
-    "strike_deg": 152.5833023637425,
+    "strike_deg": 152.9957527591619,
     "axes": {
       "par": "along strike, positive toward the strike azimuth (SSE here)",
       "perp": "perpendicular-left of strike, positive toward strike \u2212 90\u00b0 (ENE here; the axis of the constrained solve's h)",
@@ -238,41 +238,41 @@
     },
     "flank_probe_cm": {
       "perp": {
-        "EAST": 55.01619408036249,
-        "WEST": -62.36971984123954
+        "EAST": 55.15148043208416,
+        "WEST": -62.43325956996757
       },
       "par": {
-        "EAST": 10.33048984933076,
-        "WEST": -3.8788904276368683
+        "EAST": 10.05465783990986,
+        "WEST": -3.4810285351861903
       },
       "u": {
-        "EAST": 26.48394441758393,
-        "WEST": 23.202543238247504
+        "EAST": 26.559432803582812,
+        "WEST": 23.19245656147835
       }
     },
     "model_flank_probe_cm": {
       "perp": {
-        "EAST": 42.511209240183234,
-        "WEST": -48.214820080569815
+        "EAST": 43.251209100708365,
+        "WEST": -47.55743167230061
       },
       "par": {
-        "EAST": 0.5524375105797926,
-        "WEST": 0.2896876856123084
+        "EAST": 0.48484853099074127,
+        "WEST": 0.1921413431041937
       },
       "u": {
-        "EAST": 29.793710765534335,
-        "WEST": 33.05704410617442
+        "EAST": 29.46101968146308,
+        "WEST": 32.226806474123556
       }
     },
-    "opening_divergence_cm": 117.38591392160203,
+    "opening_divergence_cm": 117.58474000205173,
     "median_sigma_cm": {
-      "perp": 2.069537835130287,
-      "par": 4.091079904920989,
-      "u": 0.7563439746212767
+      "perp": 2.0467586502000525,
+      "par": 4.110891117070721,
+      "u": 0.7572942323458256
     },
     "par_p01_p99_cm_within_18km": [
-      -14.991723343381933,
-      30.73065318256132
+      -15.18865355824485,
+      30.821613328242304
     ],
     "par_fraction_above_2sigma_within_18km": 0.36792452830188677,
     "strike_sensitivity": {
@@ -280,22 +280,22 @@
       "source": "southernmost Wright et al. (2006) segment (results/geometry_wright2006.json)",
       "flank_probe_cm": {
         "perp": {
-          "EAST": 54.13294533487053,
-          "WEST": -61.93052019063945
+          "EAST": 54.18558725012287,
+          "WEST": -61.96359449392762
         },
         "par": {
-          "EAST": 14.252187936845296,
-          "WEST": -8.344963327727777
+          "EAST": 14.377206699757275,
+          "WEST": -8.398953362522676
         }
       }
     }
   },
   "model_probes_cm": {
     "flank_h": {
-      "EAST": 42.511209240183234,
-      "WEST": -48.214820080569815
+      "EAST": 43.251209100708365,
+      "WEST": -47.55743167230061
     },
-    "axis_w": 6.411944632262541
+    "axis_w": 6.553887758959068
   },
   "notes": [
     "per-cell weighted LS on >=2 of 4 geometries; two-look cells are exact solves and carry no redundancy",

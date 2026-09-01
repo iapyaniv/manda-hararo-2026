@@ -6,25 +6,25 @@
 
 | quantity | best fit | noiseless refit | 95% interval |
 |---|---|---|---|
-| dike_volume_km3 | 0.145 | 0.132 | 0.132–0.157 |
-| max_opening_m | 2.416 | 2.167 | 2.311–2.537 |
-| fault_east_max_slip_m | 0.660 | 0.581 | 0.580–0.752 |
-| fault_west_max_slip_m | 0.368 | 0.338 | 0.233–0.468 |
-| fault_to_dike_potency_ratio | 0.235 | 0.265 | 0.143–0.304 |
-| opening_centroid_depth_km | 3.589 | 3.437 | 3.378–3.774 |
+| dike_volume_km3 | 0.170 | 0.176 | 0.154–0.186 |
+| max_opening_m | 2.340 | 2.145 | 2.231–2.449 |
+| fault_east_max_slip_m | 0.640 | 0.482 | 0.569–0.724 |
+| fault_west_max_slip_m | 0.383 | 0.348 | 0.254–0.485 |
+| fault_to_dike_potency_ratio | 0.196 | 0.182 | 0.133–0.243 |
+| opening_centroid_depth_km | 4.144 | 4.301 | 3.867–4.411 |
 
 | quantity | raw refit 2.5% | 50% | 97.5% |
 |---|---|---|---|
-| dike_volume_km3 | 0.120 | 0.132 | 0.144 |
-| max_opening_m | 2.046 | 2.163 | 2.271 |
-| fault_east_max_slip_m | 0.489 | 0.580 | 0.660 |
-| fault_west_max_slip_m | 0.238 | 0.340 | 0.473 |
-| fault_to_dike_potency_ratio | 0.195 | 0.268 | 0.356 |
-| opening_centroid_depth_km | 3.252 | 3.445 | 3.649 |
+| dike_volume_km3 | 0.160 | 0.177 | 0.193 |
+| max_opening_m | 2.036 | 2.146 | 2.254 |
+| fault_east_max_slip_m | 0.398 | 0.482 | 0.553 |
+| fault_west_max_slip_m | 0.246 | 0.351 | 0.477 |
+| fault_to_dike_potency_ratio | 0.135 | 0.183 | 0.245 |
+| opening_centroid_depth_km | 4.034 | 4.318 | 4.579 |
 
 The intervals describe data noise only, for fixed geometry and
 regularization; positivity truncates the noise response near zero
 slip, and the pivotal re-centring assumes the refit error about the
 noiseless refit approximates the estimator error about the truth.
 Geometry and processing choices are bracketed separately by the
-sensitivity envelopes in the distributed-fit reports. Range search hit its 30 km limit for: NISAR desc 07-07→07-19, S1 desc 07-11→07-23.
+sensitivity envelopes in the distributed-fit reports.

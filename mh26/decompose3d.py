@@ -836,7 +836,7 @@ def main(nisar_source: str = "gunw") -> None:
         "- The EAST-flank redundant cells close poorly (see the probe-disk",
         "  lines): the looks disagree systematically on the east-lobe",
         "  amplitude, consistent with the Sentinel-1-vs-NISAR amplitude",
-        "  ratios (0.85–0.88) in the S1 cross-checks. The joint horizontal",
+        "  ratios (0.81–0.85) in the S1 cross-checks. The joint horizontal",
         "  value there is a cross-sensor compromise, not a closed",
         "  measurement, and the divergence numbers inherit that systematic.",
         "- The rift-perpendicular constraint is exact only if horizontal motion",

@@ -10,7 +10,16 @@
 - The supplied ionosphere phase is subtracted. Wet/hydrostatic troposphere and
   solid-Earth-tide lookup corrections are not applied; most prepared crops do
   not carry those optional cubes. A per-pair far-field plane removes a datum
-  and linear ramp but is not an atmospheric correction.
+  and linear ramp but is not an atmospheric correction. That plane also
+  carries away the deformation field's own far-field component, so every
+  mapped field and the decomposition are relative to this datum; the
+  inversions pass the model through the same projection
+  (reference-operator consistency), so the fitted sources are consistent
+  with the operator.
+- The reprocessed (GSLC) interferograms set invalid source pixels to zero
+  before multilooking and store no per-cell valid fraction, so a cell with
+  few valid samples can keep high coherence; a stored common-valid
+  fraction is planned for the next reprocessing.
 - Pixel and block samples are spatially correlated. Counts in reports are
   retained-sample counts, not independent degrees of freedom.
 - The ascending/descending decomposition has only two look directions and
@@ -85,8 +94,8 @@
   fault/dike ratio is a potency ratio (area × dislocation), not a
   moment-tensor ratio. Dike volumes from different model classes are not
   directly comparable: the distributed model moves near-axis signal from
-  opening into fault slip, so its 0.14 km³ sits below the uniform-rectangle
-  0.169 km³ without contradiction. The 2005 plane itself is now refit
+  opening into fault slip, so its 0.17 km³ sits below the uniform-rectangle
+  0.187 km³ without contradiction. The 2005 plane itself is now refit
   directly (the fixed 2005-plane entry below); whether the 2026 plane
   coincides with the 2006–2010 dike geometries remains untested until those
   geometry files are available. The complete JSON geometry contract and hash-safe input command
@@ -96,27 +105,36 @@
   LOS-step discontinuity test in both geometries (the west ridge's step
   changes sign between geometries). The saved threshold sensitivity and
   circular-shift alignment null test the picker, but no comparison against an
-  independently mapped scarp database exists yet. The default trace-column
+  independently mapped scarp database exists yet. The step rule itself
+  checks only the sign and the down-side fraction of steps measured at the
+  selected maximum-gradient positions after a linear outer detrend; it is
+  not calibrated against a smooth-source null, so it is a consistency
+  check, not a fault detection. The default trace-column
   fit therefore includes only the east ridge. Its surface keeps one fixed
   strike with per-column offsets (plan-view steps are parameterisation, not
-  resolved geometry) and ends at the dike plane. Its RMS is 2.42 cm, compared
-  with 2.30 cm for the ±2-km two-plane idealization. The 55–75° dip sweeps do
+  resolved geometry) and ends at the dike plane. Its RMS is 2.15 cm, compared
+  with 2.09 cm for the ±2-km two-plane idealization. The 55–75° dip sweeps do
   not give a stable common minimum between the GUNW and GSLC chains, and the
   slip values remain regularized magnitudes. The checkerboard holdout is
   conditional on this data-derived geometry (the ridges were picked from the
   full fields);
-  NISAR→Sentinel-1 is the stronger held-out-sensor support for the fault-like
-  term. S1→NISAR is conditional because NISAR affected geometry selection.
+  The held-out-sensor transfer gain in `distributed_fit.md` belongs to the
+  idealized two-fault geometry; the mapped east-trace term is constrained
+  mainly by NISAR (a Sentinel-1-only fit puts an order of magnitude less
+  slip on it). S1→NISAR is conditional because NISAR affected geometry
+  selection.
   The slip-depth distribution is also shaped by regularization. The stress
   analysis maps the supported receiver plane and reports a shallow-to-deep
   sign change, but the distributed source has no subsurface hard top. The
   stress-change and Monte Carlo results inherit the geometry
   and noise-model assumptions in their reports. The Monte Carlo intervals
-  cover data noise for the idealized GUNW fit only.
+  cover data noise for the idealized GUNW fit only. Two of the four fitted
+  noise-covariance ranges reached the former 30-km search limit; the
+  search now extends to 60 km.
 - The fixed 2005-plane fit (`mh26.wright2006`) is a fixed-historical-plane
   variant, not proof of co-planarity: the 2026 uniform-fit strike differs
-  from the southernmost 2005 segment by about 4°, and its endpoints lie
-  0.35 and 0.88 km off that segment's line. The plane is the Wright et
+  from the southernmost 2005 segment by about 4.5°, and its endpoints lie
+  0.45 and 0.92 km off that segment's line. The plane is the Wright et
   al. (2006) source geometry, not the longer 1 km × 1 km computational grid
   of Hamling et al. (2009); same-plane comparisons must say which. Its 10-km
   SE extension is our addition: about 12% of the fitted volume lies SE of
