@@ -2,42 +2,42 @@
 
 ## Descending co-event cross-check
 
-- LiCSAR 079D_07694_131313 pair 20260711_20260723 (2026-07-11→2026-07-23): **r = 0.915**, amplitude ratio 0.81, RMS 2.9 cm against the NISAR-only model (44529 pixels)
-- ascending frame, same statistic (consistency with `mh26.s1_check`): r = 0.953, ratio 0.85, RMS 2.4 cm
+- LiCSAR 079D_07694_131313 pair 20260711_20260723 (2026-07-11→2026-07-23): **r = 0.933**, amplitude ratio 0.88, RMS 2.7 cm against the NISAR-only model (35212 pixels)
+- ascending frame, same statistic (consistency with `mh26.s1_check`): r = 0.974, ratio 0.92, RMS 1.8 cm
 - empirical LiCSAR sign factors: ascending -1, descending -1, resolved from the co-event pairs only
 
 ## Dike-pattern projections
 
 | geometry | pair | days | role | blocks | projection | cluster-wild 95% | zero-intercept | r |
 |---|---|---:|---|---:|---:|---|---:|---:|
-| ascending | 2026-07-12→2026-07-18 | 6 | co-event | 1024 | **+0.900** | [+0.872, +0.929] | +0.889 | +0.98 |
-| descending | 2026-07-11→2026-07-23 | 12 | co-event | 916 | **+0.891** | [+0.820, +0.965] | +0.855 | +0.95 |
-| ascending | 2026-07-18→2026-07-30 | 12 | post-event | 1020 | **+0.136** | [+0.104, +0.168] | +0.117 | +0.81 |
-| ascending | 2026-07-30→2026-08-11 | 12 | post-event | 1056 | **+0.016** | [-0.004, +0.034] | +0.004 | +0.20 |
-| ascending | 2026-07-18→2026-08-11 | 24 | post-event | 958 | **+0.151** | [+0.122, +0.179] | +0.122 | +0.81 |
-| descending | 2026-07-23→2026-08-04 | 12 | post-event | 1008 | **+0.052** | [+0.043, +0.061] | +0.048 | +0.73 |
-| descending | 2026-08-04→2026-08-16 | 12 | post-event | 994 | **-0.015** | [-0.023, -0.007] | -0.030 | -0.30 |
-| descending | 2026-07-23→2026-08-16 | 24 | post-event | 893 | **+0.039** | [+0.028, +0.051] | +0.016 | +0.58 |
-| ascending | 2026-06-05→2026-06-12 | 7 | pre-event | 1068 | **-0.021** | [-0.032, -0.010] | -0.013 | -0.27 |
-| ascending | 2026-06-12→2026-06-17 | 5 | pre-event | 1070 | **+0.020** | [+0.010, +0.030] | +0.049 | +0.29 |
-| ascending | 2026-06-17→2026-06-24 | 7 | pre-event | 1069 | **-0.016** | [-0.029, -0.004] | -0.024 | -0.20 |
-| ascending | 2026-06-24→2026-06-29 | 5 | pre-event | 1072 | **+0.014** | [+0.006, +0.022] | +0.007 | +0.23 |
-| ascending | 2026-06-29→2026-07-06 | 7 | pre-event | 1072 | **+0.007** | [+0.003, +0.010] | +0.028 | +0.20 |
-| ascending | 2026-07-06→2026-07-12 | 6 | pre-event | 1074 | **-0.021** | [-0.031, -0.012] | -0.052 | -0.37 |
-| descending | 2026-06-10→2026-06-22 | 12 | pre-event | 1019 | **+0.008** | [-0.002, +0.019] | +0.012 | +0.16 |
-| descending | 2026-06-22→2026-06-29 | 7 | pre-event | 1027 | **+0.011** | [+0.006, +0.017] | +0.020 | +0.27 |
-| descending | 2026-06-29→2026-07-11 | 12 | pre-event | 1026 | **+0.004** | [-0.003, +0.012] | -0.006 | +0.10 |
+| ascending | 2026-07-12→2026-07-18 | 6 | co-event | 1027 | **+0.930** | [+0.904, +0.955] | +0.919 | +0.98 |
+| descending | 2026-07-11→2026-07-23 | 12 | co-event | 875 | **+0.931** | [+0.863, +1.004] | +0.895 | +0.95 |
+| ascending | 2026-07-18→2026-07-30 | 12 | post-event | 1022 | **+0.140** | [+0.106, +0.175] | +0.121 | +0.81 |
+| ascending | 2026-07-30→2026-08-11 | 12 | post-event | 1058 | **+0.012** | [-0.006, +0.030] | +0.001 | +0.15 |
+| ascending | 2026-07-18→2026-08-11 | 24 | post-event | 960 | **+0.153** | [+0.122, +0.182] | +0.123 | +0.80 |
+| descending | 2026-07-23→2026-08-04 | 12 | post-event | 969 | **+0.053** | [+0.044, +0.063] | +0.049 | +0.72 |
+| descending | 2026-08-04→2026-08-16 | 12 | post-event | 954 | **-0.014** | [-0.022, -0.006] | -0.030 | -0.28 |
+| descending | 2026-07-23→2026-08-16 | 24 | post-event | 857 | **+0.040** | [+0.027, +0.053] | +0.018 | +0.58 |
+| ascending | 2026-06-05→2026-06-12 | 7 | pre-event | 1071 | **-0.021** | [-0.033, -0.010] | -0.013 | -0.26 |
+| ascending | 2026-06-12→2026-06-17 | 5 | pre-event | 1072 | **+0.022** | [+0.012, +0.033] | +0.051 | +0.32 |
+| ascending | 2026-06-17→2026-06-24 | 7 | pre-event | 1071 | **-0.018** | [-0.031, -0.004] | -0.026 | -0.21 |
+| ascending | 2026-06-24→2026-06-29 | 5 | pre-event | 1074 | **+0.014** | [+0.006, +0.023] | +0.007 | +0.24 |
+| ascending | 2026-06-29→2026-07-06 | 7 | pre-event | 1073 | **+0.007** | [+0.004, +0.011] | +0.029 | +0.21 |
+| ascending | 2026-07-06→2026-07-12 | 6 | pre-event | 1075 | **-0.024** | [-0.033, -0.014] | -0.054 | -0.39 |
+| descending | 2026-06-10→2026-06-22 | 12 | pre-event | 978 | **+0.008** | [-0.004, +0.019] | +0.012 | +0.14 |
+| descending | 2026-06-22→2026-06-29 | 7 | pre-event | 987 | **+0.011** | [+0.006, +0.016] | +0.021 | +0.26 |
+| descending | 2026-06-29→2026-07-11 | 12 | pre-event | 985 | **+0.005** | [-0.002, +0.011] | -0.006 | +0.10 |
 
-- 9 pre-event null projections: mean +0.001, standard deviation 0.016, maximum magnitude 0.021
+- 9 pre-event null projections: mean +0.000, standard deviation 0.017, maximum magnitude 0.024
 - the two early post-event windows exceed every null in both
   geometries; the two late windows (from 30 July and 4 August) are at
   the null level: the signal decays
-- sub-window additivity: ascending +0.136 + +0.016 = +0.151 vs +0.151 direct; descending +0.052 + -0.015 = +0.037 vs +0.039 direct
+- sub-window additivity: ascending +0.140 + +0.012 = +0.153 vs +0.153 direct; descending +0.053 + -0.014 = +0.039 vs +0.040 direct
 
 ## Post-event decay
 
-- exponential window-integral fit to the six Sentinel-1 projections: total **+0.149** of the co-event pattern, decay constant **4.3 days** from 18 July (fit RMS 0.009); a descriptive summary, not a physical model
-- independent NISAR descending pair 2026-07-19→2026-08-12: observed +0.107; the Sentinel-1-only decay curve predicts +0.118 for that window
+- exponential window-integral fit to the six Sentinel-1 projections: total **+0.152** of the co-event pattern, decay constant **4.3 days** from 18 July (fit RMS 0.008); a descriptive summary, not a physical model
+- independent NISAR descending pair 2026-07-19→2026-08-12: observed +0.107; the Sentinel-1-only decay curve predicts +0.120 for that window
 
 ## Post-event East/Up decomposition
 

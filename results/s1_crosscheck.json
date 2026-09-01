@@ -1,13 +1,13 @@
 {
   "frame": "014A_07688_131313",
   "pair": "20260712_20260718",
-  "n_pixels": 47401,
+  "n_pixels": 40371,
   "coherence_min": 0.25,
   "subsample": 3,
   "prediction_min_m": 0.005,
-  "regression_slope_observed_on_predicted": -0.8461332897557755,
+  "regression_slope_observed_on_predicted": -0.9182968938819034,
   "applied_observation_sign": -1.0,
-  "correlation": 0.9525396504907325,
-  "amplitude_ratio": 0.8461332897557755,
-  "rms_m": 0.024111662006265223
+  "correlation": 0.97401932201085,
+  "amplitude_ratio": 0.9182968938819034,
+  "rms_m": 0.01798409585199085
 }

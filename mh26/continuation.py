@@ -11,6 +11,7 @@ and ``continuation_panels.png``.
 
 from __future__ import annotations
 
+import hashlib
 import json
 
 import matplotlib
@@ -26,6 +27,7 @@ from .gunw import (
     los_unit_neu,
     pair_window,
     reference_farfield,
+    remove_farfield_plane,
 )
 from .history import probe_mean
 from .okada import forward
@@ -97,6 +99,8 @@ def projection(model: np.ndarray, data: dict, los: np.ndarray,
     )
     units = los_unit_neu(data, points)
     predicted = np.sum(forward(model, points) * units, axis=1)
+    predicted, _ = remove_farfield_plane(points, predicted,
+                                         r_in=farfield_radius)
     radius = np.hypot(points[:, 1] - CENTER_E, points[:, 0] - CENTER_N)
     use = (
         np.isfinite(observed)
@@ -137,7 +141,9 @@ def main() -> None:
     data = load_pair(POST_TAG)
     if data is None:
         raise SystemExit(f"data/nisar/{POST_TAG}.npz missing — see data/README.md")
-    model = np.asarray(json.loads(fit_path.read_text())["values"][:7], dtype=float)
+    fit_bytes = fit_path.read_bytes()
+    model = np.asarray(json.loads(fit_bytes)["values"][:7], dtype=float)
+    model_fit_sha256 = hashlib.sha256(fit_bytes).hexdigest()
 
     los, _ = corrected_los(data)
     default = projection(model, data, los)
@@ -178,6 +184,8 @@ def main() -> None:
     payload = {
         "tag": POST_TAG,
         "window": window,
+        "model_fit": "results/okada_fit.json",
+        "model_fit_sha256": model_fit_sha256,
         "interpretation": "fraction of the co-event best-fit dike pattern after 19 July",
         "n_blocks": int(use.sum()),
         "radius_m": RADIUS,
@@ -206,6 +214,7 @@ def main() -> None:
         "",
         f"- NISAR descending pair: **{window}** (24 days; starts at the co-event",
         "  descending pair's secondary acquisition)",
+        f"- model: results/okada_fit.json (SHA-256 `{model_fit_sha256}`)",
         f"- dike-pattern projection coefficient: **{slope:+.3f}**; processing-choice",
         f"  envelope **[{processing_envelope[0]:+.3f}, {processing_envelope[1]:+.3f}]**",
         f"- conditional 5-km cluster-wild interval: **[{interval[0]:+.3f},",

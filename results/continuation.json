@@ -1,65 +1,67 @@
 {
   "tag": "165_082_D_20260719",
   "window": "2026-07-19\u21922026-08-12",
+  "model_fit": "results/okada_fit.json",
+  "model_fit_sha256": "7f96d2fa7a2076264ca41ab2d7c4c44bc321bde6f59876574eacaf4a56f26f9e",
   "interpretation": "fraction of the co-event best-fit dike pattern after 19 July",
-  "n_blocks": 1004,
+  "n_blocks": 1002,
   "radius_m": 25000.0,
   "prediction_min_m": 0.01,
-  "pattern_fraction": 0.10732005148037956,
+  "pattern_fraction": 0.10662540204607898,
   "pattern_fraction_cluster_wild_95": [
-    0.08568571775380814,
-    0.12920045209504613
+    0.08494936047962516,
+    0.12772439905209945
   ],
   "pattern_fraction_processing_envelope": [
-    0.10049270672303058,
-    0.12256102991257974
+    0.09959747100059928,
+    0.12052870315343127
   ],
   "processing_sensitivity": [
     {
       "variant": "0.96 km blocks",
-      "pattern_fraction": 0.10615096688012778,
-      "n_blocks": 1759
+      "pattern_fraction": 0.10575651250836214,
+      "n_blocks": 1779
     },
     {
       "variant": "1.92 km blocks",
-      "pattern_fraction": 0.1045396160017077,
-      "n_blocks": 450
+      "pattern_fraction": 0.10387672947067086,
+      "n_blocks": 453
     },
     {
       "variant": "25 km far field",
-      "pattern_fraction": 0.10644742991511817,
-      "n_blocks": 1004
+      "pattern_fraction": 0.10592059447468918,
+      "n_blocks": 1001
     },
     {
       "variant": "32 km far field",
-      "pattern_fraction": 0.10863034606598747,
-      "n_blocks": 1004
+      "pattern_fraction": 0.10770456568313397,
+      "n_blocks": 1005
     },
     {
       "variant": "fit within 20 km",
-      "pattern_fraction": 0.10049270672303058,
-      "n_blocks": 657
+      "pattern_fraction": 0.09959747100059928,
+      "n_blocks": 649
     },
     {
       "variant": "fit within 30 km",
-      "pattern_fraction": 0.12256102991257974,
-      "n_blocks": 1360
+      "pattern_fraction": 0.12052870315343127,
+      "n_blocks": 1347
     },
     {
       "variant": "prediction >0.5 cm",
-      "pattern_fraction": 0.10788268192737682,
-      "n_blocks": 1035
+      "pattern_fraction": 0.1074068086507795,
+      "n_blocks": 1042
     },
     {
       "variant": "prediction >2 cm",
-      "pattern_fraction": 0.10562126501280841,
-      "n_blocks": 849
+      "pattern_fraction": 0.10425914695355923,
+      "n_blocks": 843
     }
   ],
-  "zero_intercept_pattern_fraction": 0.18039195439632535,
-  "offset_m": 0.032840080067292436,
-  "correlation": 0.6291239373558026,
-  "rms_m": 0.017166687612178374,
+  "zero_intercept_pattern_fraction": 0.18328976435808164,
+  "offset_m": 0.032568665727171216,
+  "correlation": 0.6286264017087594,
+  "rms_m": 0.017167925296848602,
   "probe_means_cm": {
     "EAST": 1.3199278604174347,
     "WEST": 12.379095498470084,

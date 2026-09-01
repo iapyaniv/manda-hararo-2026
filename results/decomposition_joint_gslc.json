@@ -3,14 +3,14 @@
   "datasets": [
     {
       "name": "NISAR asc 07-08\u219207-20",
-      "decay_factor": 1.0548902802658011,
-      "sigma_cm": 1.2557360116464995,
+      "decay_factor": 1.056671788361811,
+      "sigma_cm": 1.2536188889071218,
       "n_cells": 2375
     },
     {
       "name": "NISAR desc 07-07\u219207-19",
-      "decay_factor": 1.0305955406197618,
-      "sigma_cm": 1.7518864156530674,
+      "decay_factor": 1.0316332661593361,
+      "sigma_cm": 1.7501241835347439,
       "n_cells": 3832
     },
     {
@@ -21,8 +21,8 @@
     },
     {
       "name": "S1 desc 07-11\u219207-23",
-      "decay_factor": 1.1016643957259153,
-      "sigma_cm": 1.0077050036939648,
+      "decay_factor": 1.1045939366339037,
+      "sigma_cm": 1.0050324260764358,
       "n_cells": 3177
     }
   ],
@@ -38,8 +38,8 @@
     "n_cells_3geo": 1217,
     "n_cells_4geo": 2020,
     "flank_h_probe_cm": {
-      "EAST": 58.496304605715906,
-      "WEST": -55.85994190048294
+      "EAST": 58.40122540031506,
+      "WEST": -55.80536724794736
     },
     "flank_probe_geometries": {
       "EAST": {
@@ -53,46 +53,46 @@
         "max_geometries": 4
       }
     },
-    "opening_divergence_cm": 114.35624650619884,
-    "axis_w_probe_cm": -12.985026254741117,
+    "opening_divergence_cm": 114.20659264826241,
+    "axis_w_probe_cm": -12.98335167849948,
     "axis_probe_geometries": {
       "n_cells": 7,
       "min_geometries": 2,
       "max_geometries": 2
     },
-    "median_sigma_h_cm": 1.013190955960593,
-    "median_sigma_w_cm": 0.7304514999059831,
+    "median_sigma_h_cm": 1.0120186511066995,
+    "median_sigma_w_cm": 0.7295542755847184,
     "closure": {
       "all": {
         "n_cells": 3237,
-        "median_sigma_units": 0.5782154174392493,
-        "fraction_above_1sigma": 0.15508186592523943
+        "median_sigma_units": 0.5782939043464965,
+        "fraction_above_1sigma": 0.1556997219647822
       },
       "within_25km": {
         "n_cells": 1109,
-        "median_sigma_units": 0.8180278430163944,
-        "fraction_above_1sigma": 0.31920649233543735
+        "median_sigma_units": 0.8179948018954198,
+        "fraction_above_1sigma": 0.32100991884580704
       },
       "within_15km": {
         "n_cells": 356,
-        "median_sigma_units": 1.1707527955607506,
+        "median_sigma_units": 1.1683570042496507,
         "fraction_above_1sigma": 0.6235955056179775
       },
       "beyond_28km": {
         "n_cells": 1825,
-        "median_sigma_units": 0.43937897193105496,
+        "median_sigma_units": 0.43925711156218816,
         "fraction_above_1sigma": 0.06684931506849315
       }
     },
     "closure_probes": {
       "EAST": {
         "n_redundant_cells": 6,
-        "median_sigma_units": 3.1622790135610597,
+        "median_sigma_units": 3.1755718931401455,
         "fraction_above_1sigma": 1.0
       },
       "WEST": {
         "n_redundant_cells": 4,
-        "median_sigma_units": 0.607896913536742,
+        "median_sigma_units": 0.601760840013404,
         "fraction_above_1sigma": 0.25
       },
       "AXIS": {
@@ -107,8 +107,8 @@
     "n_cells_3geo": 1217,
     "n_cells_4geo": 2020,
     "flank_h_probe_cm": {
-      "EAST": 53.281663112469225,
-      "WEST": -49.745374267143745
+      "EAST": 53.19098974250507,
+      "WEST": -49.694909009290896
     },
     "flank_probe_geometries": {
       "EAST": {
@@ -122,46 +122,46 @@
         "max_geometries": 4
       }
     },
-    "opening_divergence_cm": 103.02703737961298,
-    "axis_w_probe_cm": -7.261464711179514,
+    "opening_divergence_cm": 102.88589875179596,
+    "axis_w_probe_cm": -7.267260192338269,
     "axis_probe_geometries": {
       "n_cells": 7,
       "min_geometries": 2,
       "max_geometries": 2
     },
-    "median_sigma_h_cm": 0.9245498235631122,
-    "median_sigma_w_cm": 0.7311607187401514,
+    "median_sigma_h_cm": 0.923423475718882,
+    "median_sigma_w_cm": 0.7303129603016896,
     "closure": {
       "all": {
         "n_cells": 3237,
-        "median_sigma_units": 0.6236771795892604,
-        "fraction_above_1sigma": 0.22798887859128822
+        "median_sigma_units": 0.6238435701118219,
+        "fraction_above_1sigma": 0.2282978066110596
       },
       "within_25km": {
         "n_cells": 1109,
-        "median_sigma_units": 0.9698224469765742,
+        "median_sigma_units": 0.9703509997414861,
         "fraction_above_1sigma": 0.4770063119927863
       },
       "within_15km": {
         "n_cells": 356,
-        "median_sigma_units": 1.9272265150284853,
+        "median_sigma_units": 1.9335261782642628,
         "fraction_above_1sigma": 0.7584269662921348
       },
       "beyond_28km": {
         "n_cells": 1825,
-        "median_sigma_units": 0.4336378784656195,
+        "median_sigma_units": 0.43396530216713836,
         "fraction_above_1sigma": 0.09205479452054795
       }
     },
     "closure_probes": {
       "EAST": {
         "n_redundant_cells": 6,
-        "median_sigma_units": 4.590242603493623,
+        "median_sigma_units": 4.605961664657912,
         "fraction_above_1sigma": 1.0
       },
       "WEST": {
         "n_redundant_cells": 4,
-        "median_sigma_units": 2.7791500294537848,
+        "median_sigma_units": 2.7857797039445362,
         "fraction_above_1sigma": 1.0
       },
       "AXIS": {
@@ -174,54 +174,54 @@
     "n_cells_3geo": 1217,
     "n_cells_4geo": 2020,
     "flank_riftperp_probe_cm": {
-      "EAST": 59.27092714442772,
-      "WEST": -61.667379164407144
+      "EAST": 59.20904876438553,
+      "WEST": -61.63406580482847
     },
-    "opening_divergence_cm": 120.93830630883487,
+    "opening_divergence_cm": 120.843114569214,
     "axis_u_probe_cm": null,
     "axis_probe_geometries": {
       "n_cells": 0
     },
     "north_p01_p99_cm_within_18km": [
-      -31.963990616875122,
-      38.39915785596034
+      -31.877130002988352,
+      38.45432629713004
     ],
     "median_sigma_cm": {
-      "east": 0.9398748768119065,
-      "north": 4.544525930691551,
-      "up": 0.7642463400409244
+      "east": 0.93862733107501,
+      "north": 4.537913231444133,
+      "up": 0.7633558679195873
     },
     "closure": {
       "all": {
         "n_cells": 2020,
-        "median_sigma_units": 0.4535982151256994,
+        "median_sigma_units": 0.4537728986607357,
         "fraction_above_1sigma": 0.05891089108910891
       },
       "within_25km": {
         "n_cells": 797,
-        "median_sigma_units": 0.575202911422457,
+        "median_sigma_units": 0.5759269166342332,
         "fraction_above_1sigma": 0.13927227101631118
       },
       "within_15km": {
         "n_cells": 291,
-        "median_sigma_units": 0.5670596127189033,
+        "median_sigma_units": 0.5700477197472618,
         "fraction_above_1sigma": 0.29553264604810997
       },
       "beyond_28km": {
         "n_cells": 1034,
-        "median_sigma_units": 0.3326514571813724,
+        "median_sigma_units": 0.332450504112608,
         "fraction_above_1sigma": 0.007736943907156673
       }
     },
     "closure_probes": {
       "EAST": {
         "n_redundant_cells": 5,
-        "median_sigma_units": 2.813991811094068,
+        "median_sigma_units": 2.8213751954530326,
         "fraction_above_1sigma": 0.8
       },
       "WEST": {
         "n_redundant_cells": 3,
-        "median_sigma_units": 0.5719267611538728,
+        "median_sigma_units": 0.5612491019751193,
         "fraction_above_1sigma": 0.3333333333333333
       },
       "AXIS": {
@@ -238,16 +238,16 @@
     },
     "flank_probe_cm": {
       "perp": {
-        "EAST": 59.27092714442772,
-        "WEST": -61.667379164407144
+        "EAST": 59.20904876438553,
+        "WEST": -61.63406580482847
       },
       "par": {
-        "EAST": 5.3816263305388405,
-        "WEST": -4.249971896233912
+        "EAST": 5.277914278448758,
+        "WEST": -4.203144649355827
       },
       "u": {
-        "EAST": 27.541812297054456,
-        "WEST": 23.173079089049473
+        "EAST": 27.4704928686411,
+        "WEST": 23.181421171384077
       }
     },
     "model_flank_probe_cm": {
@@ -264,15 +264,15 @@
         "WEST": 32.226806474123556
       }
     },
-    "opening_divergence_cm": 120.93830630883487,
+    "opening_divergence_cm": 120.843114569214,
     "median_sigma_cm": {
-      "perp": 2.081008946547782,
-      "par": 4.151152804573634,
-      "u": 0.7642463400409244
+      "perp": 2.078450450206795,
+      "par": 4.144851575573763,
+      "u": 0.7633558679195873
     },
     "par_p01_p99_cm_within_18km": [
-      -14.922010482689776,
-      39.65173456212916
+      -14.932856776177559,
+      39.55145373012224
     ],
     "par_fraction_above_2sigma_within_18km": 0.36074766355140186,
     "strike_sensitivity": {
@@ -280,12 +280,12 @@
       "source": "southernmost Wright et al. (2006) segment (results/geometry_wright2006.json)",
       "flank_probe_cm": {
         "perp": {
-          "EAST": 58.66108921860901,
-          "WEST": -61.13940023897684
+          "EAST": 58.607591502805626,
+          "WEST": -61.1098876247411
         },
         "par": {
-          "EAST": 10.043969245671802,
-          "WEST": -9.105034461424843
+          "EAST": 9.93569589683101,
+          "WEST": -9.055723442599723
         }
       }
     }

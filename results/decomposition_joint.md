@@ -1,43 +1,43 @@
 # Joint NISAR + Sentinel-1 co-event decomposition
 
-- four geometries (NISAR asc 07-08→07-20, NISAR desc 07-07→07-19, S1 asc 07-12→07-18, S1 desc 07-11→07-23), decay-normalized to 18 July (factors 1.055, 1.031, 1.000, 1.102); NISAR from the GUNW product fields
+- four geometries (NISAR asc 07-08→07-20, NISAR desc 07-07→07-19, S1 asc 07-12→07-18, S1 desc 07-11→07-23), decay-normalized to 18 July (factors 1.057, 1.032, 1.000, 1.105); NISAR from the GUNW product fields
 
 ## Constrained decomposition (rift-perpendicular horizontal + vertical)
 
 - two components per cell; the horizontal direction is fixed to the rift-perpendicular azimuth 63.0° taken from the fitted strike, so this variant is not independent of the source-model geometry
 - cells solved: 3453 (two-look cells are exact solves; exactly three geometries: 1209; four geometries: 2011; total with at least three: 3220)
-- flank horizontal probes (2-km disks): EAST +52.2 cm, WEST -59.8 cm ⇒ **opening divergence +112.0 cm** (uniform model: +90.8 cm)
+- flank horizontal probes (2-km disks): EAST +52.1 cm, WEST -59.7 cm ⇒ **opening divergence +111.8 cm** (uniform model: +90.8 cm)
 - axial vertical probe: -14.9 cm (model +6.6 cm) — two-look cells only (both NISAR; no Sentinel-1 coverage survives at the axis)
 - median formal sigmas: horizontal 1.0 cm, vertical 0.7 cm
 - closure (weighted residual, σ units; redundant cells only): all median 0.55 (15% > 1σ, n=3220); within_25km median 0.78 (31% > 1σ, n=1102); within_15km median 1.17 (62% > 1σ, n=352); beyond_28km median 0.41 (7% > 1σ, n=1819)
-- probe-disk closure (the disks that define the reported values; redundant cells only): EAST median 3.15 σ (n=6); WEST median 0.59 σ (n=4); AXIS no redundant cells
+- probe-disk closure (the disks that define the reported values; redundant cells only): EAST median 3.16 σ (n=6); WEST median 0.58 σ (n=4); AXIS no redundant cells
 
-- zero-north variant (comparability with earlier products): divergence +101.0 cm, axis -11.3 cm
+- zero-north variant (comparability with earlier products): divergence +100.9 cm, axis -11.3 cm
 - no-decay-normalization variant: divergence +116.9 cm, axis -15.2 cm — the normalization is a model choice, and this is its size
 
 ## Free three-component decomposition (east, north, up; ≥3 looks)
 
 - cells solved: 3220 (exactly three geometries: 1209; four geometries: 2011); no direction constraint
 - median formal sigmas: east 0.9 cm, north 4.5 cm, up 0.8 cm — north is weakly observed by near-polar geometries
-- rift-perpendicular flank probes projected from (E, N): EAST +55.2 cm, WEST -62.4 cm ⇒ divergence +117.6 cm
+- rift-perpendicular flank probes projected from (E, N): EAST +55.1 cm, WEST -62.4 cm ⇒ divergence +117.5 cm
 - axial vertical probe: decorrelated (three-look cells at best near the axis; 0 probe cells)
-- probe-disk closure: EAST median 2.83 σ (n=5); WEST median 0.65 σ (n=3); AXIS no redundant cells
+- probe-disk closure: EAST median 2.84 σ (n=5); WEST median 0.64 σ (n=3); AXIS no redundant cells
 
 ## Dike-frame components (rotated free three-component solve)
 
 - frame from the fitted strike 153.0°: U∥ along strike (positive toward azimuth 153.0°, SSE), U⊥ perpendicular-left (positive toward azimuth 63.0°, ENE), up; an exact rotation of the free solve, so coverage and closure are unchanged
-- flank U⊥ probes: EAST +55.2 cm, WEST -62.4 cm ⇒ divergence +117.6 cm (identical to the projected values above)
-- flank U∥ probes: EAST +10.1 cm, WEST -3.5 cm (uniform model: EAST +0.5 cm, WEST +0.2 cm)
+- flank U⊥ probes: EAST +55.1 cm, WEST -62.4 cm ⇒ divergence +117.5 cm (identical to the projected values above)
+- flank U∥ probes: EAST +10.0 cm, WEST -3.4 cm (uniform model: EAST +0.5 cm, WEST +0.2 cm)
 - median formal sigmas: U⊥ 2.0 cm, U∥ 4.1 cm, up 0.8 cm — U∥ is nearly north–south, the direction the near-polar looks observe weakly, so it inherits most of the north uncertainty
 - U∥ within 18 km: p01/p99 -15.2/+30.8 cm; 37% of cells exceed 2 σ∥
-- strike sensitivity: with the southernmost 2005 segment strike 148.5° the flank probes become U⊥ EAST +54.2 cm, WEST -62.0 cm; U∥ EAST +14.4 cm, WEST -8.4 cm
+- strike sensitivity: with the southernmost 2005 segment strike 148.5° the flank probes become U⊥ EAST +54.1 cm, WEST -61.9 cm; U∥ EAST +14.3 cm, WEST -8.4 cm
 
 ## Scope
 
 - The EAST-flank redundant cells close poorly (see the probe-disk
   lines): the looks disagree systematically on the east-lobe
   amplitude, consistent with the Sentinel-1-vs-NISAR amplitude
-  ratios (0.81–0.85) in the S1 cross-checks. The joint horizontal
+  ratios (0.88–0.92) in the S1 cross-checks. The joint horizontal
   value there is a cross-sensor compromise, not a closed
   measurement, and the divergence numbers inherit that systematic.
 - The rift-perpendicular constraint is exact only if horizontal motion

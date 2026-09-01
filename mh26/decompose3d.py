@@ -91,6 +91,14 @@ MIN_SAMPLES_NISAR_GSLC = 420    # of ~1820 30-m pixels per cell (same fraction)
 S1_COEVENT = dict(S1_DECOMPOSITION_SETS["co-event"])
 
 
+def _crosscheck_ratio_range() -> str:
+    """The measured S1/NISAR amplitude-ratio range, from the saved cross-checks."""
+    checks = json.loads(
+        (RESULTS / "s1_tracks.json").read_text())["coevent_crosschecks"]
+    ratios = sorted(v["amplitude_ratio"] for v in checks.values())
+    return f"{ratios[0]:.2f}\u2013{ratios[-1]:.2f}"
+
+
 def lattice_axes() -> tuple[np.ndarray, np.ndarray]:
     n_cells = int(2 * LATTICE_HALF / LATTICE_STEP)
     centres_e = CENTER_E - LATTICE_HALF + LATTICE_STEP * (np.arange(n_cells) + 0.5)
@@ -836,7 +844,7 @@ def main(nisar_source: str = "gunw") -> None:
         "- The EAST-flank redundant cells close poorly (see the probe-disk",
         "  lines): the looks disagree systematically on the east-lobe",
         "  amplitude, consistent with the Sentinel-1-vs-NISAR amplitude",
-        "  ratios (0.81–0.85) in the S1 cross-checks. The joint horizontal",
+        f"  ratios ({_crosscheck_ratio_range()}) in the S1 cross-checks. The joint horizontal",
         "  value there is a cross-sensor compromise, not a closed",
         "  measurement, and the divergence numbers inherit that systematic.",
         "- The rift-perpendicular constraint is exact only if horizontal motion",

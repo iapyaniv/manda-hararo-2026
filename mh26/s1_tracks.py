@@ -36,6 +36,7 @@ import numpy as np
 from pyproj import Transformer
 
 from .continuation import cluster_wild_interval, regression
+from .gunw import remove_farfield_plane
 from .okada import forward
 from .params import (
     CENTER_E,
@@ -180,6 +181,15 @@ def coevent_pixel_stats(frame_data: dict, los_ref: np.ndarray,
     ])
     los_pred = np.sum(disp * units, axis=1).reshape(X.shape)
     obs = los_ref[sl]
+    # Reference-operator consistency: the observations are plane-referenced,
+    # so the model prediction loses its own far-field plane the same way.
+    far = (np.hypot(X - CENTER_E, Y - CENTER_N) > FARFIELD_RADIUS) \
+        & np.isfinite(obs)
+    B_m = np.c_[np.ones(int(far.sum())), (X[far] - CENTER_E) / 1e4,
+                (Y[far] - CENTER_N) / 1e4]
+    coef_m, *_ = np.linalg.lstsq(B_m, los_pred[far], rcond=None)
+    los_pred = los_pred - (coef_m[0] + coef_m[1] * (X - CENTER_E) / 1e4
+                           + coef_m[2] * (Y - CENTER_N) / 1e4)
     ok = np.isfinite(obs) & np.isfinite(los_pred) & (np.abs(los_pred) > PRED_MIN)
     if ok.sum() < 100:
         raise ValueError("too few pixels survive the co-event comparison mask")
@@ -238,6 +248,7 @@ def project_blocks(model: np.ndarray, blocks: dict,
     """Regress block LOS on the co-event dike pattern (mh26.continuation)."""
     pts, vals, units = blocks["pts"], blocks["vals"], blocks["units"]
     predicted = np.sum(forward(model, pts) * units, axis=1)
+    predicted, _ = remove_farfield_plane(pts, predicted)
     radius = np.hypot(pts[:, 1] - CENTER_E, pts[:, 0] - CENTER_N)
     use = (
         np.isfinite(vals) & np.isfinite(predicted)

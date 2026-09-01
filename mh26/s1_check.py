@@ -144,6 +144,16 @@ def main() -> None:
     los_unit = np.column_stack([n[sl].ravel(), e[sl].ravel(), u[sl].ravel()])
     los_pred = np.sum(disp * los_unit, axis=1).reshape(Y[sl].shape)
     obs_s = los_obs[sl]
+    # The observation had a far-field plane removed; the model must lose its
+    # own far-field plane through the same operator, or the ramp difference
+    # deflates the regression slope and the correlation.
+    R_s = R[sl]
+    far_s = (R_s > FARFIELD_RADIUS) & np.isfinite(obs_s)
+    B_m = np.c_[np.ones(int(far_s.sum())), (X[sl][far_s] - CENTER_E) / 1e4,
+                (Y[sl][far_s] - CENTER_N) / 1e4]
+    coef_m, *_ = np.linalg.lstsq(B_m, los_pred[far_s], rcond=None)
+    los_pred = los_pred - (coef_m[0] + coef_m[1] * (X[sl] - CENTER_E) / 1e4
+                           + coef_m[2] * (Y[sl] - CENTER_N) / 1e4)
     ok = np.isfinite(obs_s) & np.isfinite(los_pred) & (np.abs(los_pred) > PRED_MIN)
     if ok.sum() < 100:
         raise ValueError("too few pixels survive the Sentinel-1 comparison mask")

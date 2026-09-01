@@ -127,11 +127,11 @@ coverage and closure are identical; the rotated formal variances include
 the east–north cross-covariance, which the near-polar looks make large, and
 the module checks that the rotated U⊥ flank probes equal the projected
 rift-perpendicular probes. U∥ is nearly north–south and inherits the north
-uncertainty (median σ 4.1 cm against 2.1 cm for U⊥ and 0.8 cm for up). Two
+uncertainty (median σ 4.1 cm against 2.0–2.1 cm for U⊥ and 0.8 cm for up). Two
 saved sensitivities bound it: the input chain (GUNW versus 30-m fields)
 moves the flank U∥ probes by several cm, and using the southernmost Wright
-et al. (2006) segment strike (148.5°, 4° from the fit) moves them by about
-4 cm, because a strike error of δ moves U⊥·sin δ into U∥ (≈4 cm for 60 cm
+et al. (2006) segment strike (148.5°, 4.5° from the fit) moves them by about
+5 cm, because a strike error of δ moves U⊥·sin δ into U∥ (≈5 cm for 60 cm
 of U⊥). The east-flank U∥ lobe also sits in the cells where the four looks
 disagree on the east-lobe amplitude (probe-disk closure ≈3 σ), where a
 cross-sensor amplitude difference can only be absorbed by the weakly
@@ -280,9 +280,9 @@ impose the plane-removal constraints. The best-model prediction and every
 stationary covariance draw are therefore passed through the block-space
 far-field datum and ramp projection before each synthetic field is inverted
 with fixed saved geometry, bounds, and smoothing. The noiseless refit differs
-from the best fit through the combined estimator bias — the smoothing penalty
-acting again plus the
-referencing removing part of the model's own far-field signal — so raw
+from the best fit through the smoothing penalty acting again on an
+already-smooth input (the far-field projection is part of the estimator
+itself, so it adds no refit bias) — so raw
 refit percentiles are reported only as estimator dispersion, and the 95%
 intervals are pivotal (basic bootstrap): refit errors about the noiseless
 refit, re-centred on the best-fit values. The intervals are conditional
@@ -316,7 +316,7 @@ and subsidence values. The
 EAST-flank redundant cells close at ≈3.1 σ (all above 1 σ) while WEST
 closes at ≈0.6 σ and the axis disk has no redundant cells: the four looks
 disagree systematically on the east-lobe amplitude, consistent with the
-Sentinel-1-vs-NISAR amplitude ratios (0.81–0.85) of the independent S1
+Sentinel-1-vs-NISAR amplitude ratios (0.88–0.92) of the independent S1
 cross-checks. Rerunning the decomposition with the 30-m reprocessed NISAR
 fields (`--gslc`) moves the divergence by 2–3 cm and leaves the EAST
 closure unchanged (≈3.2 σ), which locates the systematic between the

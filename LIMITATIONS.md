@@ -20,6 +20,19 @@
   before multilooking and store no per-cell valid fraction, so a cell with
   few valid samples can keep high coherence; a stored common-valid
   fraction is planned for the next reprocessing.
+- The forward models are evaluated at block centres, while the
+  observations are averaged over each block's valid pixels. On the
+  ascending look, exact valid-pixel averaging of the best distributed
+  model differs from centre evaluation by about 0.7 cm RMS over the
+  compared blocks and about 2.5 cm RMS within 10 km of the axis, largest
+  where a block straddles the graben-fault step. The block-size
+  sensitivity bounds this only partially (every variant also evaluates
+  at centres); a pixel-averaged forward operator is future work.
+- The post-event decay fit weights the two 24-day windows beside their
+  four constituent 12-day windows, so overlapping data enter the fit
+  twice; window-subset fits span roughly 3.8–4.9 days around the 4.3-day
+  point value, and the no-decay-normalization sensitivity bounds the
+  effect of this normalization on the fits.
 - Pixel and block samples are spatially correlated. Counts in reports are
   retained-sample counts, not independent degrees of freedom.
 - The ascending/descending decomposition has only two look directions and

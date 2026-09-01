@@ -1,6 +1,6 @@
 # Dike-induced stress change on the saved fault surfaces
 
-- source fit: `results/distributed_fit_mapped.json` (SHA-256 `80a46f46dff248c6b173d4fb1bff13fc4baaff29dc505336b0d752cfa0ccbfea`)
+- source fit: `results/distributed_fit_mapped.json` (SHA-256 `b67920d372db5083bb21ea10daacacfbed6cb1ee264e630366ad95c2aa57a61f`)
 - source: distributed opening with trace-column geometry; fault slip is excluded from the stress source
 - receivers: patch centres from the fit's saved trace columns; dip-specific truncation at the dike plane; 400 m dike standoff
 - spatial output: normal and Coulomb stress on a 250-m-depth by saved-column grid for the 65° receiver case

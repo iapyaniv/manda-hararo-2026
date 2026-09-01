@@ -6,7 +6,7 @@ through the fixed-geometry inversion:
 
 1. per dataset, a nugget + exponential semivariogram
    gamma(h) = n + c (1 - exp(-h/L)) is fitted to the empirical far-field
-   semivariogram of the block observations (L searched to 30 km; the fit
+   semivariogram of the block observations (L searched to 60 km; the fit
    parameters and binned semivariogram are stored with the result). The
    observations are already far-field-plane referenced. The fit estimates a
    stationary kernel from those values but does not reproduce the reference
@@ -18,11 +18,11 @@ through the fixed-geometry inversion:
 3. each realization is re-inverted with the same geometry, bounds, and
    smoothing weight.
 
-The noiseless refit differs from the committed best fit for two combined
-reasons: the smoothing penalty acts again on a smooth input, and the plane
-referencing removes part of the model's own far-field signal. The stored
-noiseless refit therefore measures the COMBINED estimator bias (smoothing +
-referencing), and raw percentiles of the refits are NOT intervals around
+The noiseless refit differs from the committed best fit through the
+smoothing penalty acting again on an already-smooth input; the far-field
+plane projection is part of the estimator itself, so it adds no refit
+bias. The stored noiseless refit therefore measures this smoothing-side
+estimator bias, and raw percentiles of the refits are NOT intervals around
 the best fit. The reported 95% intervals are pivotal (basic bootstrap): the
 refit errors about the noiseless refit, re-centred on the best-fit value.
 They describe conditional data-noise dispersion under this simulator, with
@@ -195,7 +195,8 @@ def main() -> None:
         x = solve(A, np.concatenate(rows), keep, geometry, lam, n_sets)
         return quantities_from(moment_summary(geometry, keep, x))
 
-    # Noiseless refit: the combined estimator bias (smoothing + referencing).
+    # Noiseless refit: the smoothing-side estimator bias (the plane
+    # projection sits inside the estimator and adds none).
     q_ref = solve_simulated(None)
     print("noiseless refit: " + ", ".join(f"{k}={v:.4g}"
                                           for k, v in q_ref.items()))
@@ -283,10 +284,11 @@ def main() -> None:
         "block-space far-field datum/ramp projection",
         "- intervals: pivotal (basic bootstrap) about the noiseless refit, "
         "re-centred on the best fit. The noiseless refit differs from the "
-        "best fit through the combined estimator bias — the smoothing "
-        "penalty acting again plus the referencing removing part of the "
-        "model's own far-field signal — so raw refit percentiles are "
-        "reported separately as estimator dispersion. The intervals are "
+        "best fit through the estimator bias of the smoothing penalty "
+        "acting again (the reference projection is applied inside the "
+        "estimator itself, so it adds no bias here), and raw refit "
+        "percentiles are reported separately as estimator dispersion. The "
+        "intervals are "
         "conditional data-noise dispersion under this simulator, not a "
         "full physical-parameter confidence interval",
         "",
