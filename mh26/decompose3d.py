@@ -23,9 +23,10 @@ weighted residual is a cross-sensor closure diagnostic, reported as a map.
 Run after `mh26.invert` and `mh26.s1_tracks`:  python -m mh26.decompose3d
 
 The free (east, north, up) solve is also rotated into the dike frame —
-along strike, perpendicular-left of strike (ENE, the same axis as h), and
-up — with the east–north cross-covariance carried into the rotated formal
-sigmas, so the rotation is exact and identical to a solve in that basis.
+along strike (positive toward the near-north end of the axis),
+perpendicular-left of strike (ENE, the same axis as h), and up — with the
+east–north cross-covariance carried into the rotated formal sigmas, so the
+rotation is exact and identical to a solve in that basis.
 
 Writes results/decomposition_joint.{json,md} and
 results/decomposition_joint.png.
@@ -315,7 +316,8 @@ def solve_cells_3d(cells: list[dict]) -> dict:
 
 
 DIKE_FRAME_AXES = {
-    "par": "along strike, positive toward the strike azimuth (SSE here)",
+    "par": "along strike, positive toward strike + 180° (NNW here, the "
+           "near-north direction)",
     "perp": "perpendicular-left of strike, positive toward strike − 90° "
             "(ENE here; the axis of the constrained solve's h)",
     "u": "up",
@@ -326,17 +328,19 @@ def dike_frame(fields: dict, strike_deg: float) -> dict:
     """Rotate a free (east, north, up) solve into the dike frame.
 
     Uses the `_strike_vectors` frame (along strike, perpendicular-left, up),
-    so U⊥ is the same ENE-positive axis as h in `solve_cells`. A linear
-    reparameterization leaves the least-squares solution unchanged; the
-    rotated variances need the east–north cross-covariance, which the near-
-    polar geometries make large, so it is carried explicitly.
+    so U⊥ is the same ENE-positive axis as h in `solve_cells`. U∥ is positive
+    toward the near-north end of the axis (strike + 180°), so a map draws
+    northward motion warm. A linear reparameterization leaves the
+    least-squares solution unchanged; the rotated variances need the
+    east–north cross-covariance, which the near-polar geometries make large,
+    so it is carried explicitly.
     """
     along, perp = _strike_vectors(strike_deg)  # (north, east) unit vectors
     var_e, var_n = fields["sigma_e"] ** 2, fields["sigma_n"] ** 2
     cov = fields["cov_en"]
     out = {"u": fields["u"], "sigma_u": fields["sigma_u"],
            "closure": fields["closure"], "n_geometries": fields["n_geometries"]}
-    for name, (v_n, v_e) in (("par", along), ("perp", perp)):
+    for name, (v_n, v_e) in (("par", -along), ("perp", perp)):
         out[name] = v_e * fields["e"] + v_n * fields["n"]
         out[f"sigma_{name}"] = np.sqrt(
             v_e ** 2 * var_e + v_n ** 2 * var_n + 2.0 * v_e * v_n * cov)
@@ -350,7 +354,7 @@ def model_dike_frame(model: np.ndarray) -> dict[str, np.ndarray]:
     disp = forward(model, np.column_stack([CN.ravel(), CE.ravel()]))
     along, perp = _strike_vectors(float(model[2]))
     out = {}
-    for name, (v_n, v_e) in (("par", along), ("perp", perp)):
+    for name, (v_n, v_e) in (("par", -along), ("perp", perp)):
         out[name] = (v_e * disp[:, 1] + v_n * disp[:, 0]).reshape(CE.shape)
     out["u"] = disp[:, 2].reshape(CE.shape)
     return out
@@ -801,10 +805,10 @@ def main(nisar_source: str = "gunw") -> None:
         "## Dike-frame components (rotated free three-component solve)",
         "",
         f"- frame from the fitted strike {strike:.1f}°: U∥ along strike "
-        f"(positive toward azimuth {strike:.1f}°, SSE), U⊥ perpendicular-left "
-        f"(positive toward azimuth {(strike - 90) % 360:.1f}°, ENE), up; an "
-        "exact rotation of the free solve, so coverage and closure are "
-        "unchanged",
+        f"(positive toward azimuth {(strike + 180) % 360:.1f}°, NNW — the "
+        "near-north direction), U⊥ perpendicular-left (positive toward "
+        f"azimuth {(strike - 90) % 360:.1f}°, ENE), up; an exact rotation of "
+        "the free solve, so coverage and closure are unchanged",
         f"- flank U⊥ probes: EAST "
         f"{fmt(summary_frame['flank_probe_cm']['perp']['EAST'])}, WEST "
         f"{fmt(summary_frame['flank_probe_cm']['perp']['WEST'])} ⇒ divergence "

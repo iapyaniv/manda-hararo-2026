@@ -25,12 +25,12 @@
 
 ## Dike-frame components (rotated free three-component solve)
 
-- frame from the fitted strike 153.0°: U∥ along strike (positive toward azimuth 153.0°, SSE), U⊥ perpendicular-left (positive toward azimuth 63.0°, ENE), up; an exact rotation of the free solve, so coverage and closure are unchanged
+- frame from the fitted strike 153.0°: U∥ along strike (positive toward azimuth 333.0°, NNW — the near-north direction), U⊥ perpendicular-left (positive toward azimuth 63.0°, ENE), up; an exact rotation of the free solve, so coverage and closure are unchanged
 - flank U⊥ probes: EAST +55.1 cm, WEST -62.4 cm ⇒ divergence +117.5 cm (identical to the projected values above)
-- flank U∥ probes: EAST +10.0 cm, WEST -3.4 cm (uniform model: EAST +0.5 cm, WEST +0.2 cm)
+- flank U∥ probes: EAST -10.0 cm, WEST +3.4 cm (uniform model: EAST -0.5 cm, WEST -0.2 cm)
 - median formal sigmas: U⊥ 2.0 cm, U∥ 4.1 cm, up 0.8 cm — U∥ is nearly north–south, the direction the near-polar looks observe weakly, so it inherits most of the north uncertainty
-- U∥ within 18 km: p01/p99 -15.2/+30.8 cm; 37% of cells exceed 2 σ∥
-- strike sensitivity: with the southernmost 2005 segment strike 148.5° the flank probes become U⊥ EAST +54.1 cm, WEST -61.9 cm; U∥ EAST +14.3 cm, WEST -8.4 cm
+- U∥ within 18 km: p01/p99 -30.8/+15.2 cm; 37% of cells exceed 2 σ∥
+- strike sensitivity: with the southernmost 2005 segment strike 148.5° the flank probes become U⊥ EAST +54.1 cm, WEST -61.9 cm; U∥ EAST -14.3 cm, WEST +8.4 cm
 
 ## Scope
 

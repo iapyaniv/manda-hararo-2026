@@ -23,9 +23,11 @@ files; nothing is refitted.
 5. ``summary_fault_stress``: dike-induced normal and Coulomb stress change
    on the trace-supported east-fault receivers, with map-space fields at a
    fixed depth and a GSLC/GUNW input comparison on identical receivers.
-6. ``summary_decomposition_dike_frame``: the same free solve rotated into
-   the dike frame — dike-perpendicular, dike-parallel, and up — with the
-   rotated formal uncertainties (``mh26.decompose3d.dike_frame``).
+6. ``summary_decomposition_dike_frame``: the four decay-normalized LOS
+   inputs (top row) and the same free solve rotated into the dike frame —
+   dike-perpendicular, dike-parallel (positive near-north, masked above
+   5 cm formal σ), and up — with the rotated formal uncertainties
+   (``mh26.decompose3d.dike_frame``).
 7. ``summary_los_model_residual_wright2006``: the observed/model/residual
    view for the fit constrained to the Wright et al. (2006) 2005 dike
    plane (``results/distributed_fit_geometry_<hash>_gslc.json``). The
@@ -1582,7 +1584,7 @@ def draw_enu_background(
     )
 
 
-def decomposition_inputs() -> tuple[dict, dict, np.ndarray, dict]:
+def decomposition_inputs() -> tuple[dict, dict, np.ndarray, dict, list[dict]]:
     """Recompute the free E–N–U solve from the GSLC inputs and check it."""
     summary = json.loads((RESULTS / "decomposition_joint_gslc.json").read_text())
     _, geometry, _ = load_mapped_gslc_fit()
@@ -1594,7 +1596,7 @@ def decomposition_inputs() -> tuple[dict, dict, np.ndarray, dict]:
     cells = load_cells(model, decay, nisar_source="gslc")
     fields = solve_cells_3d(cells)
     validate_recomputed_fields(fields, summary)
-    return summary, geometry, model, fields
+    return summary, geometry, model, fields, cells
 
 
 def draw_frame_axes(ax: object, strike_deg: float) -> None:
@@ -1634,12 +1636,17 @@ def three_component_figure(
     subtitle: str,
     footnote: str,
     frame_strike_deg: float | None = None,
+    look_row: tuple[tuple[str, np.ndarray], ...] | None = None,
+    weak_mask_sigma_cm: float | None = None,
 ) -> list[Path]:
-    """Two-row map figure: three components with formal σ, coverage, closure.
+    """Map figure: three components with formal σ, coverage, closure.
 
     ``components`` gives (field key, panel title, σ panel title, weak-note)
-    per column; the column with a weak-note is stippled where its formal σ
-    exceeds WEAK_SIGMA_STIPPLE_CM.
+    per column. The column with a weak-note is stippled where its formal σ
+    exceeds WEAK_SIGMA_STIPPLE_CM, or, when ``weak_mask_sigma_cm`` is set,
+    masked above that σ instead. ``look_row`` prepends a row with the four
+    LOS inputs (title, display-grid field in metres); the figure is then
+    three rows instead of two.
     """
     centres_e, centres_n = lattice_axes()
     terrain_x, terrain_y, terrain_transform = display_grid()
@@ -1655,6 +1662,9 @@ def three_component_figure(
     coverage_norm = BoundaryNorm([2.5, 3.5, 4.5], coverage_cmap.N)
     lines = geometry_lines(geometry)
     visible_mask = enu_display_mask(centres_e, centres_n)
+    n_rows = 2 if look_row is None else 3
+    component_row = n_rows - 2
+    sigma_row = n_rows - 1
 
     def draw_field(ax, values, cmap, norm):
         draw_enu_background(ax, terrain, terrain_x, terrain_y)
@@ -1676,7 +1686,7 @@ def three_component_figure(
         ax.set_aspect("equal")
         ax.set_xticks([665_000, 675_000, 685_000, 695_000])
         ax.set_yticks([1_335_000, 1_345_000, 1_355_000, 1_365_000])
-        if row == 1:
+        if row == n_rows - 1:
             ax.set_xticklabels(["665", "675", "685", "695"])
             if column == 1:
                 ax.set_xlabel("UTM 37N easting (km)", fontsize=7)
@@ -1701,46 +1711,70 @@ def three_component_figure(
             zorder=9,
         )
 
-    fig = plt.figure(figsize=(7.5, 5.5))
+    fig = plt.figure(figsize=(7.5, 5.5 if n_rows == 2 else 7.7))
     grid = fig.add_gridspec(
-        2, 4,
+        n_rows, 4,
         left=0.075,
         # room for the latitude labels on the rightmost panel column
         right=0.925,
-        bottom=0.21,
-        top=0.88,
-        hspace=0.32,
+        bottom=0.21 if n_rows == 2 else 0.135,
+        top=0.88 if n_rows == 2 else 0.905,
+        hspace=0.32 if n_rows == 2 else 0.30,
         wspace=0.10,
     )
     axes = [[fig.add_subplot(grid[row, column]) for column in range(4)]
-            for row in range(2)]
+            for row in range(n_rows)]
+
+    if look_row is not None:
+        shade = hillshade(terrain)
+        for column, (look_title, look_field) in enumerate(look_row):
+            ax = axes[0][column]
+            ax.imshow(
+                blended_map(100 * look_field, shade, cmc.vik,
+                            displacement_norm, alpha=0.86),
+                extent=[X_MIN, X_MAX, Y_MIN, Y_MAX],
+                origin="upper",
+                interpolation="nearest",
+                zorder=1,
+            )
+            ax.set_title(look_title, fontweight="bold", pad=3)
+
     for column, (key, panel_title, sigma_title, weak_note) in enumerate(components):
-        draw_field(axes[0][column], 100 * fields[key], cmc.vik, displacement_norm)
-        axes[0][column].set_title(panel_title, fontweight="bold", pad=3)
         sigma = 100 * fields[f"sigma_{key}"]
-        draw_field(axes[1][column], sigma, cmc.batlowW, sigma_norm)
-        axes[1][column].set_title(sigma_title, fontweight="bold", pad=3)
+        values = 100 * fields[key]
+        if weak_note is not None and weak_mask_sigma_cm is not None:
+            values = np.where(sigma <= weak_mask_sigma_cm, values, np.nan)
+        draw_field(axes[component_row][column], values, cmc.vik,
+                   displacement_norm)
+        axes[component_row][column].set_title(panel_title, fontweight="bold",
+                                              pad=3)
+        draw_field(axes[sigma_row][column], sigma, cmc.batlowW, sigma_norm)
+        axes[sigma_row][column].set_title(sigma_title, fontweight="bold", pad=3)
         median = np.nanmedian(np.where(visible_mask, sigma, np.nan))
-        add_annotation(axes[1][column], f"display median {median:.2f} cm")
+        add_annotation(axes[sigma_row][column], f"display median {median:.2f} cm")
         if weak_note is None:
             continue
-        stipple = np.isfinite(fields[key]) & (sigma > WEAK_SIGMA_STIPPLE_CM)
-        east_grid, north_grid = np.meshgrid(centres_e, centres_n)
-        axes[0][column].plot(
-            east_grid[stipple],
-            north_grid[stipple],
-            ls="none",
-            marker=".",
-            ms=0.9,
-            color="#454545",
-            alpha=0.65,
-            zorder=4,
-        )
-        axes[0][column].text(
+        if weak_mask_sigma_cm is not None:
+            note = f"{weak_note}\nmasked: σ > {weak_mask_sigma_cm:.0f} cm"
+        else:
+            note = f"{weak_note}\ndots: σ > {WEAK_SIGMA_STIPPLE_CM:.0f} cm"
+            stipple = np.isfinite(fields[key]) & (sigma > WEAK_SIGMA_STIPPLE_CM)
+            east_grid, north_grid = np.meshgrid(centres_e, centres_n)
+            axes[component_row][column].plot(
+                east_grid[stipple],
+                north_grid[stipple],
+                ls="none",
+                marker=".",
+                ms=0.9,
+                color="#454545",
+                alpha=0.65,
+                zorder=4,
+            )
+        axes[component_row][column].text(
             0.975,
             0.025,
-            f"{weak_note}\ndots: σ > {WEAK_SIGMA_STIPPLE_CM:.0f} cm",
-            transform=axes[0][column].transAxes,
+            note,
+            transform=axes[component_row][column].transAxes,
             ha="right",
             va="bottom",
             fontsize=6.0,
@@ -1751,27 +1785,30 @@ def three_component_figure(
         )
 
     draw_field(
-        axes[0][3],
+        axes[component_row][3],
         np.where(fields["n_geometries"] >= 3, fields["n_geometries"], np.nan),
         coverage_cmap,
         coverage_norm,
     )
-    axes[0][3].set_title("Geometry coverage", fontweight="bold", pad=3)
+    axes[component_row][3].set_title("Geometry coverage", fontweight="bold",
+                                     pad=3)
     visible_three = int(((fields["n_geometries"] == 3) & visible_mask).sum())
     visible_four = int(((fields["n_geometries"] == 4) & visible_mask).sum())
     add_annotation(
-        axes[0][3], f"display: {visible_three:,} three · {visible_four:,} four"
+        axes[component_row][3],
+        f"display: {visible_three:,} three · {visible_four:,} four",
     )
-    draw_field(axes[1][3], fields["closure"], cmc.lajolla, closure_norm)
-    axes[1][3].set_title("Four-geometry closure", fontweight="bold", pad=3)
+    draw_field(axes[sigma_row][3], fields["closure"], cmc.lajolla, closure_norm)
+    axes[sigma_row][3].set_title("Four-geometry closure", fontweight="bold",
+                                 pad=3)
     closure_visible = visible_mask & np.isfinite(fields["closure"])
     add_annotation(
-        axes[1][3],
+        axes[sigma_row][3],
         f"display median {np.nanmedian(fields['closure'][closure_visible]):.2f} σ",
     )
 
     panel_index = 0
-    for row in range(2):
+    for row in range(n_rows):
         for column in range(4):
             ax = axes[row][column]
             format_map_axis(ax, row, column)
@@ -1781,8 +1818,9 @@ def three_component_figure(
             add_panel_label(ax, panel_index)
             if row == 0 and column == 0:
                 add_scale_and_north(ax)
-                if frame_strike_deg is not None:
-                    draw_frame_axes(ax, frame_strike_deg)
+            if row == component_row and column == 0 \
+                    and frame_strike_deg is not None:
+                draw_frame_axes(ax, frame_strike_deg)
             panel_index += 1
 
     fig.canvas.draw()
@@ -1801,7 +1839,11 @@ def three_component_figure(
             bar.ax.xaxis.set_label_position("top")
         bar.ax.tick_params(labelsize=6.2, length=2, pad=1.2)
 
-    top_colorbar_y = min(ax.get_position().y0 for ax in axes[0]) - 0.038
+    # The displacement bar sits in the gap under the first row: in the
+    # two-row layout that is the component row, in the three-row layout the
+    # look row, which shares the same norm.
+    top_colorbar_y = (min(ax.get_position().y0 for ax in axes[0])
+                      - (0.038 if n_rows == 2 else 0.034))
     add_horizontal_colorbar(
         axes[0][:3],
         top_colorbar_y,
@@ -1811,7 +1853,9 @@ def three_component_figure(
         ["−60", "−30", "0", "+30", "+60"],
         label_top=True,
     )
-    coverage_position = axes[0][3].get_position()
+    coverage_position = axes[component_row][3].get_position()
+    coverage_legend_y = (top_colorbar_y + 0.0075 if n_rows == 2
+                         else coverage_position.y0 - 0.020)
     fig.legend(
         handles=[
             Patch(facecolor=coverage_cmap.colors[0], edgecolor="#303030", lw=0.4,
@@ -1822,7 +1866,7 @@ def three_component_figure(
         loc="center",
         bbox_to_anchor=(
             0.5 * (coverage_position.x0 + coverage_position.x1),
-            top_colorbar_y + 0.0075,
+            coverage_legend_y,
         ),
         bbox_transform=fig.transFigure,
         ncols=2,
@@ -1833,20 +1877,23 @@ def three_component_figure(
         columnspacing=0.9,
         handletextpad=0.45,
     )
+    bottom_colorbar_y = 0.085 if n_rows == 2 else 0.060
     add_horizontal_colorbar(
-        axes[1][:3],
-        0.085,
+        axes[sigma_row][:3],
+        bottom_colorbar_y,
         ScalarMappable(norm=sigma_norm, cmap=cmc.batlowW),
         "formal σ (cm; clipped)",
         [0, 2, 4, 6, 8],
+        label_top=n_rows == 3,
     )
     add_horizontal_colorbar(
-        [axes[1][3]],
-        0.085,
+        [axes[sigma_row][3]],
+        bottom_colorbar_y,
         ScalarMappable(norm=closure_norm, cmap=cmc.lajolla),
         "weighted RMS (σ units; clipped)",
         [0, 1, 2],
         ["0", "1", "2"],
+        label_top=n_rows == 3,
     )
 
     fig.suptitle(title, x=0.5, y=0.992, fontweight="bold")
@@ -1861,7 +1908,7 @@ def three_component_figure(
     )
     fig.text(
         0.5,
-        0.006,
+        0.006 if n_rows == 2 else 0.002,
         footnote,
         ha="center",
         va="bottom",
@@ -1878,7 +1925,7 @@ def three_component_figure(
 
 
 def build_decomposition_figure() -> list[Path]:
-    _, geometry, _, fields = decomposition_inputs()
+    _, geometry, _, fields, _ = decomposition_inputs()
     return three_component_figure(
         fields,
         geometry,
@@ -1903,15 +1950,36 @@ def build_decomposition_figure() -> list[Path]:
 
 
 def build_dike_frame_figure() -> list[Path]:
-    summary, geometry, model, fields = decomposition_inputs()
+    summary, geometry, model, fields, cells = decomposition_inputs()
     strike = float(model[2])
     perp_azimuth = (strike - 90.0) % 360.0
+    par_azimuth = (strike + 180.0) % 360.0
     if not np.isclose(perp_azimuth, float(summary["perp_azimuth_deg"]), atol=1e-6):
         raise ValueError(
             f"strike frame changed: figure azimuth {perp_azimuth}, "
             f"saved {summary['perp_azimuth_deg']}"
         )
     frame = dike_frame(fields, strike)
+
+    # The four decay-normalized LOS inputs, reprojected to the display grid.
+    factors = {c["name"]: c["decay_factor"] for c in cells}
+    xs, ys, transform = display_grid()
+    shape = (len(ys), len(xs))
+    X, Y = np.meshgrid(xs, ys)
+    points = np.column_stack([Y.ravel(), X.ravel()])
+    look_row = []
+    for look in LOOKS:
+        if look["kind"] == "nisar":
+            observation, _ = load_nisar_look(
+                look, factors[look["label"]], transform, shape, points
+            )
+        else:
+            observation, _ = load_s1_look(
+                look, model, factors[look["label"]], transform, shape
+            )
+        look_row.append((look["label"], observation))
+        print(f"loaded {look['label']}")
+
     return three_component_figure(
         frame,
         geometry,
@@ -1923,20 +1991,26 @@ def build_dike_frame_figure() -> list[Path]:
         stem="summary_decomposition_dike_frame",
         title="Manda Hararo 2026 — dike-frame decomposition",
         subtitle=(
-            "same solve as the E–N–U figure, rotated · strike "
-            f"{strike:.1f}° from the uniform fit · U⊥ positive toward "
-            f"{perp_azimuth:.1f}° (ENE) · U∥ positive toward {strike:.1f}° "
-            "(SSE) · up positive"
+            "four LOS inputs (top row; positive toward the satellite, "
+            "decay-normalized to 18 July)\n"
+            f"free solve rotated to strike {strike:.1f}° · U⊥ positive "
+            f"toward {perp_azimuth:.1f}° (ENE) · U∥ positive toward "
+            f"{par_azimuth:.1f}° (NNW, near-north) · up positive"
         ),
         footnote=(
-            "Exact rotation of the free E–N–U solve; σ includes the east–north "
-            "cross-covariance. U∥ is nearly north–south, which near-polar SAR "
-            "observes weakly.\n"
-            "No smoothing; gray = no solution (three-geometry cells in the "
-            "closure panel). Red/dashed lines show the mapped dike and "
-            "east-ridge context, not a solve constraint."
+            "Top row: the LOS inputs of the solve. The components are an "
+            "exact rotation of the free E–N–U solve; σ includes the "
+            "east–north cross-covariance.\n"
+            "U∥ is nearly north–south, which near-polar SAR observes weakly; "
+            "U∥ cells with formal σ > 5 cm are masked. No smoothing; gray = "
+            "no solution\n"
+            "(three-geometry cells in the closure panel). Red/dashed lines "
+            "show the mapped dike and east-ridge context, not a solve "
+            "constraint."
         ),
         frame_strike_deg=strike,
+        look_row=tuple(look_row),
+        weak_mask_sigma_cm=5.0,
     )
 
 

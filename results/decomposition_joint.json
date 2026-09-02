@@ -232,7 +232,7 @@
   "dike_frame": {
     "strike_deg": 152.9957527591619,
     "axes": {
-      "par": "along strike, positive toward the strike azimuth (SSE here)",
+      "par": "along strike, positive toward strike + 180\u00b0 (NNW here, the near-north direction)",
       "perp": "perpendicular-left of strike, positive toward strike \u2212 90\u00b0 (ENE here; the axis of the constrained solve's h)",
       "u": "up"
     },
@@ -242,8 +242,8 @@
         "WEST": -62.39839868677105
       },
       "par": {
-        "EAST": 9.951574549478426,
-        "WEST": -3.435709323357594
+        "EAST": -9.951574549478426,
+        "WEST": 3.435709323357594
       },
       "u": {
         "EAST": 26.491241550095918,
@@ -256,8 +256,8 @@
         "WEST": -47.55743167230061
       },
       "par": {
-        "EAST": 0.48484853099074127,
-        "WEST": 0.1921413431041937
+        "EAST": -0.48484853099074127,
+        "WEST": -0.1921413431041937
       },
       "u": {
         "EAST": 29.46101968146308,
@@ -271,8 +271,8 @@
       "u": 0.7564284105882999
     },
     "par_p01_p99_cm_within_18km": [
-      -15.209211376722367,
-      30.755147104023518
+      -30.755147104023273,
+      15.20921137672237
     ],
     "par_fraction_above_2sigma_within_18km": 0.37169811320754714,
     "strike_sensitivity": {
@@ -284,8 +284,8 @@
           "WEST": -61.93242013420945
         },
         "par": {
-          "EAST": 14.269788039991136,
-          "WEST": -8.35102350299681
+          "EAST": -14.269788039991136,
+          "WEST": 8.35102350299681
         }
       }
     }

@@ -219,8 +219,10 @@ class GeometryConventionTests(unittest.TestCase):
         weights = np.array([1.0 / c["sigma"] for c in cells])
         for r in range(shape[0]):
             for c in range(shape[1]):
+                # U∥ is positive toward strike + 180° (near-north), so the
+                # rotated-basis solve uses the negated along vector.
                 A = np.column_stack([
-                    [cl["e"][r, c] * along[1] + cl["n"][r, c] * along[0]
+                    [-(cl["e"][r, c] * along[1] + cl["n"][r, c] * along[0])
                      for cl in cells],
                     [cl["e"][r, c] * perp[1] + cl["n"][r, c] * perp[0]
                      for cl in cells],
@@ -234,9 +236,10 @@ class GeometryConventionTests(unittest.TestCase):
                     self.assertAlmostEqual(frame[key][r, c], m[i], places=9)
                     self.assertAlmostEqual(frame[f"sigma_{key}"][r, c],
                                            sigma[i], places=9)
-        # Strike 90° makes along = east and perpendicular-left = north.
+        # Strike 90° makes along = east (so U∥ = −east) and
+        # perpendicular-left = north.
         identity = dike_frame(fields, 90.0)
-        np.testing.assert_allclose(identity["par"], fields["e"], atol=1e-12)
+        np.testing.assert_allclose(identity["par"], -fields["e"], atol=1e-12)
         np.testing.assert_allclose(identity["perp"], fields["n"], atol=1e-12)
         np.testing.assert_allclose(identity["sigma_perp"], fields["sigma_n"],
                                    atol=1e-12)

@@ -120,7 +120,8 @@ distributed inversion.
 
 The free three-component solve (cells with at least three looks) is also
 rotated into the dike frame of `mh26.distributed._strike_vectors`: U∥
-along the fitted strike (153.0°, SSE positive), U⊥ perpendicular-left (ENE
+along the fitted strike (153.0°, positive toward 333.0° — the near-north
+direction, so northward motion draws warm), U⊥ perpendicular-left (ENE
 positive; the same axis as the constrained h), and up. A linear
 reparameterization leaves the least-squares solution unchanged, so
 coverage and closure are identical; the rotated formal variances include
@@ -366,11 +367,13 @@ matter for reading them:
 - Rewrapped maps use one colour cycle per 10 cm of LOS displacement toward
   the satellite. Residual maps are clipped at ±10 cm and keep coherent
   near-axis residuals visible.
-- The decomposition panels show the unsmoothed 1.28-km solve. The weakly
-  observed horizontal panel (North in the E–N–U figure, U∥ in the
-  dike-frame figure) dots cells with formal σ above 6 cm as a display mark;
-  the values under the dots are unchanged. The dike-frame figure is the
-  same solve rotated; its frame arrows show +U⊥ (ENE) and +U∥ (SSE).
+- The decomposition panels show the unsmoothed 1.28-km solve. In the
+  E–N–U figure the weakly observed North panel dots cells with formal σ
+  above 6 cm as a display mark; the values under the dots are unchanged.
+  The dike-frame figure is the same solve rotated, with the four
+  decay-normalized LOS inputs as its top row; its U∥ panel masks cells
+  with formal σ above 5 cm, and its frame arrows show +U⊥ (ENE) and +U∥
+  (NNW, near-north).
 - The signed cross-rift phase change is the wrapped one-pixel forward
   difference projected ENE (rift-perpendicular). It aliases where the
   cross-rift phase rate exceeds π per 30-m pixel (λ/4 of LOS per pixel);
