@@ -38,6 +38,11 @@ Manda Hararo intrusion.
   `PROCESSING_NOTES.md`. The saved SMOOTH-cost sensitivity for the ascending
   model-input pair is in
   `results/gslc_unwrap_sensitivity_172_008_A.{json,png}`.
+- `mh26/closure.py` runs the three-epoch loop-closure check of the
+  reprocessed unwrapping per NISAR track (pre, co-event, and skip legs on
+  the shared GSLC grid); `results/loop_closure.md`,
+  `results/loop_closure_<tag>.json`, and `results/loop_closure_nisar.png`
+  report the integer-cycle inconsistency statistics and maps.
 - `results/fault_traces.json` and `results/fault_traces.png` extract the
   phase-gradient ridges flanking the axis (candidate graben-fault scarps)
   with a LOS-step diagnostic per ridge; `mh26.distributed --mapped` uses only

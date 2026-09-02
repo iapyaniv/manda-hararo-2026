@@ -184,6 +184,35 @@ which fringe count is correct. No reported model quantity uses the GUNW
 amplitude of this pair; it enters the analysis as a qualitative timing
 bracket. The probe-history row for this window uses the GUNW value.
 
+## Loop-closure check of the unwrapping (mh26.closure)
+
+The processing sensitivities above reuse one interferogram; the
+loop-closure check adds a constraint from independent data. Per track, a
+third GSLC epoch before the pre-event acquisition closes a triangle of
+interferograms on the shared grid — pre, co-event, and the skip pair that
+spans both — each formed and unwrapped exactly as the analysis pairs
+(same multilook, filter, coherence, snaphu configuration). The unwrapped
+closure minus the wrapped closure of the same filtered phases is an exact
+integer number of cycles per pixel; deformation, atmosphere, and the
+ionosphere are epoch differences and cancel in the loop, so nonzero
+integers isolate unwrap inconsistency among the three legs (one cycle =
+λ/2 = 11.9 cm of LOS). The cycle-023 GSLC epochs are absent from the
+provisional archive, so the pre legs span 24 days on tracks 172/165 and
+12 days on track 100.
+
+Off the axis the triples close: within 25 km but outside the near-axis
+band, 0.00% of pixels are off by one cycle or more on all three tracks,
+so the flank lobes that set the fitted amplitudes carry no detected
+unwrap inconsistency. Inside the near-axis band (|⊥| < 3 km) the triples
+disagree at the 1–4-cycle level over 16.2% of the band (ascending 172),
+1.1% (descending 165), and 4.7% (track-100 straddle), concentrated where
+all three legs lose coherence (median 0.5–0.7 in the error regions
+against ~0.85 elsewhere) and the 24/36-day legs most. The loop flags the
+triple and cannot assign the error to one leg; the graben-interior cells
+are exactly where the axial-band caveats already apply. Statistics,
+maps, and per-leg attribution: `results/loop_closure.md`,
+`results/loop_closure_<tag>.json`, `results/loop_closure_nisar.png`.
+
 ## Phase-gradient ridges (mh26.faults) and the ridge-anchored fault test
 
 Wrapped-phase gradients of the 30-m reprocessed interferograms resolve two

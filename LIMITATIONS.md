@@ -72,8 +72,14 @@
   snaphu configuration. In the saved ascending-pair sensitivity, changing
   DEFO costs to SMOOTH costs changes 6.1% of near-axis pixels by more than
   half a fringe, while off-axis agreement remains close. Agreement with the
-  GUNW fields is 1.1–1.5 cm RMS on 1.28-km cells. The near-axis band has no
-  independent registered unwrap check yet.
+  GUNW fields is 1.1–1.5 cm RMS on 1.28-km cells. The three-epoch
+  loop-closure check (mh26.closure; results/loop_closure.md) finds no
+  ≥1-cycle inconsistency off the axis on any track, but the near-axis band
+  fails closure at the 1–4-cycle level over 16.2% (asc 172), 1.1%
+  (desc 165), and 4.7% (track 100) of its pixels, in low-coherence
+  graben-interior cells; the loop cannot assign those errors to a specific
+  leg, so near-axis LOS values carry a one-fringe (11.9 cm) unwrap risk in
+  that band beyond the cost-mode sensitivity above.
 
 ## Source model
 

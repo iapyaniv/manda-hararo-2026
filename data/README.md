@@ -65,6 +65,12 @@ differ at the numerical-noise level from the shipped ones if snaphu or
 library versions differ; `--compare` reports agreement against the GUNW
 fields either way.
 
+The loop-closure check adds one earlier GSLC epoch per track and the pre
+and skip interferograms with their raw unwraps (`*_pre.npz`,
+`*_loop*_ifg.npz`, `*_loop*_unwraw.npz`); these rebuild on demand with
+`python -m mh26.closure --crop --ifg --check` and are not part of any
+shipped archive.
+
 Install the 15-crop pre-event add-on when that regeneration is needed:
 
 ```bash

@@ -1,0 +1,65 @@
+{
+  "triangle": {
+    "epochs": [
+      "2026-07-03",
+      "2026-07-15",
+      "2026-07-27"
+    ],
+    "legs": {
+      "pre": "2026-07-03 -> 2026-07-15",
+      "co": "2026-07-15 -> 2026-07-27",
+      "skip": "2026-07-03 -> 2026-07-27"
+    }
+  },
+  "unwrap_configuration": {
+    "pre": {
+      "stat_cost_mode": "DEFO",
+      "init_method": "MCF"
+    },
+    "co": {
+      "stat_cost_mode": "DEFO",
+      "init_method": "MCF"
+    },
+    "skip": {
+      "stat_cost_mode": "DEFO",
+      "init_method": "MCF"
+    }
+  },
+  "error_region": {
+    "median_coherence_in_error_region": {
+      "pre": 0.7215556502342224,
+      "co": 0.5065950155258179,
+      "skip": 0.4537728726863861
+    },
+    "median_coherence_elsewhere": {
+      "pre": 0.8701761364936829,
+      "co": 0.8594372272491455,
+      "skip": 0.8304806351661682
+    },
+    "median_abs_perp_km": 1.1625886494648658
+  },
+  "farfield_mode_cycles": 0,
+  "congruence_max_abs_rad": 8.565584291658768e-05,
+  "whole_scene": {
+    "n_pixels": 3975077,
+    "fraction_error_ge_1_cycle": 0.003029878414933849,
+    "area_error_ge_1_cycle_km2": 10.839599999999999,
+    "max_abs_error_cycles": 3,
+    "rms_wrapped_nonclosure_cycles": 0.008006341274121557
+  },
+  "near_axis": {
+    "n_pixels": 235580,
+    "fraction_error_ge_1_cycle": 0.047041344766109175,
+    "area_error_ge_1_cycle_km2": 9.973799999999999,
+    "max_abs_error_cycles": 3,
+    "rms_wrapped_nonclosure_cycles": 0.020553677643962584
+  },
+  "off_axis_within_25km": {
+    "n_pixels": 1317300,
+    "fraction_error_ge_1_cycle": 3.9474683063842706e-05,
+    "area_error_ge_1_cycle_km2": 0.0468,
+    "max_abs_error_cycles": 1,
+    "rms_wrapped_nonclosure_cycles": 0.0072448810278152925
+  },
+  "one_cycle_los_m": 0.1192
+}
