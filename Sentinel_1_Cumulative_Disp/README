@@ -1,1 +1,21 @@
-Cumulative displacements from Sentinel-1 timeseries processed by Pedro Espin Bedon, University of Leeds. Each filename shows the LiCSAR frame ID and the start and end date. The displacement values are in mm.
+Cumulative displacement products derived from Sentinel-1 time series processed by Pedro Espin Bedon, University of Leeds.
+
+Each filename includes the LiCSAR frame identifier and the corresponding start and end dates of the observation period. Displacement values are expressed in millimetres (mm).
+
+The original interferograms were generated at a spatial resolution of 30 m. The final time-series products distributed in this repository are provided at a spatial resolution of 60 m.
+
+Files located in the repository root directory are the original cumulative displacement products and retain the original LiCSBAS reference area used during time-series processing.
+
+Additional products are organised into two folders:
+
+• All_period/
+  Contains cumulative displacement maps covering the complete observation period. Both the original and ERA5-corrected cumulative displacement products are provided. These products have been re-referenced using the following reference area:
+  Longitude: 40.93682–40.94682
+  Latitude: 12.63819–12.64819
+
+• Pre/
+  Contains cumulative displacement maps covering only the period prior to the intrusion. Both the original and ERA5-corrected cumulative displacement products are provided. These products have been re-referenced using the same reference area:
+  Longitude: 40.93682–40.94682
+  Latitude: 12.63819–12.64819
+
+All files are distributed in GeoTIFF format with displacement values expressed in millimetres (mm).
