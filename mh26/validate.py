@@ -198,13 +198,20 @@ def validate_granule_manifests() -> None:
     listed = {(tag, role): granule for tag, role, granule in gslc_rows}
     if len(listed) != len(gslc_rows):
         raise ValueError("granules/gslc.tsv contains duplicate tag/role rows")
+    from .closure import PRE_GRANULES as closure_pre_granules
+
     expected_gslc = {
         (tag, role): granule
         for tag, granules in gslc_pairs.items()
         for role, granule in zip(("ref", "sec"), granules)
     }
+    expected_gslc.update({
+        (tag, "pre"): granule
+        for tag, granule in closure_pre_granules.items()
+    })
     if listed != expected_gslc:
-        raise ValueError("granules/gslc.tsv differs from mh26.gslc PAIRS")
+        raise ValueError("granules/gslc.tsv differs from mh26.gslc PAIRS "
+                         "plus mh26.closure PRE_GRANULES")
 
     expected_geotiffs = {
         f"{tag}.{suffix}.tif"
