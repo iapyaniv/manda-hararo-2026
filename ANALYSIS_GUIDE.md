@@ -69,6 +69,11 @@ Manda Hararo intrusion.
   (pivotal, about the noiseless refit); `results/fringes_model_comparison.png`
   compares rewrapped observed and modelled fringes with a cross-axis
   profile.
+- `mh26/fault_depth.py` sweeps the depth extent of the mapped east-fault
+  term (truncation caps re-solved at the reused smoothing weight) and
+  reports the misfit cost against the removed fault potency/moment, per
+  input chain: `results/fault_depth_mapped.{json,md,png}` and
+  `results/fault_depth_mapped_gslc.{json,md,png}`.
 - `results/summary_*.png` (with matching PDF files) are eight draft
   publication-style figures built by `mh26.summary_figures` from the saved
   results: the four-geometry trace-supported fit with residuals and

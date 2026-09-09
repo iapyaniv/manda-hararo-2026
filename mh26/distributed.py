@@ -188,12 +188,17 @@ def build_geometry(model: np.ndarray,
                    fault_dip: float = FAULT_DIP,
                    fault_trace_offsets: dict | None = None,
                    fault_trace_source: str | None = None,
-                   enabled_fault_sides: tuple[str, ...] = ("east", "west")) -> dict:
+                   enabled_fault_sides: tuple[str, ...] = ("east", "west"),
+                   fault_depth_cap: float | None = None) -> dict:
     """Patch tables for the dike plane and the two graben faults.
 
     Returns pyrocko patch rows [north, east, depth, strike, dip, al1, al2,
     aw1, aw2] (patch centres), unit-dislocation rows, and index/shape
     bookkeeping for the regularisation and the plots.
+
+    ``fault_depth_cap`` (metres) additionally truncates every fault column at
+    that depth, on the same patch grid; the dike plane is unaffected. It is
+    a sensitivity hook (mh26.fault_depth), not part of the standard fits.
     """
     e_c, n_c, strike = model[0], model[1], model[2]
     along, perp = _strike_vectors(strike)
@@ -229,6 +234,9 @@ def build_geometry(model: np.ndarray,
     f_edges = np.arange(-FAULT_HALF_LENGTH, FAULT_HALF_LENGTH + 1, FAULT_PATCH_ALONG)
     fz_edges = np.arange(0.0, FAULT_DEPTH_BOTTOM + 1, FAULT_PATCH_DEPTH)
     fault_shape = (len(fz_edges) - 1, len(f_edges) - 1)
+    depth_limit = FAULT_DEPTH_BOTTOM
+    if fault_depth_cap is not None:
+        depth_limit = min(depth_limit, float(fault_depth_cap))
     dip_r = np.radians(fault_dip)
     invalid_sides = set(enabled_fault_sides) - {"east", "west"}
     if invalid_sides:
@@ -250,7 +258,7 @@ def build_geometry(model: np.ndarray,
                 f"expected {len(f_edges) - 1}"
             )
         column_offsets_by_side[side] = column_offsets.copy()
-        z_cut = np.minimum(FAULT_DEPTH_BOTTOM,
+        z_cut = np.minimum(depth_limit,
                            np.abs(column_offsets) * np.tan(dip_r))
         mask = np.zeros(fault_shape, dtype=bool)
         if side not in enabled_fault_sides:
@@ -281,7 +289,7 @@ def build_geometry(model: np.ndarray,
         fault_z_cut[side] = z_cut
 
     kinds = np.array(kinds)
-    return {
+    geometry = {
         "patches": np.array(patches, dtype=np.float64),
         "disl": np.array(disl, dtype=np.float64),
         "kinds": kinds,
@@ -317,6 +325,16 @@ def build_geometry(model: np.ndarray,
         "fault_retained_patches": {side: int(fault_masks[side].sum())
                                    for side in ("east", "west")},
     }
+    if fault_depth_cap is not None:
+        # Added only when capped so the serialized geometry (and its
+        # geometry_sha256) of every standard fit stays byte-identical.
+        geometry["fault_depth_cap_m"] = float(fault_depth_cap)
+        geometry["fault_termination"] = (
+            "columns end at the dike plane (depth = |offset| * tan(dip)), "
+            f"at {FAULT_DEPTH_BOTTOM / 1e3:.0f} km, or at the "
+            f"{float(fault_depth_cap) / 1e3:.2f} km depth cap, whichever "
+            "is shallowest")
+    return geometry
 
 
 def _json_geometry_value(value):

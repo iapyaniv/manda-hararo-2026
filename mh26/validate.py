@@ -555,6 +555,22 @@ def validate_new_products(require_gslc_sources: bool = True) -> None:
                 raise ValueError(f"{name}: {side} fault mask does not match "
                                  "the retained patch count")
 
+    for name, expected_source in (("fault_depth_mapped.json", "gunw"),
+                                  ("fault_depth_mapped_gslc.json", "gslc")):
+        sweep = _json.loads((REPO / "results" / name).read_text())
+        if sweep.get("nisar_source") != expected_source:
+            raise ValueError(f"{name}: nisar_source is not {expected_source!r}")
+        ref_name = sweep["reference_fit"]
+        if sweep["reference_fit_sha256"] != sha256(REPO / "results" / ref_name):
+            raise ValueError(f"{name}: sweep predates the current {ref_name}")
+        caps = [row["depth_cap_km"] for row in sweep["rows"]]
+        if not caps or caps != sorted(caps):
+            raise ValueError(f"{name}: depth caps are not increasing")
+        base = sweep["baseline"]
+        if not np.isclose(base["fault_moment_Nm"], sweep["shear_modulus_Pa"]
+                          * base["fault_potency_m3"]):
+            raise ValueError(f"{name}: baseline moment is not mu x potency")
+
     traces = _json.loads((REPO / "results" / "fault_traces.json").read_text())
     for key in ("los_step_across_ridges", "trace_support",
                 "threshold_sensitivity", "cross_geometry_alignment_null"):

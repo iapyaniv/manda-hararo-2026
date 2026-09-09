@@ -142,7 +142,19 @@
   mainly by NISAR (a Sentinel-1-only fit puts an order of magnitude less
   slip on it). S1→NISAR is conditional because NISAR affected geometry
   selection.
-  The slip-depth distribution is also shaped by regularization. The stress
+  The slip-depth distribution is also shaped by regularization; the
+  depth-extent sweep (mh26.fault_depth, results/fault_depth_mapped*.md)
+  bounds how much of it the data require: capping the east-fault slip at
+  2.5–3 km depth keeps 89–101% of the fault term's graben-band misfit
+  improvement on both input chains, while a 1-km cap keeps only 35–46%,
+  so the potency below ~3 km (about a fifth of the fault total) is
+  regularization, not data, and the fault moment μ·potency ≈ 5×10¹⁷ N·m
+  is an upper value in depth extent. That moment also scales linearly
+  with the assumed uniform μ = 30 GPa, which the surface data cannot
+  constrain (Okada displacements depend on the Lamé constants only
+  through α = (λ+μ)/(λ+2μ)); with the fitted slip confined above ~3 km,
+  a softer fissured shallow crust reduces the fault moment
+  proportionally. The stress
   analysis maps the supported receiver plane and reports a shallow-to-deep
   sign change, but the distributed source has no subsurface hard top. The
   stress-change and Monte Carlo results inherit the geometry
