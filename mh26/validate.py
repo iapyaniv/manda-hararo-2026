@@ -379,6 +379,9 @@ def validate_distributed_result(name: str, expected_source: str) -> None:
     if not np.isclose(payload["dike"]["dike_volume_km3"], volume / 1e9,
                       rtol=1e-12):
         raise ValueError(f"{name}: dike volume does not match patches")
+    if not np.isclose(payload["dike"]["max_opening_m"],
+                      float(magnitudes[dike].max()), rtol=1e-12):
+        raise ValueError(f"{name}: max opening does not match patches")
     opening = magnitudes[dike].reshape(geometry["dike_shape"])
     if not np.allclose(payload["opening_distribution"], opening,
                        rtol=1e-12, atol=1e-14):

@@ -1,8 +1,8 @@
 """Three-epoch opening comparison from the Hamling dike files.
 
 Ian Hamling (GNS) provided `dyke_files.zip` (linked by Tim Wright in the
-paper thread on 2026-09-16), whose `opening_files/` holds the published
-opening distributions of the September 2005 megadike and fifteen later
+paper thread on 2026-09-16), whose `opening_files/` holds opening
+distributions of the September 2005 megadike and fifteen later
 (2006-2010) opening files on the ~74 km Hamling computational grid
 (Hamling et al. 2009, 2010; the published sequence has 13 post-megadike
 intrusions and the data flag two files as duplicate content — see
@@ -32,10 +32,19 @@ Decoded format (verified by the structural checks in `load_openings`):
   37N) of wrapped Envisat track-300 LOS in centimetres (z spans one fringe,
   0-2.81 cm = lambda/2); context only, not used here.
 
-The openings are the published Envisat-era inversions exactly as provided:
-no uncertainties were delivered, and their regularization and greens
-functions differ from the 2026 fit's. The comparison is therefore of
-published models on a shared axis, not a joint inversion.
+The openings are Envisat-era inversions exactly as provided: no
+uncertainties were delivered, and their regularization and greens
+functions differ from the 2026 fit's. Whether each file is the published
+model version is unconfirmed (asked of Ian Hamling): every post-2005
+file carries a positive floor of 0.29-0.72 m, consistent with the
+papers' discard of opening below the local 2-sigma uncertainty
+(typically 0.3-0.4 m), but sept05 is unfiltered (values down to
+4e-4 m), integrates to 3.55 km3 against the published ~2.5 km3, and
+holds deep lobes (up to 12.9 m at 16-17 km) that the published opening
+figure does not show and that the papers attribute largely to the
+inversion fitting long-wavelength signals unrelated to dike opening.
+The comparison is therefore of delivered models on a shared axis, not a
+joint inversion.
 
 Registration: each Hamling column centre is projected into the chained
 segment frames of the 2026 contract (mh26.wright2006._project_s), giving a
@@ -285,13 +294,24 @@ def _fit_opening_stats(fit: dict, geometry: dict) -> dict:
     z0, z1 = z_edges[:-1] / 1e3, z_edges[1:] / 1e3
     above_frac = np.clip((10.0 - z0) / (z1 - z0), 0.0, 1.0)
     floored = np.where(opening >= 0.5, opening, 0.0)
+    # Derive volume and max from the patch vector; the fit's summary
+    # block is only cross-checked (a summary edited apart from its
+    # vector once passed every validator).
+    volume_km3 = float((opening * areas_km2).sum()) * 1e-3
+    max_opening_m = float(opening.max())
+    for key, derived in (("dike_volume_km3", volume_km3),
+                         ("max_opening_m", max_opening_m)):
+        if not np.isclose(fit["dike"][key], derived, rtol=1e-12, atol=0.0):
+            raise ValueError(
+                f"fit summary {key}={fit['dike'][key]} does not match the "
+                f"value derived from the opening vector ({derived})")
     return {
-        "volume_km3": float(fit["dike"]["dike_volume_km3"]),
+        "volume_km3": volume_km3,
         "volume_above_10km_km3":
             float((opening * areas_km2 * above_frac[:, None]).sum()) * 1e-3,
         "volume_at_0p5m_floor_km3":
             float((floored * areas_km2).sum()) * 1e-3,
-        "max_opening_m": float(fit["dike"]["max_opening_m"]),
+        "max_opening_m": max_opening_m,
         "plane_bottom_km": float(z_edges[-1]) / 1e3,
     }
 
@@ -328,7 +348,8 @@ def three_epoch_figure(delivery: dict, registration: dict, fit: dict,
     panels = [
         ("September 2005", delivery["openings_m"]["sept05"][::-1].T,
          s_ham, np.arange(21.0), 13.0, [2, 4, 6, 8, 10, 12],
-         "Hamling dike files, as provided",
+         "Hamling dike files, as provided; version query pending "
+         "(published total ~2.5 km$^3$)",
          epochs["sept05"]),
         ("2006–2010 (cumulative, provisional set)", cumulative[::-1].T,
          s_ham, np.arange(21.0), 9.0, [1, 2, 4, 6, 8],
@@ -518,11 +539,20 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
             **epochs["epoch_2026"],
         },
         "notes": [
-            "openings are the published Envisat-era inversions exactly as "
-            "provided (no uncertainties; different regularization and "
-            "greens functions from the 2026 fit)",
+            "openings are Envisat-era inversions exactly as provided "
+            "(no uncertainties; different regularization and greens "
+            "functions from the 2026 fit)",
             "the epoch-file row order is assumed to follow "
             "plot_3d_dyke_only.dat and awaits Ian Hamling's confirmation",
+            "whether each file is the published model version is "
+            "unconfirmed and has been put to Ian Hamling: sept05 "
+            "integrates to 3.55 km3 against the published ~2.5 km3, and "
+            "its deep lobes (up to 12.9 m at 16-17 km; 1.74 km3 below "
+            "10 km, in either depth orientation) do not appear in the "
+            "published opening figure — the papers attribute deep "
+            "opening largely to the inversion fitting long-wavelength "
+            "signals unrelated to dike opening and discard opening "
+            "below the local 2-sigma uncertainty before use",
             "the delivery has 15 post-2005 files against the 13 published "
             "post-megadike intrusions; may10 is apr10 with cells below "
             "0.5 m removed, and july09's positive cells all lie inside "
@@ -530,12 +560,12 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
             "primary cumulative excludes both and the report quotes the "
             "candidate sums; the file-to-event mapping awaits Ian "
             "Hamling's confirmation",
-            "the papers describe masking opening below local "
-            "uncertainty, but only the may10/apr10 pair evidences a cut "
-            "in the delivery (the recovered 0.5-m floor); sept05 keeps "
-            "positive cells down to 4e-4 m, so each file's filtering "
-            "status is unconfirmed and has been put to Ian Hamling; the "
-            "2026 totals keep all fitted opening; the "
+            "every post-2005 file carries a positive floor of "
+            "0.29-0.72 m, consistent with the papers' discard of "
+            "opening below the local 2-sigma uncertainty (typically "
+            "0.3-0.4 m; only may10's 0.5-m cut is proven exactly, "
+            "against apr10), while sept05 is unfiltered (cells down to "
+            "4e-4 m) and the 2026 totals keep all fitted opening; the "
             "volume_at_0p5m_floor_km3 values apply one uniform 0.5-m "
             "floor to the primary cumulative and to 2026 as a "
             "sensitivity, not as a matched reconstruction of any "
@@ -575,7 +605,7 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
         f"({payload['epoch_2026']['reference_fit']}).",
         "",
         "Openings of the September 2005 megadike and the fifteen "
-        "post-2005 opening files are the published inversions provided by "
+        "post-2005 opening files are the inversions provided by "
         "Ian Hamling (GNS) on the ~74 km Hamling computational grid "
         "(75 columns x 20 one-km depth rows, UTM 37N). The 2026 "
         "distribution is this repository's fixed-plane fit on the Wright "
@@ -634,21 +664,26 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
         f"-{max(v['volume_km3'] for v in [stats, *alternatives.values()]):.3f}"
         " km3), which Ian Hamling has been asked to resolve.",
         "",
-        "Comparability caveats: the papers describe masking opening "
-        "below local uncertainty, but only the may10/apr10 pair "
-        "evidences a cut in the delivery (the recovered 0.5-m floor); "
-        "sept05 keeps positive cells down to 4e-4 m, so each file's "
-        "filtering status is unconfirmed (asked of Ian Hamling). The "
-        "2026 totals keep all fitted opening. As a uniform-floor "
-        "sensitivity — not a matched reconstruction — a 0.5-m floor "
-        "gives "
+        "Comparability caveats: whether each file is the published "
+        "model version is unconfirmed (asked of Ian Hamling). Every "
+        "post-2005 file carries a positive floor of 0.29-0.72 m, "
+        "consistent with the papers' discard of opening below the "
+        "local 2-sigma uncertainty (typically 0.3-0.4 m), while sept05 "
+        "is unfiltered (cells down to 4e-4 m), integrates to "
+        f"{epochs['sept05']['volume_km3']:.2f} km3 against the "
+        "published ~2.5 km3, and carries "
+        f"{epochs['sept05']['volume_km3'] - epochs['sept05']['volume_above_10km_km3']:.2f}"
+        " km3 below 10 km depth (deep lobes peaking at 13-20 km, up to "
+        f"{epochs['sept05']['max_opening_m']:.1f} m) that the published "
+        "opening figure does not show and that the papers attribute "
+        "largely to the inversion fitting long-wavelength signals "
+        "unrelated to dike opening. The 2026 totals keep all fitted "
+        "opening. As a uniform-floor sensitivity — not a matched "
+        "reconstruction — a 0.5-m floor gives "
         f"{stats['volume_at_0p5m_floor_km3']:.3f} km3 for the primary "
         f"cumulative and {fit_stats['volume_at_0p5m_floor_km3']:.3f} km3 "
-        "for 2026. The 2005 model "
-        "carries "
-        f"{epochs['sept05']['volume_km3'] - epochs['sept05']['volume_above_10km_km3']:.2f}"
-        " km3 below 10 km depth (a deep lobe peaking at 13-20 km in its "
-        f"northern half); the 2026 model plane ends at {bottom:g} km, so "
+        "for 2026. "
+        f"The 2026 model plane ends at {bottom:g} km, so "
         "like-for-like volume comparisons should quote the above-10-km "
         "column. See also the notes block in the JSON and LIMITATIONS.md. "
         "Exact event dates are not part of the delivery; take them from "

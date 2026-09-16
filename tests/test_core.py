@@ -562,6 +562,22 @@ class ReferenceAndCacheTests(unittest.TestCase):
                 with self.assertRaises(FileNotFoundError):
                     closure.check()
 
+    def test_three_epoch_stats_reject_a_fit_summary_apart_from_its_vector(self) -> None:
+        # A max_opening_m edited in the fit's summary block once passed
+        # both validators because the stats copied the summary.
+        from mh26.hamling import _fit_opening_stats
+
+        geometry = {"dike_shape": (1, 2),
+                    "dike_s_edges_m": np.array([0.0, 1000.0, 2000.0]),
+                    "dike_z_edges_m": np.array([0.0, 1000.0])}
+        fit = {"dislocation_magnitudes_m": [1.0, 2.0],
+               "dike": {"dike_volume_km3": 3.0e-3, "max_opening_m": 2.0}}
+        stats = _fit_opening_stats(fit, geometry)
+        self.assertAlmostEqual(stats["volume_km3"], 3.0e-3)
+        fit["dike"]["max_opening_m"] = 99.0
+        with self.assertRaisesRegex(ValueError, "max_opening_m"):
+            _fit_opening_stats(fit, geometry)
+
     def test_three_epoch_report_cannot_choose_its_delivery_path(self) -> None:
         # A report whose source.directory pointed at a missing directory
         # once skipped the delivery hashes and the recomputation entirely.

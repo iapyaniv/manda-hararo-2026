@@ -92,7 +92,7 @@
   "reference_fit_sha256": "993b8c9ce35e9734d801ad90908a9916b46c98d86f54681454b332cd20ce966e",
   "volume_above_10km_km3": 0.18004326724518072,
   "volume_at_0p5m_floor_km3": 0.15376992719227098,
-  "volume_km3": 0.18004326724518094
+  "volume_km3": 0.18004326724518072
  },
  "epochs": {
   "apr08": {
@@ -195,10 +195,11 @@
  },
  "nisar_source": "gslc",
  "notes": [
-  "openings are the published Envisat-era inversions exactly as provided (no uncertainties; different regularization and greens functions from the 2026 fit)",
+  "openings are Envisat-era inversions exactly as provided (no uncertainties; different regularization and greens functions from the 2026 fit)",
   "the epoch-file row order is assumed to follow plot_3d_dyke_only.dat and awaits Ian Hamling's confirmation",
+  "whether each file is the published model version is unconfirmed and has been put to Ian Hamling: sept05 integrates to 3.55 km3 against the published ~2.5 km3, and its deep lobes (up to 12.9 m at 16-17 km; 1.74 km3 below 10 km, in either depth orientation) do not appear in the published opening figure \u2014 the papers attribute deep opening largely to the inversion fitting long-wavelength signals unrelated to dike opening and discard opening below the local 2-sigma uncertainty before use",
   "the delivery has 15 post-2005 files against the 13 published post-megadike intrusions; may10 is apr10 with cells below 0.5 m removed, and july09's positive cells all lie inside june09's at r=0.994 (all other pairs |r|<=0.44), so the primary cumulative excludes both and the report quotes the candidate sums; the file-to-event mapping awaits Ian Hamling's confirmation",
-  "the papers describe masking opening below local uncertainty, but only the may10/apr10 pair evidences a cut in the delivery (the recovered 0.5-m floor); sept05 keeps positive cells down to 4e-4 m, so each file's filtering status is unconfirmed and has been put to Ian Hamling; the 2026 totals keep all fitted opening; the volume_at_0p5m_floor_km3 values apply one uniform 0.5-m floor to the primary cumulative and to 2026 as a sensitivity, not as a matched reconstruction of any delivered filtering",
+  "every post-2005 file carries a positive floor of 0.29-0.72 m, consistent with the papers' discard of opening below the local 2-sigma uncertainty (typically 0.3-0.4 m; only may10's 0.5-m cut is proven exactly, against apr10), while sept05 is unfiltered (cells down to 4e-4 m) and the 2026 totals keep all fitted opening; the volume_at_0p5m_floor_km3 values apply one uniform 0.5-m floor to the primary cumulative and to 2026 as a sensitivity, not as a matched reconstruction of any delivered filtering",
   "the shared s axis compares openings by along-axis position; the two traces differ by up to 1412 m mid-plane"
  ],
  "registration": {
