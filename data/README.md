@@ -9,12 +9,13 @@ data/
 ├── s1/         40 LiCSAR GeoTIFFs for frames 014A_07688_131313 and
 │               079D_07694_131313
 ├── geotiff/    40 analysis-ready NISAR LOS/coherence GeoTIFFs
-├── gslc/       4 reprocessed 30-m products (ifg + unw per NISAR geometry)
+├── gslc/       4 reprocessed 30-m products; the closure add-on adds raw loop inputs
 ├── SHA256SUMS-core.txt
 ├── SHA256SUMS-preevent.txt
 ├── SHA256SUMS-s1tracks.txt
 ├── SHA256SUMS-gslc.txt
-└── SHA256SUMS.txt              all data files (all four archives)
+├── SHA256SUMS-closure.txt      18 exact interferogram/cache files
+└── SHA256SUMS.txt              files in the four earlier data archives
 ```
 
 ## Data archives
@@ -44,9 +45,9 @@ python -m mh26.validate --profile core
 ```
 
 The 35 files can also be rebuilt directly from the public LiCSAR paths in
-`../granules/licsar.txt`. Core plus s1tracks supports every reported
-calculation except regeneration of the full pre-event history from raw NPZ
-layers.
+`../granules/licsar.txt`. Core plus s1tracks supports the standard GUNW
+analysis. The 30-m GSLC analysis, loop closure, and the full pre-event
+history need the separate inputs described below.
 
 The GSLC add-on contains the reprocessed 30-m co-event interferograms
 (filtered phase + coherence) and unwrapped LOS fields for both NISAR
@@ -65,11 +66,63 @@ differ at the numerical-noise level from the shipped ones if snaphu or
 library versions differ; `--compare` reports agreement against the GUNW
 fields either way.
 
-The loop-closure check adds one earlier GSLC epoch per track and the pre
-and skip interferograms with their raw unwraps (`*_pre.npz`,
-`*_loop*_ifg.npz`, `*_loop*_unwraw.npz`); these rebuild on demand with
-`python -m mh26.closure --crop --ifg --check` and are not part of any
-shipped archive.
+The separate `manda-hararo-2026_data-closure.zip` contains the exact nine
+interferograms and nine raw unwrap caches needed to reproduce loop
+closure. The 18 NPZ files total 608,484,654 bytes. It also contains
+`SHA256SUMS-closure.txt`, this README, and `closure-provenance.json`, a copy
+of the tracked `results/loop_closure_inventory.json`. The two inversion
+pair interferograms also occur in the GSLC archive and have the same
+hashes. Install and replay the closure add-on with:
+
+```bash
+unzip -n manda-hararo-2026_data-closure.zip -d data
+(cd data && sha256sum -c SHA256SUMS-closure.txt)
+python -m mh26.closure --check --cached-only
+python -m mh26.validate --profile full --require-closure-inputs
+```
+
+The raw caches contain no snaphu configuration metadata or original
+interferogram hashes. Their original settings, executable identities,
+and versions remain unknown. Replay first verifies the saved source,
+settings, reports, and input hashes. It then checks each interferogram's
+ordered granules, EPSG, looks, array shape, and 30-m grid, and each raw
+array's phase congruence. The command and the Python `closure.check()`
+API are read-only by default. They reproduce the saved statistics
+without running snaphu or replacing files. They do not reconstruct the
+original snaphu run. The existing archive checks alone cannot reproduce
+closure when these optional inputs are absent. Validation then reports
+which tracks could be replayed; `--require-closure-inputs` makes missing
+inputs an error.
+Partial `--tags` checks also keep the combined reports and inventory
+unchanged. After an authorized analysis change, explicitly regenerate
+the complete saved set with
+`python -m mh26.closure --check --cached-only --regenerate`. This replaces
+the reports and their source/settings inventory; it still rejects
+changed input hashes. Regeneration requires all three tracks.
+
+The closure archive is prepared locally and has not been uploaded.
+Its hash is listed in the repository README and in
+`dist/SHA256SUMS-closure.txt`. To build this archive alone after a full
+closure replay, run `python scripts/build_release.py --closure-only`.
+The builder requires the complete saved baseline to pass validation,
+including all input hashes and raw-array replay, before it writes a ZIP.
+Stale source, settings, or reports and malformed inventory paths fail
+before archive replacement.
+The ZIP uses the normal sorted entries, stored compression, source-base
+timestamp, and CRC check. Its comment records the base commit, working
+tree status, and inventory hash; the inventory hashes the actual code,
+model input, reports, and raw inputs and records the analysis settings.
+
+The earlier complex GSLC epoch crops are needed only to form new pre
+and skip interferograms. Rebuild those with
+`python -m mh26.closure --crop --ifg`. `--check --regenerate` can run snaphu
+when a raw cache is missing. New caches record their settings, input hash,
+and the executed binary's resolved path, SHA-256, reported version, and
+version-command exit status. The binary is resolved once and that exact
+path is used for execution. A nonzero `--version` exit status does not
+discard a reported version. No such metadata is added to legacy caches.
+That produces a new unwrapping run rather than recovering unknown
+legacy settings.
 
 Install the 15-crop pre-event add-on when that regeneration is needed:
 

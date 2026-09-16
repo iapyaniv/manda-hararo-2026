@@ -42,7 +42,12 @@ Manda Hararo intrusion.
   reprocessed unwrapping per NISAR track (pre, co-event, and skip legs on
   the shared GSLC grid); `results/loop_closure.md`,
   `results/loop_closure_<tag>.json`, and `results/loop_closure_nisar.png`
-  report the integer-cycle inconsistency statistics and maps.
+  report the integer-cycle inconsistency statistics and maps. The nine
+  legacy raw caches have unknown snaphu settings. The separate closure
+  archive supplies the 18 inputs in `results/loop_closure_inventory.json`
+  for `mh26.closure --check --cached-only`, which verifies the saved
+  baseline and replays it without snaphu or file writes. Replacing reports
+  after an analysis change requires the explicit `--regenerate` option.
 - `results/fault_traces.json` and `results/fault_traces.png` extract the
   phase-gradient ridges flanking the axis (candidate graben-fault scarps)
   with a LOS-step diagnostic per ridge; `mh26.distributed --mapped` uses only
@@ -71,9 +76,10 @@ Manda Hararo intrusion.
   profile.
 - `mh26/fault_depth.py` sweeps the depth extent of the mapped east-fault
   term (truncation caps re-solved at the reused smoothing weight) and
-  reports the misfit cost against the removed fault potency/moment, per
+  reports changes in misfit and fault potency/moment, per
   input chain: `results/fault_depth_mapped.{json,md,png}` and
-  `results/fault_depth_mapped_gslc.{json,md,png}`.
+  `results/fault_depth_mapped_gslc.{json,md,png}`. These are conditional
+  sensitivities, not a data-required depth or a physical moment bound.
 - `results/summary_*.png` (with matching PDF files) are eight draft
   publication-style figures built by `mh26.summary_figures` from the saved
   results: the four-geometry trace-supported fit with residuals and
@@ -88,9 +94,10 @@ Manda Hararo intrusion.
 - `granules/` records the NISAR (GUNW + GSLC) and LiCSAR source products.
 - `data/` contains archive manifests and instructions for the data files.
 
-The core and s1tracks data archives together support all reported results
-except the GSLC reprocessing outputs, which the gslc archive provides (or a
-rebuild from ASF, see `data/README.md`). The pre-event archive is needed only
+The core and s1tracks data archives support the standard-product analysis.
+The gslc archive adds the 30-m co-event inputs, and the separate closure
+archive supplies the raw arrays needed to reproduce loop closure (see
+`data/README.md`). The pre-event archive is needed only
 to regenerate the 16-window history from the NPZ layers. The core archive
 already contains the corresponding GeoTIFFs.
 
@@ -174,12 +181,25 @@ python -m mh26.decompose3d --gslc
 python -m mh26.faults
 python -m mh26.distributed --mapped
 python -m mh26.distributed --mapped --gslc
-python -m mh26.distributed --geometry FILE  # after an external contract arrives
-python -m mh26.distributed --geometry FILE --gslc  # same plane, 30-m chain
+python -m mh26.fault_depth
+python -m mh26.fault_depth --gslc
+python -m mh26.wright2006
+python -m mh26.distributed --geometry results/geometry_wright2006.json
+python -m mh26.distributed --geometry results/geometry_wright2006.json --gslc
+python -m mh26.wright2006 --panel results/distributed_fit_geometry_4a7b2386c8b5.json
 python -m mh26.stress
 python -m mh26.uncertainty --n 1000
 python -m mh26.figures
 python -m mh26.summary_figures   # needs the terrain tile (data/README.md)
+python -m mh26.export_geotiff --all
+python -m mh26.validate --profile full
+```
+
+With the closure data add-on installed, check the saved closure result with:
+
+```bash
+python -m mh26.closure --check --cached-only
+python -m mh26.validate --profile full --require-closure-inputs
 ```
 
 Run `python -m mh26.gslc --unwrap-sensitivity` only when a full-grid

@@ -9,6 +9,11 @@ Release workflow:
 
 The core and pre-event archives have separate checksum manifests, so each
 archive can be verified without the other.
+
+``--closure-only`` builds the separate closure-data add-on from its saved
+input inventory. It can package a reviewed working tree without a commit;
+the ZIP comment identifies the base commit, working-tree state, and exact
+inventory hash instead of presenting the base commit as the source snapshot.
 """
 
 from __future__ import annotations
@@ -16,6 +21,7 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 import hashlib
+import json
 import os
 from pathlib import Path
 import shutil
@@ -48,6 +54,7 @@ CORE_ARCHIVE = DIST / "manda-hararo-2026_data-core.zip"
 PREEVENT_ARCHIVE = DIST / "manda-hararo-2026_data-preevent.zip"
 S1TRACKS_ARCHIVE = DIST / "manda-hararo-2026_data-s1tracks.zip"
 GSLC_ARCHIVE = DIST / "manda-hararo-2026_data-gslc.zip"
+CLOSURE_ARCHIVE = DIST / "manda-hararo-2026_data-closure.zip"
 
 
 def run_git(*args: str) -> str:
@@ -253,12 +260,54 @@ def build_archives() -> None:
     )
 
 
+def build_closure_archive() -> None:
+    from mh26.validate import validate_closure
+
+    # Validate the full saved baseline before opening or replacing an archive.
+    # Raw hashes alone cannot detect a stale source, setting, or report.
+    validate_closure(require_inputs=True)
+    inventory_path = ROOT / "results" / "loop_closure_inventory.json"
+    inventory = json.loads(inventory_path.read_text())
+    records = inventory["input_files"]
+    entries = []
+    for record in records:
+        path = ROOT / record["path"]
+        if path.stat().st_size != record["size_bytes"] \
+                or sha256(path) != record["sha256"]:
+            raise ValueError(f"closure input differs from its inventory: {path}")
+        entries.append((path.relative_to(DATA).as_posix(), path))
+    manifest = DATA / "SHA256SUMS-closure.txt"
+    expected = manifest_text([path for _, path in entries])
+    if manifest.read_text() != expected:
+        raise ValueError("closure checksum manifest differs from its input inventory")
+    entries += [("README.md", DATA / "README.md"),
+                ("SHA256SUMS-closure.txt", manifest),
+                ("closure-provenance.json", inventory_path)]
+    comment = json.dumps({
+        "base_commit": run_git("rev-parse", "HEAD"),
+        "worktree_modified": bool(run_git("status", "--porcelain")),
+        "closure_inventory_sha256": sha256(inventory_path),
+    }, sort_keys=True)
+    write_archive(CLOSURE_ARCHIVE, entries, comment, commit_datetime())
+    line = f"{sha256(CLOSURE_ARCHIVE)}  {CLOSURE_ARCHIVE.name}\n"
+    write_if_changed(DIST / "SHA256SUMS-closure.txt", line)
+    all_checksums = DIST / "SHA256SUMS.txt"
+    previous = all_checksums.read_text().splitlines() if all_checksums.exists() else []
+    previous = [item for item in previous
+                if not item.endswith("  " + CLOSURE_ARCHIVE.name)]
+    write_if_changed(all_checksums, "\n".join(previous) + ("\n" if previous else "") + line)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--manifests-only", action="store_true")
     group.add_argument("--archives-only", action="store_true")
+    group.add_argument("--closure-only", action="store_true")
     args = parser.parse_args()
+    if args.closure_only:
+        build_closure_archive()
+        return
     if not args.archives_only:
         write_manifests()
     if not args.manifests_only:

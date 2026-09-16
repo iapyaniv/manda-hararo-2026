@@ -12,18 +12,62 @@
     }
   },
   "unwrap_configuration": {
+    "pre": null,
+    "co": null,
+    "skip": null
+  },
+  "unwrap_configuration_source": {
+    "pre": "unknown: legacy cache has no config metadata",
+    "co": "unknown: legacy cache has no config metadata",
+    "skip": "unknown: legacy cache has no config metadata"
+  },
+  "snaphu_execution": {
+    "pre": null,
+    "co": null,
+    "skip": null
+  },
+  "input_files": {
     "pre": {
-      "stat_cost_mode": "DEFO",
-      "init_method": "MCF"
+      "interferogram": {
+        "path": "data/gslc/100_A_008_STRADDLE_looppre_ifg.npz",
+        "sha256": "f5ee4b790147c8ccc93cd63abe9a2e23ccdf1c8c07a95c21c1bd5124721b7bdd",
+        "size_bytes": 30204310
+      },
+      "raw_unwrap_cache": {
+        "path": "data/gslc/100_A_008_STRADDLE_looppre_unwraw.npz",
+        "sha256": "5941c4e26a1e4b30ff26c2aa1651a4e01186cdcc4a9e0820f2388bdc10ac4c44",
+        "size_bytes": 15635347
+      }
     },
     "co": {
-      "stat_cost_mode": "DEFO",
-      "init_method": "MCF"
+      "interferogram": {
+        "path": "data/gslc/100_A_008_STRADDLE_ifg.npz",
+        "sha256": "86177c5ef7be0531c866a5ede73691060d56c5eed7ea770922b17363b93b81b7",
+        "size_bytes": 30784812
+      },
+      "raw_unwrap_cache": {
+        "path": "data/gslc/100_A_008_STRADDLE_loopco_unwraw.npz",
+        "sha256": "e7839423faa6ef211361389da2e771bc4662265d3c2c2ea1b6aefac979807bfe",
+        "size_bytes": 15895142
+      }
     },
     "skip": {
-      "stat_cost_mode": "DEFO",
-      "init_method": "MCF"
+      "interferogram": {
+        "path": "data/gslc/100_A_008_STRADDLE_loopskip_ifg.npz",
+        "sha256": "a6271788420359bc8049e0f8fc267c581d9a5296ff0ac9a98b52af7c84052757",
+        "size_bytes": 32619098
+      },
+      "raw_unwrap_cache": {
+        "path": "data/gslc/100_A_008_STRADDLE_loopskip_unwraw.npz",
+        "sha256": "b31b29f2312529231e727aab86903c12b3360f8ea6a952ddb5d9e5a6b7681a20",
+        "size_bytes": 16960822
+      }
     }
+  },
+  "leg_congruence_max_abs_rad": {
+    "pre": 1.8437756139633166e-06,
+    "co": 4.452863802129059e-05,
+    "skip": 5.7299905499519355e-05
   },
   "error_region": {
     "median_coherence_in_error_region": {
@@ -42,6 +86,7 @@
   "congruence_max_abs_rad": 8.565584291658768e-05,
   "whole_scene": {
     "n_pixels": 3975077,
+    "n_error_ge_1_cycle": 12044,
     "fraction_error_ge_1_cycle": 0.003029878414933849,
     "area_error_ge_1_cycle_km2": 10.839599999999999,
     "max_abs_error_cycles": 3,
@@ -49,6 +94,7 @@
   },
   "near_axis": {
     "n_pixels": 235580,
+    "n_error_ge_1_cycle": 11082,
     "fraction_error_ge_1_cycle": 0.047041344766109175,
     "area_error_ge_1_cycle_km2": 9.973799999999999,
     "max_abs_error_cycles": 3,
@@ -56,6 +102,7 @@
   },
   "off_axis_within_25km": {
     "n_pixels": 1317300,
+    "n_error_ge_1_cycle": 52,
     "fraction_error_ge_1_cycle": 3.9474683063842706e-05,
     "area_error_ge_1_cycle_km2": 0.0468,
     "max_abs_error_cycles": 1,

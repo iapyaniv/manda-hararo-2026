@@ -31,6 +31,8 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -315,11 +317,28 @@ def make_ifg(tags: list[str] | None = None, looks: int = LOOKS) -> None:
 
 def _run_snaphu(phase: np.ndarray, coherence: np.ndarray,
                 *, stat_cost_mode: str = "DEFO",
-                init_method: str = "MCF") -> np.ndarray:
+                init_method: str = "MCF",
+                execution_identity: dict | None = None) -> np.ndarray:
     if stat_cost_mode not in {"DEFO", "SMOOTH"}:
         raise ValueError(f"unsupported snaphu cost mode: {stat_cost_mode}")
     if init_method not in {"MCF", "MST"}:
         raise ValueError(f"unsupported snaphu initialization: {init_method}")
+    located = shutil.which(SNAPHU)
+    if located is None:
+        raise FileNotFoundError(f"snaphu executable not found: {SNAPHU}")
+    executable = Path(located).resolve(strict=True)
+    if execution_identity is not None:
+        # snaphu 2.0.6 prints its version with a nonzero exit status. Python
+        # package metadata does not identify this command-line executable.
+        version = subprocess.run([str(executable), "--version"],
+                                 capture_output=True, text=True, check=False,
+                                 timeout=10)
+        match = re.search(r"\bsnaphu\s+v[^\s]+", version.stdout + "\n" + version.stderr)
+        execution_identity.clear()
+        execution_identity.update({"resolved_path": str(executable),
+                                   "sha256": _sha256(executable),
+                                   "reported_version": match.group(0) if match else None,
+                                   "version_exit_code": version.returncode})
     ny, nx = phase.shape
     with tempfile.TemporaryDirectory(prefix="snaphu_", dir=str(DATA_GSLC)) as td:
         td = Path(td)
@@ -343,7 +362,7 @@ def _run_snaphu(phase: np.ndarray, coherence: np.ndarray,
         # LINELENGTH comes from the config file; a positional width argument
         # would be parsed as a second input file.
         result = subprocess.run(
-            [SNAPHU, "-f", str(config), str(td / "phase.in")],
+            [str(executable), "-f", str(config), str(td / "phase.in")],
             capture_output=True, text=True)
         if result.returncode != 0:
             raise RuntimeError(f"snaphu failed:\n{result.stdout}\n{result.stderr}")

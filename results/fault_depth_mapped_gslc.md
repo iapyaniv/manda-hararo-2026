@@ -1,8 +1,8 @@
 # Graben-fault depth-extent sweep (mapped trace; 30-m reprocessed (GSLC) chain)
 
 - reference fit: distributed_fit_mapped_gslc.json (λ = 17.78 reused; SHA-256 eebae6c090fa…); the uncapped baseline must reproduce it exactly before the sweep runs
-- graben band: within 6 km of the trace, 20 km along strike (1011 blocks); the fault term acts here, and the all-block RMS dilutes it
-- fault moment = μ · Σ area·slip at μ = 30 GPa. Okada surface displacements depend on (λ, μ) only through α = (λ+μ)/(λ+2μ), so a uniform rescaling of both changes no prediction and rescales the moment linearly: the data do not constrain μ. A depth-varying μ is outside the half-space model.
+- graben band: 6-km half-width from the dike axis (12 km wide), 20-km along-axis half-length (1011 blocks); the fault term acts here, and the all-block RMS dilutes it
+- fault moment = μ · Σ area·slip at μ = 30 GPa. Okada surface displacements depend on (λ, μ) only through α = (λ+μ)/(λ+2μ), so a uniform rescaling of both changes no prediction and rescales the moment linearly: the data do not constrain μ. A depth-varying soft layer has not been modelled.
 
 | fault depth extent | patches | max slip | potency | μ·potency | dike volume | RMS all | RMS band | band improvement retained |
 |---|---|---|---|---|---|---|---|---|
@@ -19,11 +19,12 @@
 ## Depth reach of the uncapped solution
 
 - cumulative potency fraction above 1 km: 0.27; above 2 km: 0.57; above 3 km: 0.83 (piecewise-linear in depth within patches)
-- shallowest cap retaining ≥ 90% of the fault term's graben-band improvement: 3.0 km, with potency 15.9×10⁶ m³ (μ·potency 4.8×10¹⁷ N·m, vs 5.1×10¹⁷ N·m uncapped)
+- shallowest tested cap retaining ≥ 90% of the fault term's graben-band improvement: 3.0 km, with potency 15.9×10⁶ m³ (μ·potency 4.8×10¹⁷ N·m, vs 5.1×10¹⁷ N·m uncapped)
 
 ## Scope
 
-- The sweep truncates the depth extent of the fixed mapped-trace, fixed-dip fault surface and re-solves at the reused smoothing weight. It does not test other fault geometries (listric surfaces, distributed fissuring, the unsupported west trace), and the slip values remain regularized magnitudes, not resolved slip.
-- Truncation removes parameters, so a capped fit can only misfit more; the question is how little the graben band degrades while the potency (and so the moment) drops. The dike-volume column shows how much removed fault signal the opening absorbs.
-- The band's RMS level is dominated by axial signal no model term fits (graben-floor cells, where the loop-closure check also flags a one-fringe unwrap risk), so differences between rows are meaningful; the level is not.
+- The sweep truncates the depth extent of the fixed mapped-trace, fixed-dip fault surface and re-solves at the reused smoothing weight. The retained-improvement threshold is a comparison rule, not a confidence level or a data-required depth. The sweep does not test other fault geometries (listric surfaces, distributed fissuring, the unsupported west trace), and the slip values remain regularized magnitudes. Neither the capped nor the uncapped moment is a physical upper confidence bound.
+- Truncation changes patch dimensions, Green's functions, and the retained smoothing operator. These are not nested fits on one fixed basis, so a capped fit can have lower RMS; some saved rows improve slightly on the uncapped fit. The dike-volume column records the change in the opening/slip partition.
+- Lowering the uniform μ rescales the moment only if both Lamé constants are scaled together. A lower stiffness value is an assumed sensitivity, not a value inferred from these data. A depth-varying soft layer would also change the displacement calculation and has not been modelled.
+- The graben band includes axial residuals and support where loop closure flags 1–4-cycle inconsistencies (about 12–48 cm LOS). The check cannot identify the faulty leg or show that all flagged axial support was excluded from the fits. Both the RMS levels and their differences are conditional on the retained observations and model assumptions.
 - Both input chains run the same sweep (fault_depth_mapped.md / fault_depth_mapped_gslc.md).

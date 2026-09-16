@@ -1604,7 +1604,7 @@ def draw_frame_axes(ax: object, strike_deg: float) -> None:
     along, perp = _strike_vectors(strike_deg)
     x0, y0 = X_MAX - 7_500.0, Y_MIN + 7_000.0
     length = 4_500.0
-    for (v_n, v_e), label in ((perp, "U⊥"), (along, "U∥")):
+    for (v_n, v_e), label in ((perp, "U⊥"), (-along, "U∥")):
         ax.annotate(
             "",
             xy=(x0 + length * v_e, y0 + length * v_n),
@@ -2176,16 +2176,9 @@ def build_source_figure() -> list[Path]:
         axis.pane.set_edgecolor((0.65, 0.65, 0.65, 0.55))
         axis._axinfo["grid"]["color"] = (0.55, 0.55, 0.55, 0.22)
         axis._axinfo["grid"]["linewidth"] = 0.4
-    main_ax.set_title("Physical source geometry", fontweight="bold", pad=1)
+    main_ax.set_title("Model geometry", fontweight="bold", pad=1)
     main_ax.text2D(0.015, 0.965, "(a)", transform=main_ax.transAxes,
                    fontsize=7.4, fontweight="bold")
-    main_ax.text2D(
-        0.02, 0.055,
-        f"dike: {int(dike.sum())} opening patches\n"
-        f"east fault: {int(fault.sum())} retained normal-slip patches",
-        transform=main_ax.transAxes, ha="left", va="bottom", fontsize=6.0,
-        bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.82, "pad": 1.5},
-    )
     main_ax.text2D(
         0.985, 0.02, "no vertical exaggeration (box 1:1:1)",
         transform=main_ax.transAxes, ha="right", va="bottom",
@@ -2278,8 +2271,7 @@ def build_source_figure() -> list[Path]:
     section_ax.tick_params(labelsize=6.0, length=2, width=0.6, pad=1)
     section_ax.set_xlabel("east of dike (km)", fontsize=6.2, labelpad=1)
     section_ax.set_ylabel("depth (km)", fontsize=6.2, labelpad=1)
-    section_ax.set_title(f"Section at s = {section_s:+.1f} km",
-                         fontweight="bold", pad=2)
+    section_ax.set_title("Cross-section", fontweight="bold", pad=2)
     section_ax.text(0.02, 0.97, "(c)", transform=section_ax.transAxes,
                     ha="left", va="top", fontsize=7.2, fontweight="bold")
     peak_p = float(polygons[peak_fault_index, :, 1].mean())
@@ -2328,7 +2320,7 @@ def build_source_figure() -> list[Path]:
     strip_ax.tick_params(labelsize=6.0, length=2, width=0.6, pad=1)
     strip_ax.set_xlabel("along strike, NNW → SSE (km)", fontsize=6.2, labelpad=1)
     strip_ax.set_ylabel("depth (km)", fontsize=6.2, labelpad=1)
-    strip_ax.set_title("East-fault slip (unfolded)", fontweight="bold", pad=2)
+    strip_ax.set_title("Normal slip on the eastern fault", fontweight="bold", pad=2)
     strip_ax.text(0.012, 0.94, "(d)", transform=strip_ax.transAxes, ha="left",
                   va="top", fontsize=7.2, fontweight="bold")
     strip_ax.text(
@@ -2354,9 +2346,8 @@ def build_source_figure() -> list[Path]:
                  "east-fault normal slip (m)", [0, 0.2, 0.4, 0.65])
 
     dike_summary = payload["dike"]
-    potency = payload["potency_partition"]
     fig.suptitle(
-        "Manda Hararo 2026 — physical distributed source",
+        "Manda Hararo 2026 — Joint dike and fault model",
         x=0.5,
         y=0.992,
         fontweight="bold",
@@ -2364,9 +2355,7 @@ def build_source_figure() -> list[Path]:
     fig.text(
         0.5,
         0.947,
-        "trace-supported fit to the 30-m (GSLC) inputs · "
-        f"strike {geometry['strike']:.1f}° · east fault dips "
-        f"{geometry['fault_dip']:.0f}° toward the axis",
+        "Joint fit to NISAR and Sentinel-1 observations",
         ha="center",
         va="bottom",
         fontsize=7.1,
@@ -2375,13 +2364,9 @@ def build_source_figure() -> list[Path]:
     fig.text(
         0.5,
         0.010,
-        f"Opening max {dike_summary['max_opening_m']:.2f} m · volume "
-        f"{dike_summary['dike_volume_km3']:.3f} km³ · fault max "
-        f"{dike_summary['fault_east_max_slip_m']:.2f} m · fault/dike potency "
-        f"{potency['fault_to_dike_potency_ratio']:.2f} "
-        "(area × slip over area × opening; not a moment-tensor ratio).\n"
-        "The 2005-plane refit is in the Wright-2006 summary figures; the "
-        "2006–2010 geometry and opening files are still awaited.",
+        f"Maximum opening {dike_summary['max_opening_m']:.1f} m · dike volume "
+        f"{dike_summary['dike_volume_km3']:.2f} km³ · maximum fault slip "
+        f"{dike_summary['fault_east_max_slip_m']:.1f} m",
         ha="center",
         va="bottom",
         fontsize=6.0,

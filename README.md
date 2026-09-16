@@ -29,7 +29,7 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
   projection as the observations in these comparisons. See `results/s1_crosscheck.md` and
   `results/s1_tracks.md`.
 - The NISAR post-event projection is +0.107 for 19 July–12 August, with a
-  processing-choice range of +0.100–+0.123. See `results/continuation.md`.
+  processing-choice range of +0.100–+0.121. See `results/continuation.md`.
 - Sentinel-1 post-event projections are +0.140 ascending for 18–30 July and
   +0.053 descending for 23 July–4 August. Later windows are at the null
   level. One descriptive fit across all six windows gives a total near 0.15
@@ -41,9 +41,14 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
 
 ## Model extensions and checks
 
-- The trace-supported distributed fit includes only the east fault. It
-  reduces joint RMS from 2.37 to 2.15 cm and improves both 5-km holdout
-  splits. The 2.09 cm two-fault idealization remains a geometry sensitivity.
+- The preferred fit uses the reprocessed 30-m GSLC inputs and a candidate
+  eastern fault trace. It gives 0.176 km³ dike volume, 2.38 m peak opening,
+  and 2.55 cm joint RMS. The 0.61 m maximum fault slip is conditional on
+  the assumed trace, dip, depth extent, and smoothing. See
+  [`results/distributed_fit_mapped_gslc.md`](results/distributed_fit_mapped_gslc.md).
+- With the standard 80-m GUNW inputs, the trace-supported fit includes only
+  the east fault. It reduces joint RMS from 2.37 to 2.15 cm and improves both
+  5-km holdout splits. The 2.08 cm two-fault idealization remains a geometry sensitivity.
   The held-out-sensor transfer gain belongs to the idealized two-fault
   geometry; the mapped east-fault term is constrained mainly by NISAR. See
   `results/distributed_fit_mapped.md` and `LIMITATIONS.md`.
@@ -52,11 +57,11 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
   distinguish exactly three geometries from four geometries.
 - The free three-component solve is also rotated into the dike frame: U⊥
   perpendicular to the fitted strike (ENE positive, the same axis as the
-  constrained solve), U∥ along strike (SSE positive), and up. The rotation
+  constrained solve), U∥ along the dike axis (333° NNW positive), and up. The rotation
   is exact and the rotated formal sigmas carry the east–north
   cross-covariance. U∥ is the weakly observed component: with the 30-m
-  inputs its flank probes are +5.4 cm (east) and −4.2 cm (west) against a
-  median formal σ of 4.2 cm; the GUNW inputs give +10.1 and −3.5 cm, and
+  inputs its flank probes are −5.3 cm (east) and +4.2 cm (west) against a
+  median formal σ of 4.1 cm; the GUNW inputs give −10.0 and +3.4 cm, and
   replacing the fitted strike by the southernmost 2005 segment strike (4.5°
   different) moves them by about 5 cm. U∥ is therefore reported but not
   resolved. See the dike-frame section of `results/decomposition_joint*.md`.
@@ -127,6 +132,11 @@ pre-event Sentinel-1 pairs bound the post-event projection null at ±0.022
 (`results/s1_tracks.md`). The post-event signal appears in both Sentinel-1
 geometries and in NISAR, and it decays; no added-volume estimate is made.
 
+The separate visual review of 24 additional January–June NISAR previews is
+in `results/preevent_preview_review.md`; its input list is
+`granules/preevent_preview_pairs.tsv`. It does not extend the quantitative
+16-window result.
+
 ## Reproduction
 
 ```bash
@@ -150,7 +160,8 @@ python -m mh26.decompose3d --gslc
 python -m mh26.faults                 # phase-gradient ridges (needs gslc archive)
 python -m mh26.distributed --mapped   # ridge-anchored fault-geometry variant
 python -m mh26.distributed --mapped --gslc
-python -m mh26.distributed --geometry FILE  # complete external patch geometry
+python -m mh26.fault_depth
+python -m mh26.fault_depth --gslc
 python -m mh26.wright2006             # 2005 dike-plane contract from data/*.dat
 python -m mh26.distributed --geometry results/geometry_wright2006.json
 python -m mh26.distributed --geometry results/geometry_wright2006.json --gslc
@@ -161,6 +172,13 @@ python -m mh26.figures
 python -m mh26.summary_figures        # needs the terrain tile (data/README.md)
 python -m mh26.export_geotiff --all
 python -m mh26.validate --profile full
+```
+
+With the closure data add-on installed, check the saved closure result with:
+
+```bash
+python -m mh26.closure --check --cached-only
+python -m mh26.validate --profile full --require-closure-inputs
 ```
 
 The shipped `data/gslc/*_ifg.npz` and `*_unw.npz` reproduce from the raw
@@ -195,7 +213,9 @@ mh26/s1_tracks.py       two-track Sentinel-1 post-event and null tests
 mh26/distributed.py     distributed opening + graben-fault inversion (4 geometries)
 mh26/decompose3d.py     joint NISAR+Sentinel-1 co-event decomposition
 mh26/gslc.py            full-resolution GSLC interferograms and unwrapping
+mh26/closure.py         three-epoch phase-consistency check
 mh26/faults.py          graben fault traces from wrapped-phase gradients
+mh26/fault_depth.py     fault depth-extent sensitivity
 mh26/stress.py          dike-induced stress change on the fault surfaces
 mh26/uncertainty.py     correlated-noise Monte Carlo for the distributed model
 mh26/figures.py         rewrapped-fringe data/model comparison figure
@@ -281,6 +301,20 @@ unchanged.
 From `analysis-2026-08-20` on, each release ships a
 `SHA256SUMS-release-<tag>.txt` manifest listing the exact hash of every
 asset the release refers to, including retained assets from earlier
-releases. A locally generated `dist/SHA256SUMS.txt` describes a full rebuild
-at the current commit only; it is not uploaded, because its core/pre-event
-lines cannot match retained assets built at an earlier commit.
+releases. A locally generated `dist/SHA256SUMS.txt` records locally built
+archives; its core/pre-event hashes can differ from retained release assets
+built at an earlier commit. It is not the published release manifest.
+
+A separate closure-data add-on was prepared locally on 14 September 2026.
+It contains the 18 exact interferogram/cache files, an input checksum
+manifest, and provenance metadata. It has not been uploaded. The archive
+uses the source-base timestamp and records the modified working tree and
+exact inventory hash in its ZIP comment. Build this add-on alone with
+`python scripts/build_release.py --closure-only`; see `data/README.md` for
+installation and read-only reproduction. The builder validates the saved
+source, settings, reports, and all 18 inputs before writing. The prepared
+archive SHA-256 is:
+
+```text
+a13584043d975a616fd4a22593c4aee8c3d0b7ac9319d5f3ad1592cc25923b0a  manda-hararo-2026_data-closure.zip
+```

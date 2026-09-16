@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "generated_by": "mh26.closure",
+  "replay_command": "python -m mh26.closure --check --cached-only",
+  "regenerate_command": "python -m mh26.closure --check --cached-only --regenerate",
+  "scope": "Exact file identities for closure replay from saved arrays. The closure data add-on contains the nine raw caches and nine interferograms; other archives are not sufficient. Unknown legacy snaphu settings prevent exact reconstruction of the original unwrapping run from its configuration. Replay is read-only and checks the saved baseline; regeneration requires an explicit option. Legacy executable identities and versions are also unknown.",
+  "analysis_parameters": {
+    "coherence_min": 0.25,
+    "centre_e_m": 680600.0,
+    "centre_n_m": 1347000.0,
+    "farfield_radius_m": 28000.0,
+    "near_axis_half_width_m": 3000.0,
+    "near_axis_half_length_m": 20000.0,
+    "off_axis_radius_m": 25000.0,
+    "one_cycle_los_m": 0.1192,
+    "congruence_tolerance_rad": 0.001,
+    "ifg_epsg": 32637,
+    "ifg_looks": [
+      6,
+      3
+    ],
+    "ifg_posting_m": [
+      30,
+      -30
+    ],
+    "triangle_granules": {
+      "172_008_A": [
+        "NISAR_L2_PR_GSLC_022_172_A_008_2005_DHDH_A_20260614T024620_20260614T024655_P05023_N_F_J_001",
+        "NISAR_L2_PR_GSLC_024_172_A_008_2005_DHDH_A_20260708T024619_20260708T024654_P05023_N_F_J_001",
+        "NISAR_L2_PR_GSLC_025_172_A_008_2005_DHDH_A_20260720T024618_20260720T024653_P05023_N_F_J_001"
+      ],
+      "165_082_D": [
+        "NISAR_L2_PR_GSLC_022_165_D_082_2005_SHSH_A_20260613T154913_20260613T154947_P05023_N_F_J_001",
+        "NISAR_L2_PR_GSLC_024_165_D_082_2005_SHSH_A_20260707T154911_20260707T154946_P05023_N_F_J_001",
+        "NISAR_L2_PR_GSLC_025_165_D_082_2005_DHDH_A_20260719T154911_20260719T154945_P05023_N_F_J_001"
+      ],
+      "100_A_008_STRADDLE": [
+        "NISAR_L2_PR_GSLC_024_100_A_008_2005_DHDH_A_20260703T025438_20260703T025513_P05023_N_F_J_001",
+        "NISAR_L2_PR_GSLC_025_100_A_008_2005_DHDH_A_20260715T025438_20260715T025512_P05023_N_F_J_001",
+        "NISAR_L2_PR_GSLC_026_100_A_008_2005_DHDH_A_20260727T025437_20260727T025512_P05023_N_F_J_001"
+      ]
+    }
+  },
+  "numpy_version": "2.5.2",
+  "source_files": [
+    {
+      "path": "mh26/closure.py",
+      "sha256": "19334a1a8ee6684f5e5ad93561563a6dd2cc366fe2e7440e14afb433c8456538",
+      "size_bytes": 35113
+    },
+    {
+      "path": "mh26/gslc.py",
+      "sha256": "5307da4278afe3c4e02d3518ac441abe5acf21917d2b17647c078c8b8dfe4342",
+      "size_bytes": 36976
+    },
+    {
+      "path": "mh26/params.py",
+      "sha256": "14626eb873e44988c6a57e7759f40938980c0a1a4729b4fbbb3735efc9224be3",
+      "size_bytes": 4658
+    },
+    {
+      "path": "results/okada_fit.json",
+      "sha256": "7f96d2fa7a2076264ca41ab2d7c4c44bc321bde6f59876574eacaf4a56f26f9e",
+      "size_bytes": 1930
+    }
+  ],
+  "input_files": [
+    {
+      "path": "data/gslc/100_A_008_STRADDLE_ifg.npz",
+      "sha256": "86177c5ef7be0531c866a5ede73691060d56c5eed7ea770922b17363b93b81b7",
+      "size_bytes": 30784812
+    },
+    {
+      "path": "data/gslc/100_A_008_STRADDLE_loopco_unwraw.npz",
+      "sha256": "e7839423faa6ef211361389da2e771bc4662265d3c2c2ea1b6aefac979807bfe",
+      "size_bytes": 15895142
+    },
+    {
+      "path": "data/gslc/100_A_008_STRADDLE_looppre_ifg.npz",
+      "sha256": "f5ee4b790147c8ccc93cd63abe9a2e23ccdf1c8c07a95c21c1bd5124721b7bdd",
+      "size_bytes": 30204310
+    },
+    {
+      "path": "data/gslc/100_A_008_STRADDLE_looppre_unwraw.npz",
+      "sha256": "5941c4e26a1e4b30ff26c2aa1651a4e01186cdcc4a9e0820f2388bdc10ac4c44",
+      "size_bytes": 15635347
+    },
+    {
+      "path": "data/gslc/100_A_008_STRADDLE_loopskip_ifg.npz",
+      "sha256": "a6271788420359bc8049e0f8fc267c581d9a5296ff0ac9a98b52af7c84052757",
+      "size_bytes": 32619098
+    },
+    {
+      "path": "data/gslc/100_A_008_STRADDLE_loopskip_unwraw.npz",
+      "sha256": "b31b29f2312529231e727aab86903c12b3360f8ea6a952ddb5d9e5a6b7681a20",
+      "size_bytes": 16960822
+    },
+    {
+      "path": "data/gslc/165_082_D_ifg.npz",
+      "sha256": "2d55e3074d1bbd5c7f2ea2053ccd90c9d22cd65709f034804bf4d47045639440",
+      "size_bytes": 64199405
+    },
+    {
+      "path": "data/gslc/165_082_D_loopco_unwraw.npz",
+      "sha256": "955f33c5202e10a643365ce67c75a417cb1a1193ed76b4ccfe41f8be27aac97a",
+      "size_bytes": 31750368
+    },
+    {
+      "path": "data/gslc/165_082_D_looppre_ifg.npz",
+      "sha256": "93b7a43985d5f73716a95c36c9873320c7c626989fee3e0cedbc741cdf5cccdc",
+      "size_bytes": 63642176
+    },
+    {
+      "path": "data/gslc/165_082_D_looppre_unwraw.npz",
+      "sha256": "0d5a2f5a150745f211990deab3b1cf2e8f82e059880ce1227ad40688391facdb",
+      "size_bytes": 32076958
+    },
+    {
+      "path": "data/gslc/165_082_D_loopskip_ifg.npz",
+      "sha256": "034aabb38a18c4a843ce4c4a378c1b652fb64608183832cd1fc2c80ce667df02",
+      "size_bytes": 64296263
+    },
+    {
+      "path": "data/gslc/165_082_D_loopskip_unwraw.npz",
+      "sha256": "4000719cd966e8815bf188e7f03ff47fd779f8de87c1f782f6a4ec4257bf554f",
+      "size_bytes": 31591617
+    },
+    {
+      "path": "data/gslc/172_008_A_ifg.npz",
+      "sha256": "6feef6a04f709753d14d09c981b8158e6f9b59303efeee939f4b3f25c2c6110a",
+      "size_bytes": 40101063
+    },
+    {
+      "path": "data/gslc/172_008_A_loopco_unwraw.npz",
+      "sha256": "4b94197459b8af3f938facb09d84add40eb2b20d51d71299f4a0fa8c20a54699",
+      "size_bytes": 20376843
+    },
+    {
+      "path": "data/gslc/172_008_A_looppre_ifg.npz",
+      "sha256": "b4df00bae15c0a4978370d345d2b36d8d9c3726cdfe7472f7233b4055d2c7225",
+      "size_bytes": 39361389
+    },
+    {
+      "path": "data/gslc/172_008_A_looppre_unwraw.npz",
+      "sha256": "478fc13c5d5a4da7278dd64b404036846c79d67e971c3c460e2771dd7551064d",
+      "size_bytes": 19293967
+    },
+    {
+      "path": "data/gslc/172_008_A_loopskip_ifg.npz",
+      "sha256": "eeac02095f601ab12358377dff0c0644eef06a061238a32b3bcd5c25696412a8",
+      "size_bytes": 39889489
+    },
+    {
+      "path": "data/gslc/172_008_A_loopskip_unwraw.npz",
+      "sha256": "b84c3fb00dc1d63e29097afca1645cfd355cd84355b40835ea95cf0a050a194e",
+      "size_bytes": 19805585
+    }
+  ],
+  "reports": [
+    {
+      "path": "results/loop_closure_172_008_A.json",
+      "sha256": "090a920eda165666dc06afdbd7bfe89b3e3dcc0cab14cebec96640adb4553530",
+      "size_bytes": 3375
+    },
+    {
+      "path": "results/loop_closure_165_082_D.json",
+      "sha256": "1fdb231834caa7f4deb458194d629b96ce3d7d49e22e79a24a73f08ba91b861a",
+      "size_bytes": 3338
+    },
+    {
+      "path": "results/loop_closure_100_A_008_STRADDLE.json",
+      "sha256": "e61400d612d0aa324f0fe52f66a0f160ab60746f011574f3d2b4300896874937",
+      "size_bytes": 3446
+    },
+    {
+      "path": "results/loop_closure.md",
+      "sha256": "d6b5170d51af22d6f1cd3176a6e1afa1972b55bef7b2b5ce24be41bdf698844e",
+      "size_bytes": 6188
+    },
+    {
+      "path": "results/loop_closure_nisar.png",
+      "sha256": "c28746d54d8c9d6fa9cbcde6f0a492d0a3059bbff6df4c0cf37f6703db1d07c1",
+      "size_bytes": 1138509
+    }
+  ]
+}

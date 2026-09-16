@@ -691,10 +691,194 @@ def validate_new_products(require_gslc_sources: bool = True) -> None:
         raise ValueError("distributed_uncertainty.json: reference projection incomplete")
 
 
+def validate_closure(*, require_inputs: bool = False,
+                     tags: list[str] | None = None) -> dict:
+    """Verify the saved baseline and replay available tracks without writing.
+
+    The published data archives omit most closure inputs. Missing optional
+    files are reported, while any present file must match its saved hash.
+    ``require_inputs`` requires all selected tracks, or all tracks when
+    ``tags`` is omitted. Source, settings, and report checks always apply
+    to the whole saved baseline before any raw-array calculation.
+    """
+    import json
+    from . import closure
+
+    inventory = json.loads((RESULTS / "loop_closure_inventory.json").read_text())
+    if not isinstance(inventory, dict) or type(inventory.get("schema_version")) is not int \
+            or inventory["schema_version"] != 1:
+        raise ValueError("loop_closure_inventory.json: unknown schema version")
+    text_fields = {"generated_by", "replay_command", "regenerate_command",
+                   "scope", "numpy_version"}
+    if set(inventory) != text_fields | {"schema_version", "analysis_parameters",
+                                       "source_files", "input_files", "reports"} \
+            or any(not isinstance(inventory[field], str) or not inventory[field]
+                   for field in text_fields):
+        raise ValueError("loop_closure_inventory.json: malformed schema")
+    if inventory.get("analysis_parameters") != closure.analysis_parameters():
+        raise ValueError("loop_closure_inventory.json: analysis settings changed")
+    selected = set(tags or closure.PRE_GRANULES)
+    if not selected.issubset(closure.PRE_GRANULES):
+        raise ValueError("unknown closure track")
+
+    def index_records(records, expected_paths: set[str], label: str) -> dict:
+        if not isinstance(records, list):
+            raise ValueError(f"closure inventory: malformed {label} records")
+        indexed = {}
+        for record in records:
+            if not isinstance(record, dict) or set(record) != {"path", "sha256", "size_bytes"}:
+                raise ValueError(f"closure inventory: malformed {label} record")
+            name = record["path"]
+            if not isinstance(name, str) or not name:
+                raise ValueError("closure inventory: invalid path")
+            relative = Path(name)
+            if relative.is_absolute() or ".." in relative.parts \
+                    or "\\" in name or relative.as_posix() != name:
+                raise ValueError("closure inventory paths must be safe repository-relative paths")
+            digest = record["sha256"]
+            if not isinstance(digest, str) or len(digest) != 64 \
+                    or any(char not in "0123456789abcdef" for char in digest) \
+                    or type(record["size_bytes"]) is not int or record["size_bytes"] < 0:
+                raise ValueError(f"closure inventory: malformed identity for {name}")
+            if name in indexed:
+                raise ValueError(f"closure inventory: duplicate {label} path {name}")
+            indexed[name] = record
+        if set(indexed) != expected_paths:
+            raise ValueError(f"closure inventory: missing or unexpected {label} paths")
+        return indexed
+
+    def verify(record: dict, *, optional: bool = False) -> bool:
+        relative = Path(record["path"])
+        path = REPO / relative
+        if optional and not path.exists():
+            return False
+        if path.stat().st_size != record["size_bytes"] \
+                or sha256(path) != record["sha256"]:
+            raise ValueError(f"{relative}: closure content hash mismatch")
+        return True
+
+    expected_sources = {"mh26/closure.py", "mh26/gslc.py", "mh26/params.py",
+                        "results/okada_fit.json"}
+    expected_reports = {f"results/loop_closure_{tag}.json"
+                        for tag in closure.PRE_GRANULES}
+    expected_reports |= {"results/loop_closure.md", "results/loop_closure_nisar.png"}
+    expected_inputs = {
+        str(path.relative_to(REPO)) for tag in closure.PRE_GRANULES for leg in closure.LEGS
+        for path in (closure._leg_file(tag, leg),
+                     closure.DATA_GSLC / f"{tag}_loop{leg}_unwraw.npz")}
+    sources = index_records(inventory.get("source_files"), expected_sources, "source")
+    reports = index_records(inventory.get("reports"), expected_reports, "report")
+    recorded = index_records(inventory.get("input_files"), expected_inputs, "input")
+    for record in [*sources.values(), *reports.values()]:
+        verify(record)
+
+    saved = {}
+    input_records = {}
+    track_inputs = {}
+    for tag in closure.PRE_GRANULES:
+        stats = json.loads((RESULTS / f"loop_closure_{tag}.json").read_text())
+        saved[tag] = stats
+        if set(stats["input_files"]) != set(closure.LEGS):
+            raise ValueError(f"{tag}: incomplete closure leg inventory")
+        track_inputs[tag] = []
+        for leg in closure.LEGS:
+            records = stats["input_files"][leg]
+            expected_paths = {
+                "interferogram": str(closure._leg_file(tag, leg).relative_to(REPO)),
+                "raw_unwrap_cache": str((closure.DATA_GSLC / f"{tag}_loop{leg}_unwraw.npz")
+                                        .relative_to(REPO)),
+            }
+            if not isinstance(records, dict) or set(records) != set(expected_paths):
+                raise ValueError(f"{tag} {leg}: incorrect closure input inventory")
+            index_records(list(records.values()), set(expected_paths.values()), f"{tag} {leg}")
+            if any(records[role]["path"] != path for role, path in expected_paths.items()):
+                raise ValueError(f"{tag} {leg}: incorrect closure input roles")
+            configuration = stats["unwrap_configuration"][leg]
+            source = stats["unwrap_configuration_source"][leg]
+            if configuration is None:
+                if source != "unknown: legacy cache has no config metadata":
+                    raise ValueError(f"{tag} {leg}: unknown settings lack an "
+                                     "explicit provenance statement")
+            elif not isinstance(configuration, dict) or source != "cache config metadata":
+                raise ValueError(f"{tag} {leg}: unsupported settings provenance")
+            execution = stats["snaphu_execution"][leg]
+            if execution is not None:
+                if not isinstance(execution, dict) or set(execution) != {
+                        "resolved_path", "sha256", "reported_version", "version_exit_code"} \
+                        or not isinstance(execution["resolved_path"], str) \
+                        or not Path(execution["resolved_path"]).is_absolute() \
+                        or not isinstance(execution["sha256"], str) \
+                        or len(execution["sha256"]) != 64 \
+                        or any(char not in "0123456789abcdef" for char in execution["sha256"]) \
+                        or type(execution["version_exit_code"]) is not int \
+                        or (execution["reported_version"] is not None
+                            and not isinstance(execution["reported_version"], str)):
+                    raise ValueError(f"{tag} {leg}: malformed snaphu executable identity")
+            error = stats["leg_congruence_max_abs_rad"][leg]
+            if not np.isfinite(error) or error > closure.CONGRUENCE_TOLERANCE_RAD:
+                raise ValueError(f"{tag} {leg}: phase congruence check failed")
+            for record in records.values():
+                input_records[record["path"]] = record
+                track_inputs[tag].append(record["path"])
+
+    if recorded != input_records:
+        raise ValueError("closure inventory and per-track input identities disagree")
+    checksums = "\n".join(sorted(
+        f"{record['sha256']}  {Path(record['path']).relative_to('data')}"
+        for record in input_records.values())) + "\n"
+    if (REPO / "data" / "SHA256SUMS-closure.txt").read_text() != checksums:
+        raise ValueError("SHA256SUMS-closure.txt differs from the closure inventory")
+    missing = [path for path, record in input_records.items()
+               if not verify(record, optional=True)]
+    required_missing = set(missing).intersection(
+        path for tag in selected for path in track_inputs[tag])
+    if required_missing and require_inputs:
+        raise FileNotFoundError(f"{len(required_missing)} optional closure inputs missing; "
+                                "see results/loop_closure_inventory.json")
+    available = [tag for tag, paths in track_inputs.items()
+                 if tag in selected and not set(paths).intersection(missing)]
+    recomputed = {}
+    if available:
+        recomputed = closure._compute(tags=available, cached_only=True,
+                                      write_outputs=False)
+
+        def same_statistics(actual, expected) -> bool:
+            if isinstance(expected, dict):
+                return (isinstance(actual, dict) and actual.keys() == expected.keys()
+                        and all(same_statistics(actual[key], value)
+                                for key, value in expected.items()))
+            if isinstance(expected, float):
+                return (isinstance(actual, float)
+                        and bool(np.isclose(actual, expected, rtol=1e-10, atol=1e-12)))
+            if isinstance(expected, int):
+                return isinstance(actual, int) and actual == expected
+            return actual == expected
+
+        derived = {"error_region", "congruence_max_abs_rad",
+                   "leg_congruence_max_abs_rad", "whole_scene", "near_axis",
+                   "off_axis_within_25km"}
+        for tag, stats in recomputed.items():
+            exact = {key: value for key, value in stats.items() if key not in derived}
+            saved_exact = {key: value for key, value in saved[tag].items()
+                           if key not in derived}
+            if exact != saved_exact or any(
+                    not same_statistics(stats[key], saved[tag][key])
+                    for key in derived):
+                raise ValueError(f"loop_closure_{tag}.json: saved values differ "
+                                 "from raw-array reproduction")
+    return {"n_inputs": len(input_records),
+            "n_inputs_checked": len(input_records) - len(missing),
+            "reproduced_tracks": available, "missing_inputs": missing,
+            "recomputed": recomputed}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--profile", choices=("core", "full"), default="core")
     parser.add_argument("--skip-checksums", action="store_true")
+    parser.add_argument("--require-closure-inputs", action="store_true",
+                        help="fail unless optional raw closure inputs are "
+                             "present and all three tracks can be replayed")
     args = parser.parse_args()
 
     validate_granule_manifests()
@@ -712,6 +896,16 @@ def main() -> None:
     validate_new_products(require_gslc_sources=args.profile == "full")
     print("PASS distributed, decomposition, GSLC-comparison, ridge/stress/"
           "uncertainty contracts and strict-JSON results")
+    closure = validate_closure(require_inputs=args.require_closure_inputs)
+    print("PASS closure report/source hashes and "
+          f"{closure['n_inputs_checked']}/{closure['n_inputs']} input hashes")
+    if closure["reproduced_tracks"]:
+        print(f"PASS closure raw-array reproduction: "
+              f"{len(closure['reproduced_tracks'])}/3 tracks")
+    if closure["missing_inputs"]:
+        print("SKIP remaining closure reproduction: optional raw inputs "
+              "are missing. The full archive profile alone does not "
+              "reproduce closure; use --require-closure-inputs to require it.")
     if not args.skip_checksums:
         # The s1tracks and gslc manifests stay separate so the 2026-08-18
         # core archive verifies unchanged next to the later add-ons.

@@ -4,21 +4,21 @@ The distributed fits leave the east graben fault free from the surface down
 to where each column meets the dike plane (mh26.distributed). Smoothing and
 positivity spread slip down that surface, so the depth reach of the fitted
 slip — and with it the fault potency Σ area·slip and the scalar moment
-μ · Σ area·slip — is partly regularization, not data. This module refits the
-mapped-trace model with the fault truncated at a sweep of depth caps and
-records what each truncation costs in misfit and removes in potency, so a
-statement about the fault's moment can cite the data-required minimum
-instead of the regularized value.
+μ · Σ area·slip — depends on the regularization as well as the data. This
+module refits the mapped-trace model with the fault truncated at a sweep
+of depth caps and records the changes in misfit and potency. These are
+conditional sensitivities at fixed trace, dip, and smoothing weight; they
+do not establish a data-required depth or a physical moment bound.
 
 Two facts frame the numbers:
 
 * Okada surface displacements depend on the Lamé constants only through
   alpha = (λ+μ)/(λ+2μ), so uniformly rescaling (λ, μ) changes no prediction
   and rescales every quoted moment linearly; the data do not constrain the
-  assumed μ = 30 GPa. A depth-varying μ is outside the half-space model.
+  assumed μ = 30 GPa. A depth-varying soft layer has not been modelled.
 * The fault term acts almost entirely inside the graben band (within 6 km of
-  the trace, 20 km along strike); the all-block RMS dilutes it, so misfit is
-  scored on both.
+  the dike axis, with a 20-km along-axis half-length); the all-block RMS
+  dilutes it, so misfit is scored on both.
 
 Run after the mapped distributed fits (mh26.distributed --mapped [--gslc]):
 
@@ -267,8 +267,24 @@ def run(nisar_source: str = "gunw") -> None:
             "(lambda, mu) changes no prediction and rescales the moments "
             "linearly, so the data do not constrain mu",
             "slip magnitudes remain regularized (positivity + smoothing at "
-            "the reused lambda); the sweep varies depth extent only, on the "
-            "fixed mapped trace and dip",
+            "the reused smoothing weight); the sweep varies the depth cap "
+            "on the fixed mapped trace and dip and gives conditional "
+            "sensitivities, not a data-required depth or physical moment "
+            "confidence bound",
+            "truncation changes patch dimensions, Green's functions, and "
+            "the retained smoothing operator; capped fits are not nested "
+            "fits on one fixed basis, and saved capped fits can have "
+            "slightly lower RMS than the uncapped fit",
+            "a lower uniform shear modulus is an assumed sensitivity, "
+            "not a stiffness inferred from these data; a depth-varying "
+            "soft layer has not been modelled and would change the "
+            "displacement calculation",
+            "the graben band has a 6-km half-width from the dike axis "
+            "and a 20-km along-axis half-length",
+            "near-axis loop-closure inconsistencies reach 1-4 cycles "
+            "(about 12-48 cm LOS); the check cannot identify the faulty "
+            "leg or show that all flagged axial support was excluded "
+            "from the model fits",
         ],
     }
     out = RESULTS / f"fault_depth_mapped{suffix}.json"
@@ -291,8 +307,9 @@ def write_md(payload: dict, suffix: str) -> None:
         f"{payload['lambda_chosen']:.2f} reused; SHA-256 "
         f"{payload['reference_fit_sha256'][:12]}…); the uncapped baseline "
         "must reproduce it exactly before the sweep runs",
-        f"- graben band: within {band['perp_m'] / 1e3:.0f} km of the trace, "
-        f"{band['along_m'] / 1e3:.0f} km along strike "
+        f"- graben band: {band['perp_m'] / 1e3:.0f}-km half-width from the "
+        f"dike axis ({2 * band['perp_m'] / 1e3:.0f} km wide), "
+        f"{band['along_m'] / 1e3:.0f}-km along-axis half-length "
         f"({band['n_blocks']} blocks); the fault term acts here, and the "
         "all-block RMS dilutes it",
         f"- fault moment = μ · Σ area·slip at μ = "
@@ -300,7 +317,7 @@ def write_md(payload: dict, suffix: str) -> None:
         "displacements depend on (λ, μ) only through α = (λ+μ)/(λ+2μ), so "
         "a uniform rescaling of both changes no prediction and rescales "
         "the moment linearly: the data do not constrain μ. A "
-        "depth-varying μ is outside the half-space model.",
+        "depth-varying soft layer has not been modelled.",
         "",
         "| fault depth extent | patches | max slip | potency | μ·potency "
         "| dike volume | RMS all | RMS band | band improvement retained |",
@@ -338,7 +355,7 @@ def write_md(payload: dict, suffix: str) -> None:
     head = payload["headline"]
     if head["shallowest_cap_km"] is not None:
         lines.append(
-            f"- shallowest cap retaining ≥ {head['improvement_target']:.0%} "
+            f"- shallowest tested cap retaining ≥ {head['improvement_target']:.0%} "
             f"of the fault term's graben-band improvement: "
             f"{head['shallowest_cap_km']:.1f} km, with potency "
             f"{head['cap_fault_potency_m3'] / 1e6:.1f}×10⁶ m³ "
@@ -348,24 +365,35 @@ def write_md(payload: dict, suffix: str) -> None:
         lines.append(
             f"- no cap in the sweep retains "
             f"{head['improvement_target']:.0%} of the graben-band "
-            "improvement; the full trace-limited depth extent is required")
+            "improvement under the tested assumptions")
     lines += [
         "",
         "## Scope",
         "",
         "- The sweep truncates the depth extent of the fixed mapped-trace, "
         "fixed-dip fault surface and re-solves at the reused smoothing "
-        "weight. It does not test other fault geometries (listric surfaces, "
+        "weight. The retained-improvement threshold is a comparison rule, "
+        "not a confidence level or a data-required depth. The sweep does "
+        "not test other fault geometries (listric surfaces, "
         "distributed fissuring, the unsupported west trace), and the slip "
-        "values remain regularized magnitudes, not resolved slip.",
-        "- Truncation removes parameters, so a capped fit can only misfit "
-        "more; the question is how little the graben band degrades while "
-        "the potency (and so the moment) drops. The dike-volume column "
-        "shows how much removed fault signal the opening absorbs.",
-        "- The band's RMS level is dominated by axial signal no model term "
-        "fits (graben-floor cells, where the loop-closure check also flags "
-        "a one-fringe unwrap risk), so differences between rows are "
-        "meaningful; the level is not.",
+        "values remain regularized magnitudes. Neither the capped nor the "
+        "uncapped moment is a physical upper confidence bound.",
+        "- Truncation changes patch dimensions, Green's functions, and "
+        "the retained smoothing operator. These are not nested fits on "
+        "one fixed basis, so a capped fit can have lower RMS; some saved "
+        "rows improve slightly on the uncapped fit. The dike-volume "
+        "column records the change in the opening/slip partition.",
+        "- Lowering the uniform μ rescales the moment only if both Lamé "
+        "constants are scaled together. A lower stiffness value is an "
+        "assumed sensitivity, not a value inferred from these data. A "
+        "depth-varying soft layer would also change the displacement "
+        "calculation and has not been modelled.",
+        "- The graben band includes axial residuals and support where "
+        "loop closure flags 1–4-cycle inconsistencies (about 12–48 cm "
+        "LOS). The check cannot identify the faulty leg or show that all "
+        "flagged axial support was excluded from the fits. Both the RMS "
+        "levels and their differences are conditional on the retained "
+        "observations and model assumptions.",
         "- Both input chains run the same sweep "
         "(fault_depth_mapped.md / fault_depth_mapped_gslc.md).",
     ]

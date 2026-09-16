@@ -16,8 +16,8 @@
     "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N12_00_E040_00_DEM/Copernicus_DSM_COG_10_N12_00_E040_00_DEM.tif"
   },
   "outputs": {
-    "summary_decomposition_dike_frame.pdf": "4c52bad727856df0c01d958506f0393e90c1b948f6fa446c61545f0955121b40",
-    "summary_decomposition_dike_frame.png": "2c26bf512b743fee9330ecea07aded085477010cc0b7c3ebc54f8e83d67b35ff",
+    "summary_decomposition_dike_frame.pdf": "0e5c0fc5f65b4ff6bdab2097272c1b42e9736304f066a1cdb1ca1f58c62ad849",
+    "summary_decomposition_dike_frame.png": "6864691bf2a0f301bd622ec73e47cb7d582d1d9eb756ee7367383e19bed300c4",
     "summary_decomposition_enu.pdf": "3a0a6994c79a155be002eed2bf3686406b4102bdc90440cbb035419922c1ef8f",
     "summary_decomposition_enu.png": "a7cd246f2b3f1f544ea58595903916da47b41d2a5db3f1f44ea8906d4c4acaa0",
     "summary_fault_stress.pdf": "81d74d67e88195923651259929c5c35f702abc3ea4529be4d3ee74f6b13c560c",
@@ -28,8 +28,8 @@
     "summary_los_model_residual_wright2006.png": "3cea57d2353cc2b9e053900c07c69d3b138b6a73f93b8b518d9fa3320a0058b1",
     "summary_phase_gradient.pdf": "b9a93336a138398d0caf06729b866b7527b85828ef0ef132dc539807c5582097",
     "summary_phase_gradient.png": "3355cb9689b217699a8b84b8e340fe2d038a4fd7219a5d1d66414aecb45ce97c",
-    "summary_source_geometry.pdf": "3bdc0c9a09b31f8bcb223244127967208c95d56aa52b900cbfdd04069f6174ab",
-    "summary_source_geometry.png": "9404db9fea497ca4a8de4ca805cbdc413dc86b8444c0472fe5a826c1594dcbb5",
+    "summary_source_geometry.pdf": "bbe5df226755485d9c2b827d6b83c9cddfd0ccd4c40db319eff6f2b868a489ad",
+    "summary_source_geometry.png": "bb737a63ef7d80fe05de32fd3b3bae7095686b23e999369697e13d2331f1a690",
     "summary_uperp_wright2006.pdf": "5cd5a8c308054259adaf5fd11ffd65c5f84e59f0c59686e309a0bde575fb626d",
     "summary_uperp_wright2006.png": "32ed7a3ab36b7c40b2422c55b389c6ef62d4e1fc76b7ea528927f35e1feb578c"
   }

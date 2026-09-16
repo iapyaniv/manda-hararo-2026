@@ -244,6 +244,37 @@ class GeometryConventionTests(unittest.TestCase):
         np.testing.assert_allclose(identity["sigma_perp"], fields["sigma_n"],
                                    atol=1e-12)
 
+        # The figure once drew +U∥ opposite to the solved component. Check
+        # the rendered shaft in map coordinates, including its label.
+        import matplotlib.pyplot as plt
+        from matplotlib.text import Annotation
+        from mh26.summary_figures import (
+            X_MIN, X_MAX, Y_MIN, Y_MAX, draw_frame_axes,
+        )
+        fig, ax = plt.subplots(figsize=(4, 5))
+        try:
+            ax.set(xlim=(X_MIN, X_MAX), ylim=(Y_MIN, Y_MAX))
+            draw_frame_axes(ax, strike)
+            fig.canvas.draw()
+            arrows = [text for text in ax.texts
+                      if isinstance(text, Annotation)]
+            self.assertEqual(len(arrows), 2)
+            for label, component in (("U⊥", "perp"), ("U∥", "par")):
+                position = next(text.get_position() for text in ax.texts
+                                if text.get_text() == label)
+                arrow = min(arrows, key=lambda a:
+                            np.linalg.norm(np.asarray(a.xy) - position))
+                shaft = arrow.arrow_patch.get_path().vertices[:3]
+                display = arrow.arrow_patch.get_transform().transform(shaft)
+                mapped = ax.transData.inverted().transform(display)
+                direction = mapped[-1] - mapped[0]
+                direction /= np.linalg.norm(direction)
+                projected = dike_frame(
+                    {**fields, "e": direction[0], "n": direction[1]}, strike)
+                self.assertAlmostEqual(projected[component], 1.0, places=9)
+        finally:
+            plt.close(fig)
+
     def test_idealized_geometry_has_stress_receivers(self) -> None:
         geometry = build_geometry(self.MODEL)
         receivers = fault_patch_receivers(geometry, 65.0)
@@ -339,6 +370,236 @@ class SummaryPatchFrameTests(unittest.TestCase):
 
 class ReferenceAndCacheTests(unittest.TestCase):
     MODEL = GeometryConventionTests.MODEL
+
+    def test_closure_replay_preserves_unknown_settings_and_checks_file_identity(self) -> None:
+        # Legacy caches once acquired the current defaults as false
+        # provenance. Same-shape input changes also escaped all validation.
+        import contextlib
+        import io
+        import shutil
+        from mh26 import closure, validate
+        from scripts import build_release
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            results = root / "results"
+            data = root / "data" / "gslc"
+            source = root / "mh26"
+            for path in (results, data, source):
+                path.mkdir(parents=True)
+            for name in ("closure.py", "gslc.py", "params.py"):
+                shutil.copyfile(Path(closure.__file__).parent / name, source / name)
+            (results / "okada_fit.json").write_text(
+                json.dumps({"values": self.MODEL.tolist()}))
+            grid = np.arange(-60.0, 90.0, 30.0)
+            phase = np.zeros((5, 5), dtype=np.float32)
+            first_tag = next(iter(closure.PRE_GRANULES))
+            recorded_config = {"stat_cost_mode": "DEFO", "init_method": "MST"}
+            with (patch.multiple(closure, REPO=root, RESULTS=results, DATA_GSLC=data,
+                                 CENTER_E=self.MODEL[0], CENTER_N=self.MODEL[1],
+                                 FARFIELD_RADIUS=50.0, NEAR_AXIS_PERP_M=20.0,
+                                 NEAR_AXIS_ALONG_M=50.0, OFF_AXIS_RADIUS_M=60.0),
+                  patch.multiple(validate, REPO=root, RESULTS=results),
+                  patch.multiple(build_release, ROOT=root, DATA=root / "data"),
+                  patch.object(closure, "_run_snaphu",
+                               side_effect=AssertionError("snaphu must not run")),
+                  contextlib.redirect_stdout(io.StringIO())):
+                for tag in closure.PRE_GRANULES:
+                    pre, (ref, sec) = closure.PRE_GRANULES[tag], closure.PAIRS[tag]
+                    granules = {"pre": (pre, ref), "co": (ref, sec), "skip": (pre, sec)}
+                    for leg in closure.LEGS:
+                        np.savez_compressed(
+                            closure._leg_file(tag, leg), phase=phase,
+                            coherence=np.ones_like(phase),
+                            x=self.MODEL[0] + grid, y=self.MODEL[1] + grid[::-1],
+                            epsg=closure.EPSG_UTM37N, looks=[6, 3], granules=granules[leg])
+                        raw = phase.copy()
+                        if leg == "co":
+                            raw[2, 2] = 2 * np.pi
+                        metadata = ({"config": np.array(json.dumps(recorded_config))}
+                                    if tag == first_tag and leg == "pre" else {})
+                        np.savez_compressed(data / f"{tag}_loop{leg}_unwraw.npz",
+                                            unw=raw, **metadata)
+                cache = data / f"{first_tag}_loopco_unwraw.npz"
+                original_cache = cache.read_bytes()
+                with np.load(cache) as stored:
+                    wrong_phase = stored["unw"] + 0.1
+                np.savez_compressed(cache, unw=wrong_phase)
+                with self.assertRaisesRegex(ValueError, "not congruent"):
+                    closure.check(cached_only=True, regenerate=True)
+                cache.write_bytes(original_cache)
+
+                ifg = closure._leg_file(first_tag, "co")
+                original_ifg = ifg.read_bytes()
+                with np.load(ifg) as stored:
+                    fields = {name: stored[name] for name in stored.files}
+                invalid_fields = {
+                    "granules": fields["granules"][::-1],
+                    "epsg": np.array(4326), "looks": np.array([3, 6]),
+                    "phase": phase[:-1], "coherence": np.ones(5),
+                    "x": fields["x"] * 2, "y": fields["y"] + np.nan,
+                }
+                for name, invalid in invalid_fields.items():
+                    with self.subTest(invalid_ifg_field=name):
+                        np.savez_compressed(ifg, **{**fields, name: invalid})
+                        with self.assertRaisesRegex(ValueError, f"interferogram {name}"):
+                            closure.check(cached_only=True, regenerate=True)
+                ifg.write_bytes(original_ifg)
+                payload = closure.check(cached_only=True, regenerate=True)
+                self.assertIsNone(payload[first_tag]["unwrap_configuration"]["co"])
+                self.assertEqual(payload[first_tag]["unwrap_configuration"]["pre"],
+                                 recorded_config)
+                self.assertIsNone(payload[first_tag]["snaphu_execution"]["co"])
+                self.assertGreater(payload[first_tag]["near_axis"]
+                                   ["fraction_error_ge_1_cycle"], 0)
+                verified = validate.validate_closure(require_inputs=True)
+                self.assertEqual(set(verified["reproduced_tracks"]),
+                                 set(closure.PRE_GRANULES))
+                rounded = json.loads(json.dumps(payload))
+                rounded[first_tag]["whole_scene"]["rms_wrapped_nonclosure_cycles"] += 1e-13
+                with patch.object(closure, "_compute", return_value=rounded):
+                    validate.validate_closure(require_inputs=True)
+                    rounded[first_tag]["whole_scene"]["n_pixels"] += 1
+                    with self.assertRaisesRegex(ValueError, "saved values differ"):
+                        validate.validate_closure(require_inputs=True)
+                with patch.object(closure, "figure", side_effect=AssertionError(
+                        "a partial check must not replace the combined figure")):
+                    closure.check(tags=[first_tag], cached_only=True)
+                    with self.assertRaisesRegex(ValueError, "requires all"):
+                        closure.check(tags=[first_tag], cached_only=True, regenerate=True)
+
+                def snapshot():
+                    return {path.relative_to(root): (path.read_bytes(), path.stat().st_mtime_ns)
+                            for path in root.rglob("*") if path.is_file()}
+
+                def replay_cli():
+                    with patch("sys.argv", ["mh26.closure", "--check", "--cached-only"]):
+                        closure.main()
+
+                baseline = snapshot()
+                closure.check()
+                replay_cli()
+                self.assertEqual(snapshot(), baseline)
+                with patch.object(closure, "OFF_AXIS_RADIUS_M", 59.0):
+                    with self.assertRaisesRegex(ValueError, "settings changed"):
+                        replay_cli()
+                    with self.assertRaisesRegex(ValueError, "settings changed"):
+                        validate.validate_closure(require_inputs=True)
+                    with patch.object(build_release, "write_archive") as archive_write:
+                        with self.assertRaisesRegex(ValueError, "settings changed"):
+                            build_release.build_closure_archive()
+                        archive_write.assert_not_called()
+                self.assertEqual(snapshot(), baseline)
+                source_path = source / "closure.py"
+                original_source = source_path.read_bytes()
+                source_path.write_bytes(original_source + b"\n# changed source\n")
+                changed_baseline = snapshot()
+                with self.assertRaisesRegex(ValueError, "content hash mismatch"):
+                    replay_cli()
+                with self.assertRaisesRegex(ValueError, "content hash mismatch"):
+                    validate.validate_closure(require_inputs=True)
+                with patch.object(build_release, "write_archive") as archive_write:
+                    with self.assertRaisesRegex(ValueError, "content hash mismatch"):
+                        build_release.build_closure_archive()
+                    archive_write.assert_not_called()
+                self.assertEqual(snapshot(), changed_baseline)
+                source_path.write_bytes(original_source)
+
+                inventory_path = results / "loop_closure_inventory.json"
+                original_inventory = inventory_path.read_bytes()
+                for defect in ("schema", "duplicate", "unexpected", "unsafe", "identity"):
+                    malformed = json.loads(original_inventory)
+                    if defect == "schema":
+                        malformed["schema_version"] = None
+                    elif defect == "duplicate":
+                        malformed["source_files"].append(malformed["source_files"][0])
+                    elif defect == "unexpected":
+                        malformed["reports"][0]["path"] = "results/unrelated.json"
+                    elif defect == "unsafe":
+                        malformed["input_files"][0]["path"] = "../outside.npz"
+                    else:
+                        malformed["input_files"][0]["size_bytes"] = "100"
+                    inventory_path.write_text(json.dumps(malformed))
+                    with self.subTest(invalid_inventory=defect), \
+                            patch.object(build_release, "write_archive") as archive_write:
+                        with self.assertRaises(ValueError):
+                            build_release.build_closure_archive()
+                        archive_write.assert_not_called()
+                inventory_path.write_bytes(original_inventory)
+
+                result_path = results / f"loop_closure_{first_tag}.json"
+                original = result_path.read_bytes()
+                changed = json.loads(original)
+                changed["whole_scene"]["fraction_error_ge_1_cycle"] += 0.1
+                result_path.write_text(json.dumps(changed))
+                with self.assertRaisesRegex(ValueError, "content hash mismatch"):
+                    validate.validate_closure()
+                result_path.write_bytes(original)
+
+                # These edits preserve shape and phase congruence, so the
+                # stored content hashes must detect them.
+                for path, key in ((closure._leg_file(first_tag, "pre"), "coherence"),
+                                  (data / f"{first_tag}_loopco_unwraw.npz", "unw")):
+                    original = path.read_bytes()
+                    with np.load(path) as stored:
+                        fields = {name: stored[name] for name in stored.files}
+                    fields[key] = fields[key] + (-0.1 if key == "coherence" else 2 * np.pi)
+                    np.savez_compressed(path, **fields)
+                    with self.assertRaisesRegex(ValueError, "content hash mismatch"):
+                        validate.validate_closure()
+                    with self.assertRaisesRegex(ValueError, "content hash mismatch"):
+                        closure.check()
+                    with self.assertRaisesRegex(ValueError, "recorded closure input"):
+                        closure.check(cached_only=True, regenerate=True)
+                    path.write_bytes(original)
+
+                (data / f"{first_tag}_loopco_unwraw.npz").unlink()
+                available = validate.validate_closure()
+                self.assertNotIn(first_tag, available["reproduced_tracks"])
+                self.assertEqual(len(available["missing_inputs"]), 1)
+                with self.assertRaises(FileNotFoundError):
+                    validate.validate_closure(require_inputs=True)
+                with self.assertRaises(FileNotFoundError):
+                    closure.check()
+
+    def test_snaphu_records_the_executed_binary_even_with_nonzero_version_status(self) -> None:
+        # A Python distribution version once described a different system
+        # executable. Capture the command identity at the execution boundary.
+        import hashlib
+        import subprocess
+        from mh26 import gslc
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            executable = root / "snaphu-real"
+            executable.write_bytes(b"test executable identity")
+            alias = root / "snaphu"
+            alias.symlink_to(executable)
+            phase = np.arange(6, dtype=np.float32).reshape(2, 3)
+
+            def run(command, **kwargs):
+                self.assertEqual(command[0], str(executable))
+                if command[1:] == ["--version"]:
+                    return subprocess.CompletedProcess(command, 1, "", "snaphu v2.0.6\n")
+                config = Path(command[2]).read_text().splitlines()
+                output = next(line.split(maxsplit=1)[1] for line in config
+                              if line.startswith("OUTFILE "))
+                Path(output).write_bytes(phase.tobytes())
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+            identity = {}
+            with (patch.object(gslc, "DATA_GSLC", root),
+                  patch.object(gslc.shutil, "which", return_value=str(alias)),
+                  patch.object(gslc.subprocess, "run", side_effect=run) as executed):
+                actual = gslc._run_snaphu(phase, np.ones_like(phase),
+                                          execution_identity=identity)
+            np.testing.assert_array_equal(actual, phase)
+            self.assertEqual(executed.call_count, 2)
+            self.assertEqual(identity, {
+                "resolved_path": str(executable),
+                "sha256": hashlib.sha256(executable.read_bytes()).hexdigest(),
+                "reported_version": "snaphu v2.0.6", "version_exit_code": 1,
+            })
 
     def test_noise_draw_obeys_far_field_plane_constraints(self) -> None:
         angles = np.linspace(0, 2 * np.pi, 24, endpoint=False)

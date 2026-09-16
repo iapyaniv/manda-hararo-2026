@@ -299,6 +299,10 @@
   "notes": [
     "fault moment = shear_modulus x potency (scalar moment for shear slip); the dike's muV comparison scale is reported by the distributed fits",
     "Okada surface displacements depend on the Lame constants only through alpha=(lambda+mu)/(lambda+2mu); uniformly rescaling (lambda, mu) changes no prediction and rescales the moments linearly, so the data do not constrain mu",
-    "slip magnitudes remain regularized (positivity + smoothing at the reused lambda); the sweep varies depth extent only, on the fixed mapped trace and dip"
+    "slip magnitudes remain regularized (positivity + smoothing at the reused smoothing weight); the sweep varies the depth cap on the fixed mapped trace and dip and gives conditional sensitivities, not a data-required depth or physical moment confidence bound",
+    "truncation changes patch dimensions, Green's functions, and the retained smoothing operator; capped fits are not nested fits on one fixed basis, and saved capped fits can have slightly lower RMS than the uncapped fit",
+    "a lower uniform shear modulus is an assumed sensitivity, not a stiffness inferred from these data; a depth-varying soft layer has not been modelled and would change the displacement calculation",
+    "the graben band has a 6-km half-width from the dike axis and a 20-km along-axis half-length",
+    "near-axis loop-closure inconsistencies reach 1-4 cycles (about 12-48 cm LOS); the check cannot identify the faulty leg or show that all flagged axial support was excluded from the model fits"
   ]
 }

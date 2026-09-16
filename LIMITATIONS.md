@@ -73,13 +73,19 @@
   DEFO costs to SMOOTH costs changes 6.1% of near-axis pixels by more than
   half a fringe, while off-axis agreement remains close. Agreement with the
   GUNW fields is 1.1–1.5 cm RMS on 1.28-km cells. The three-epoch
-  loop-closure check (mh26.closure; results/loop_closure.md) finds no
-  ≥1-cycle inconsistency off the axis on any track, but the near-axis band
-  fails closure at the 1–4-cycle level over 16.2% (asc 172), 1.1%
-  (desc 165), and 4.7% (track 100) of its pixels, in low-coherence
-  graben-interior cells; the loop cannot assign those errors to a specific
-  leg, so near-axis LOS values carry a one-fringe (11.9 cm) unwrap risk in
-  that band beyond the cost-mode sensitivity above.
+  loop-closure check (mh26.closure; results/loop_closure.md) finds nearly
+  zero ≥1-cycle inconsistency outside the near-axis band and within 25 km:
+  5, 0, and 52 pixels on tracks 172, 165, and 100, respectively (less than
+  0.005% on each track). The band has a 3-km half-width (6 km wide) and a
+  20-km along-axis half-length. Within it, 16.2% (asc 172), 1.1%
+  (desc 165), and 4.7% (track 100) of pixels fail closure at the 1–4-cycle
+  level (about 12–48 cm LOS). These cells have lower coherence but pass
+  the analysis threshold in all three legs. The loop cannot assign the
+  errors to a specific leg or exclude errors that cancel within a
+  consistent triple. It does not certify displacement accuracy or show
+  that all flagged axial support was excluded from the fits. The axial
+  LOS values therefore carry an unwrap risk of several cycles beyond
+  the cost-mode sensitivity above.
 
 ## Source model
 
@@ -132,7 +138,7 @@
   fit therefore includes only the east ridge. Its surface keeps one fixed
   strike with per-column offsets (plan-view steps are parameterisation, not
   resolved geometry) and ends at the dike plane. Its RMS is 2.15 cm, compared
-  with 2.09 cm for the ±2-km two-plane idealization. The 55–75° dip sweeps do
+  with 2.08 cm for the ±2-km two-plane idealization. The 55–75° dip sweeps do
   not give a stable common minimum between the GUNW and GSLC chains, and the
   slip values remain regularized magnitudes. The checkerboard holdout is
   conditional on this data-derived geometry (the ridges were picked from the
@@ -144,17 +150,27 @@
   selection.
   The slip-depth distribution is also shaped by regularization; the
   depth-extent sweep (mh26.fault_depth, results/fault_depth_mapped*.md)
-  bounds how much of it the data require: capping the east-fault slip at
-  2.5–3 km depth keeps 89–101% of the fault term's graben-band misfit
-  improvement on both input chains, while a 1-km cap keeps only 35–46%,
-  so the potency below ~3 km (about a fifth of the fault total) is
-  regularization, not data, and the fault moment μ·potency ≈ 5×10¹⁷ N·m
-  is an upper value in depth extent. That moment also scales linearly
-  with the assumed uniform μ = 30 GPa, which the surface data cannot
-  constrain (Okada displacements depend on the Lamé constants only
-  through α = (λ+μ)/(λ+2μ)); with the fitted slip confined above ~3 km,
-  a softer fissured shallow crust reduces the fault moment
-  proportionally. The stress
+  gives a conditional sensitivity at fixed mapped trace, dip, and
+  smoothing weight. Capping the east-fault slip at 2.5–3 km depth keeps
+  89–101% of the fault term's graben-band misfit improvement on both
+  input chains, while a 1-km cap keeps only 35–46%. The graben band has
+  a 6-km half-width from the dike axis and a 20-km along-axis half-length.
+  Truncation changes the patch dimensions, Green's functions, and the
+  retained smoothing operator, so the fits are not nested on one fixed
+  basis; capped fits can have slightly lower RMS. These results do not
+  establish a data-required depth or identify all deeper potency as an
+  effect of regularization. The uncapped fault moment
+  μ·potency ≈ 5×10¹⁷ N·m is conditional on these assumptions, not a
+  physical upper confidence bound. A uniform rescaling of both Lamé
+  constants changes no Okada prediction because the displacements
+  depend only on α = (λ+μ)/(λ+2μ). Thus, the data do not constrain the
+  assumed uniform μ = 30 GPa. Lower stiffness values give illustrative
+  moment sensitivities; they are not inferred from these data. A
+  depth-varying soft layer would change the displacement calculation
+  and has not been modelled. In the uncapped GSLC fit, 27% of the
+  potency lies above 1 km and 83% above 3 km, so reducing the stiffness
+  throughout the fitted fault is a different assumption from weakening
+  only the upper kilometre. The stress
   analysis maps the supported receiver plane and reports a shallow-to-deep
   sign change, but the distributed source has no subsurface hard top. The
   stress-change and Monte Carlo results inherit the geometry
@@ -197,8 +213,10 @@
   split blends the two windows, so the divergence and subsidence values are
   indicative, not window-consistent displacements.
 - Sixteen pre-event windows constrain only the listed pairs and three 1-km
-  probes. “No precursor above 3.4 cm” is a probe/history statement, not proof
-  that no spatially distributed or temporally unresolved precursor occurred.
+  probes. The largest absolute probe mean is 3.4 cm; this is an observed
+  value, not a validated detection threshold. The separate review of 24
+  January–June preview images adds no quantitative displacement constraint
+  (`results/preevent_preview_review.md`).
 
 ## External data and reuse
 

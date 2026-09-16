@@ -97,7 +97,7 @@ held-out-sensor check. S1→NISAR is only a conditional reverse transfer because
 the NISAR fields affected geometry selection.
 
 Joint RMS on the four geometries: uniform rectangle 2.49 cm → distributed
-opening 2.37 cm → opening + graben faults 2.09 cm. The graben faults carry
+opening 2.37 cm → opening + graben faults 2.08 cm. The graben faults carry
 about a fifth of the dike's potency (Σ area·dislocation; ratio 0.196,
 not a moment-tensor ratio). The dike volume
 of the distributed model (0.170 km³; 0.164–0.187 across the smoothing
@@ -190,8 +190,11 @@ The processing sensitivities above reuse one interferogram; the
 loop-closure check adds a constraint from independent data. Per track, a
 third GSLC epoch before the pre-event acquisition closes a triangle of
 interferograms on the shared grid — pre, co-event, and the skip pair that
-spans both — each formed and unwrapped exactly as the analysis pairs
-(same multilook, filter, coherence, snaphu configuration). The unwrapped
+spans both — using the analysis multilook, filter, and coherence settings.
+All nine saved raw unwrap caches lack snaphu configuration metadata, so
+their original settings are unknown. The current DEFO/MCF default does
+not establish how those caches were produced; their original executable
+identities and versions are also unknown. The unwrapped
 closure minus the wrapped closure of the same filtered phases is an exact
 integer number of cycles per pixel; deformation, atmosphere, and the
 ionosphere are epoch differences and cancel in the loop, so nonzero
@@ -200,18 +203,52 @@ integers isolate unwrap inconsistency among the three legs (one cycle =
 provisional archive, so the pre legs span 24 days on tracks 172/165 and
 12 days on track 100.
 
-Off the axis the triples close: within 25 km but outside the near-axis
-band, 0.00% of pixels are off by one cycle or more on all three tracks,
-so the flank lobes that set the fitted amplitudes carry no detected
-unwrap inconsistency. Inside the near-axis band (|⊥| < 3 km) the triples
-disagree at the 1–4-cycle level over 16.2% of the band (ascending 172),
-1.1% (descending 165), and 4.7% (track-100 straddle), concentrated where
-all three legs lose coherence (median 0.5–0.7 in the error regions
-against ~0.85 elsewhere) and the 24/36-day legs most. The loop flags the
-triple and cannot assign the error to one leg; the graben-interior cells
-are exactly where the axial-band caveats already apply. Statistics,
+Outside the near-axis band and within 25 km, closure inconsistency is
+nearly zero: 5 of 1,297,072 pixels on track 172 (0.0004%), none of
+1,741,239 on track 165, and 52 of 1,317,300 on track 100 (0.0039%). Each
+track has less than 0.005% affected pixels in that region. The near-axis
+band has a 3-km half-width (6 km wide) and a 20-km along-axis half-length
+(|⊥| < 3 km, |∥| < 20 km). Inside it, the triples disagree at the
+1–4-cycle level (about 12–48 cm LOS) over 16.2% of the band (ascending
+172), 1.1% (descending 165), and 4.7% (track-100 straddle). These errors
+are concentrated in cells with lower coherence (median 0.5–0.7 in the
+error regions against ~0.85 elsewhere), especially in the 24/36-day legs.
+All checked pixels pass the coherence threshold in all three legs, so
+that screen does not remove every inconsistency. The loop flags the
+triple and cannot assign the error to one leg. Errors can also cancel
+in a consistent triple. Thus, closure does not certify the accuracy of
+the flank or axial displacements, or establish that all flagged axial
+support was excluded from modelling. Statistics,
 maps, and per-leg attribution: `results/loop_closure.md`,
 `results/loop_closure_<tag>.json`, `results/loop_closure_nisar.png`.
+
+The closure inventory records hashes for the exact nine interferograms
+and nine raw unwrap caches, plus the generator, model input, settings,
+and reports. `mh26.closure --check --cached-only` first verifies this
+saved baseline. It checks each interferogram's ordered granules, EPSG,
+looks, array shape, and 30-m grid, checks raw-array phase congruence, and
+recomputes the statistics without snaphu or file writes. Both CLI replay
+and `closure.check()` are read-only by default; stale source, settings,
+or reports cause an error. The explicit `--regenerate` option replaces
+the complete reports and inventory after an authorized analysis change,
+while retaining the input-hash checks. Legacy caches also lack an
+original interferogram hash: the inventory records the files checked
+during this replay, not evidence recovered from the original run.
+For the two inversion pairs, applying the analysis ionosphere correction
+and far-field reference to the co-event raw caches reproduces the saved
+primary LOS arrays: RMS differences over all finite pixels are
+1.358×10⁻⁸ m (track 172) and 3.518×10⁻⁸ m (track 165). This establishes
+numerical agreement of those arrays, without recovering their original
+snaphu settings.
+New raw-cache runs record the actual executed binary's resolved path,
+hash, reported version, and version-command exit status. A Python
+package version cannot identify that system binary. No execution
+identity is assigned to a legacy cache.
+The optional closure-data archive supplies those 18 files (see
+`data/README.md`). Without it, full archive validation can check the
+saved reports and any available inputs but cannot reproduce closure.
+Use `mh26.validate --profile full --require-closure-inputs` to require
+that reproduction.
 
 ## Phase-gradient ridges (mh26.faults) and the ridge-anchored fault test
 
@@ -243,13 +280,13 @@ continues through the dike onto the far side of the rift; ridge offsets
 under ~1.9 km truncate their columns. The default mapped fit includes the
 33 of 42 nominal east patches that remain and excludes the west trace because
 it fails the cross-geometry LOS-step test. This east-trace fit has 2.15 cm
-joint RMS, compared with 2.09 cm for the two-plane idealization; its 5-km
+joint RMS, compared with 2.08 cm for the two-plane idealization; its 5-km
 checkerboard holdout improves on both splits. The regularized east slip
 maximum is 0.67 m, and the fault/dike potency ratio is 0.102 (idealized:
 0.196 — the partition between opening and slip shifts with the assumed fault
 area). In the saved 55–75° dip sweep, the GUNW chain spans 0.019 cm joint RMS
-and the GSLC chain spans 0.058 cm. Their minima do not agree, and the GSLC
-minimum is at the grid boundary, so the data do not give a stable dip
+and the GSLC chain spans 0.093 cm (2.5260–2.6189 cm). Their minima do not
+agree, and the GSLC minimum is at the grid boundary, so the data do not give a stable dip
 estimate. Two scope points apply to the validation. The checkerboard holdout
 is conditional — the ridge geometry
 was derived from the full fields before the split, and 5-km cells are not
@@ -267,6 +304,30 @@ all traces in an externally supplied file with the `fault_traces.json` schema.
 It writes content-hash-suffixed outputs and records the source path and SHA-256
 hash, so it cannot replace the normal mapped outputs. Stress can use that exact
 result with `--fit`.
+
+The depth-extent sweep (`mh26.fault_depth`,
+`results/fault_depth_mapped*.{json,md,png}`) varies the fault depth cap
+at fixed mapped trace, dip, and smoothing weight. Its graben band has
+a 6-km half-width from the dike axis (12 km wide) and a 20-km along-axis
+half-length. Caps at 2.5–3 km retain 89–101% of the fault term's band
+improvement across the two input chains; 1-km caps retain 35–46%.
+For the GSLC fit, the 2.5- and 3-km caps give 3.8 and 4.8 × 10¹⁷ N·m
+at μ = 30 GPa, against 5.1 × 10¹⁷ N·m uncapped. These are conditional
+sensitivities, not a data-required depth or a physical moment confidence
+bound. Truncation changes patch dimensions, Green's functions, and the
+retained smoothing operator. The fits are not nested on one fixed
+basis, and some capped fits have slightly lower RMS. The RMS values and
+their differences also depend on the retained axial observations, where
+closure flags 1–4-cycle inconsistencies.
+
+A uniform rescaling of both Lamé constants leaves the displacement
+prediction unchanged and rescales the moment. The data therefore do
+not constrain the assumed uniform μ = 30 GPa. A lower uniform stiffness
+is an illustrative sensitivity. A depth-varying soft layer has not
+been modelled and would also change the displacement calculation. The
+uncapped GSLC fit places 27% of its potency above 1 km and 83% above
+3 km; a soft upper kilometre is a different assumption from a lower
+stiffness throughout the fault.
 
 `--geometry FILE` accepts either the complete `geometry` object stored in a
 distributed result or a JSON file that contains that contract directly. It
@@ -424,6 +485,14 @@ The core, pre-event, and complete data sets have separate SHA-256 manifests.
 The core archive can therefore be verified without the optional pre-event NPZ
 files. Release archives use the source commit time, record the source commit
 hash, and pass a ZIP CRC check before replacement of an existing archive.
+The separate closure-data archive can be built from a reviewed working
+tree with `scripts/build_release.py --closure-only`. Its ZIP comment
+records the base commit, whether the working tree has changes, and the
+closure-inventory hash. The inventory identifies the actual source files;
+the base commit alone does not describe that snapshot. Before writing,
+the builder requires complete closure validation, including saved
+source/settings/report identities and reproduction from all 18 inputs.
+Malformed inventories and stale baselines cannot replace an archive.
 
 ## Additional analysis
 
