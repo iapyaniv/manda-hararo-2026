@@ -577,8 +577,10 @@ def validate_new_products(require_gslc_sources: bool = True) -> None:
         if report.get("nisar_source") != expected_source:
             raise ValueError(f"{name}: nisar_source is not {expected_source!r}")
         ref = report["epoch_2026"]
-        if ref["reference_fit_sha256"] != sha256(
-                REPO / "results" / ref["reference_fit"]):
+        ref_path = Path(ref["reference_fit"])
+        if not ref_path.is_absolute():
+            ref_path = REPO / ref_path
+        if ref["reference_fit_sha256"] != sha256(ref_path):
             raise ValueError(f"{name}: comparison predates the current "
                              f"{ref['reference_fit']}")
         s_km = np.asarray(report["registration"]["s_km"], dtype=float)

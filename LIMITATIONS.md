@@ -204,7 +204,13 @@
   identical. The opening files carry no coordinates; their row order is
   taken from `plot_3d_dyke_only.dat` (equal row count, physically coherent
   depth profiles) and awaits Ian Hamling's confirmation, and exact event
-  dates are not part of the delivery. The 2005 model places 1.74 of its
+  dates are not part of the delivery. The delivery also holds fifteen
+  post-2005 files against the thirteen published post-megadike intrusions,
+  and one file's nonzero cells are exactly contained in another (may10 in
+  apr10), so the cumulative counts each delivered value once by dropping
+  contained files and the report quotes the all-files and catalogue-count
+  sums as alternatives; the file-to-event mapping awaits the same
+  confirmation. The 2005 model places 1.74 of its
   3.55 km³ below 10 km depth, where the 2026 plane has no patches, so
   like-for-like volume comparisons must quote the above-10-km values.
 

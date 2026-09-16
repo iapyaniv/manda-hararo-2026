@@ -2,9 +2,12 @@
 
 Ian Hamling (GNS) provided `dyke_files.zip` (linked by Tim Wright in the
 paper thread on 2026-09-16), whose `opening_files/` holds the published
-opening distributions of the September 2005 megadike and the fifteen
-2006-2010 dikes on the ~74 km Hamling computational grid (Hamling et al.
-2009, 2010). This module decodes that delivery, registers the grid against
+opening distributions of the September 2005 megadike and fifteen later
+(2006-2010) opening files on the ~74 km Hamling computational grid
+(Hamling et al. 2009, 2010; the published sequence has 13 post-megadike
+intrusions, so two files await identification, and one is an exact
+duplicate subset of another — see `duplicate_subsets` and the report).
+This module decodes that delivery, registers the grid against
 the Wright et al. (2006) plane the 2026 fit uses (mh26.wright2006), and
 renders the three-epoch U_perp comparison the plane was built for:
 September 2005, the cumulative 2006-2010 sequence, and July 2026 on one
@@ -60,7 +63,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 
-from .distributed import load_geometry_source
+from .distributed import _display_source_path, load_geometry_source
 from .params import REPO, RESULTS
 from .wright2006 import _chain_frames, _project_s
 
@@ -75,10 +78,20 @@ N_DEPTH = 20
 
 # Filename month tags in event order. The delivery carries no exact dates;
 # event dates must come from the Hamling et al. (2009, 2010) catalogue when
-# captioning, so only the tags are recorded here.
+# captioning, so only the tags are recorded here. The delivery holds 15
+# post-2005 files against the 13 published post-megadike intrusions, and
+# may10's nonzero cells are all exactly contained in apr10, so the
+# file-to-event correspondence (apr10, july09) awaits Ian Hamling's
+# confirmation; the cumulative below de-duplicates by construction.
 EPOCH_TAGS = ("sept05", "june06", "july06", "sept06", "dec06", "jan07",
               "aug07", "nov07", "apr08", "july08", "oct08", "feb09",
               "june09", "july09", "apr10", "may10")
+
+# The 13 post-2005 intrusions of the published sequence, used only for the
+# alternative catalogue-count sum in the report.
+CATALOGUE_13 = ("june06", "july06", "sept06", "dec06", "jan07", "aug07",
+                "nov07", "apr08", "july08", "oct08", "feb09", "june09",
+                "may10")
 
 OPENING_CMAP = LinearSegmentedColormap.from_list(
     "hamling_opening",
@@ -196,6 +209,50 @@ def _epoch_stats(opening: np.ndarray, width_km: np.ndarray) -> dict:
     }
 
 
+def duplicate_subsets(openings: dict) -> list[dict]:
+    """Post-2005 files whose nonzero cells are exactly contained in another.
+
+    Independent inversions do not reproduce another model's values cell for
+    cell, so exact containment marks duplicate model content inside the
+    delivery; summing such a pair counts the contained field twice.
+    """
+    pairs = []
+    for tag in EPOCH_TAGS[1:]:
+        contained = openings[tag]
+        nz = contained > 0
+        if not nz.any():
+            continue
+        for other in EPOCH_TAGS[1:]:
+            if other == tag:
+                continue
+            container = openings[other]
+            if ((container > 0).sum() > nz.sum()
+                    and np.array_equal(contained[nz], container[nz])):
+                pairs.append({"contained": tag, "container": other,
+                              "n_cells": int(nz.sum())})
+    return pairs
+
+
+def _fit_opening_stats(fit: dict, geometry: dict) -> dict:
+    """Integrate the fitted opening on its own grid, split at 10 km."""
+    nz, ns = geometry["dike_shape"]
+    opening = np.asarray(fit["dislocation_magnitudes_m"])[:nz * ns]
+    opening = opening.reshape(nz, ns)
+    s_edges = np.asarray(geometry["dike_s_edges_m"], dtype=float)
+    z_edges = np.asarray(geometry["dike_z_edges_m"], dtype=float)
+    areas_km2 = (np.diff(s_edges)[None, :] / 1e3
+                 * np.diff(z_edges)[:, None] / 1e3)
+    z_centres_km = 0.5 * (z_edges[:-1] + z_edges[1:]) / 1e3
+    shallow = z_centres_km < 10.0
+    return {
+        "volume_km3": round(fit["dike"]["dike_volume_km3"], 4),
+        "volume_above_10km_km3": round(
+            float((opening[shallow] * areas_km2[shallow]).sum()) * 1e-3, 4),
+        "max_opening_m": round(fit["dike"]["max_opening_m"], 3),
+        "plane_bottom_km": float(z_edges[-1]) / 1e3,
+    }
+
+
 def _panel(ax, s_centres, z_edges, opening, vmax, line_levels, title,
            note):
     """One filled U_perp cross-section in the mh26.wright2006 panel style."""
@@ -222,15 +279,15 @@ def _panel(ax, s_centres, z_edges, opening, vmax, line_levels, title,
 
 
 def three_epoch_figure(delivery: dict, registration: dict, fit: dict,
-                       geometry: dict, chain: str, epochs: dict) -> Path:
+                       geometry: dict, chain: str, epochs: dict,
+                       cumulative: np.ndarray) -> Path:
     s_ham = registration["s_km"][::-1]  # NW->SE for plotting
-    cum = sum(delivery["openings_m"][t] for t in EPOCH_TAGS[1:])
     panels = [
         ("September 2005", delivery["openings_m"]["sept05"][::-1].T,
          s_ham, np.arange(21.0), 13.0, [2, 4, 6, 8, 10, 12],
          "Hamling dike files, as provided",
          epochs["sept05"]),
-        ("2006–2010 (15 intrusions, cumulative)", cum[::-1].T,
+        ("2006–2010 (cumulative, duplicate-free)", cumulative[::-1].T,
          s_ham, np.arange(21.0), 9.0, [1, 2, 4, 6, 8],
          "Hamling dike files, as provided",
          epochs["cumulative_2006_2010"]),
@@ -317,8 +374,9 @@ def _find_fit(chain: str) -> Path:
 
 
 def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
+    data_dir = Path(data_dir).resolve()
     delivery = load_openings(data_dir)
-    fit_path = fit_path or _find_fit(chain)
+    fit_path = Path(fit_path or _find_fit(chain)).resolve()
     fit = json.loads(fit_path.read_text())
     if (fit.get("nisar_source") or "gunw") != chain:
         raise SystemExit(f"{fit_path} is not a {chain}-chain fit")
@@ -330,17 +388,16 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
     epochs = {tag: _epoch_stats(delivery["openings_m"][tag],
                                 delivery["columns_width_km"])
               for tag in EPOCH_TAGS}
-    cum = sum(delivery["openings_m"][t] for t in EPOCH_TAGS[1:])
-    epochs["cumulative_2006_2010"] = _epoch_stats(
-        cum, delivery["columns_width_km"])
-    epochs["epoch_2026"] = {
-        "volume_km3": round(fit["dike"]["dike_volume_km3"], 4),
-        "volume_above_10km_km3": round(fit["dike"]["dike_volume_km3"], 4),
-        "max_opening_m": round(fit["dike"]["max_opening_m"], 3),
-    }
+    dupes = duplicate_subsets(delivery["openings_m"])
+    dropped = sorted({d["contained"] for d in dupes})
+    cum_tags = [t for t in EPOCH_TAGS[1:] if t not in dropped]
+    cum = sum(delivery["openings_m"][t] for t in cum_tags)
+    widths = delivery["columns_width_km"]
+    epochs["cumulative_2006_2010"] = _epoch_stats(cum, widths)
+    epochs["epoch_2026"] = _fit_opening_stats(fit, geometry)
 
     figure = three_epoch_figure(delivery, registration, fit, geometry,
-                                chain, epochs)
+                                chain, epochs, cum)
 
     suffix = "_gslc" if chain == "gslc" else ""
     payload = {
@@ -349,13 +406,13 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
         "source": {
             "url": SOURCE_URL,
             "received": RECEIVED,
-            "directory": str(data_dir.relative_to(REPO)),
+            "directory": _display_source_path(data_dir),
             "files": delivery["files"],
         },
         "layout": {
             "n_columns": N_COLUMNS,
             "n_depth_rows": N_DEPTH,
-            "depth_edges_km": [0.0, 20.0],
+            "depth_range_km": [0.0, 20.0],
             "row_order": "depth-fastest (20 one-km rows per column), "
                          "columns S->N in the file",
             "opening_row_order_assumed_from_geometry_file": True,
@@ -370,15 +427,26 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
         },
         "epochs": {tag: epochs[tag] for tag in EPOCH_TAGS},
         "cumulative_2006_2010": {
-            "n_events": len(EPOCH_TAGS) - 1,
+            "files_summed": cum_tags,
+            "duplicate_subsets_excluded": dupes,
             **epochs["cumulative_2006_2010"],
+            "alternatives": {
+                "sum_of_all_delivered_files": _epoch_stats(
+                    sum(delivery["openings_m"][t] for t in EPOCH_TAGS[1:]),
+                    widths),
+                "catalogue_13_events": {
+                    "files": list(CATALOGUE_13),
+                    **_epoch_stats(
+                        sum(delivery["openings_m"][t] for t in CATALOGUE_13),
+                        widths),
+                },
+            },
         },
         "epoch_2026": {
-            "reference_fit": fit_path.name,
+            "reference_fit": _display_source_path(fit_path),
             "reference_fit_sha256": _sha256(fit_path),
             "geometry_sha256": fit_prov["geometry_sha256"],
-            "dike_volume_km3": round(fit["dike"]["dike_volume_km3"], 4),
-            "max_opening_m": round(fit["dike"]["max_opening_m"], 3),
+            **epochs["epoch_2026"],
         },
         "notes": [
             "openings are the published Envisat-era inversions exactly as "
@@ -386,6 +454,11 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
             "greens functions from the 2026 fit)",
             "the epoch-file row order is assumed to follow "
             "plot_3d_dyke_only.dat and awaits Ian Hamling's confirmation",
+            "the delivery has 15 post-2005 files against the 13 published "
+            "post-megadike intrusions; files whose nonzero cells are "
+            "exactly contained in another are dropped from the cumulative "
+            "so no delivered value is counted twice, and the file-to-event "
+            "mapping awaits Ian Hamling's confirmation",
             "the shared s axis compares openings by along-axis position; "
             "the two traces differ by up to "
             f"{registration['max_offplane_m']:.0f} m mid-plane",
@@ -402,8 +475,8 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
         f"({payload['epoch_2026']['reference_fit']}).",
         "",
         "Openings of the September 2005 megadike and the fifteen "
-        "2006-2010 dikes are the published inversions provided by Ian "
-        "Hamling (GNS) on the ~74 km Hamling computational grid "
+        "post-2005 opening files are the published inversions provided by "
+        "Ian Hamling (GNS) on the ~74 km Hamling computational grid "
         "(75 columns x 20 one-km depth rows, UTM 37N). The 2026 "
         "distribution is this repository's fixed-plane fit on the Wright "
         "et al. (2006) plane. The Hamling columns project monotonically "
@@ -422,19 +495,40 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
                      f"{stats['volume_above_10km_km3']:.3f} | "
                      f"{stats['max_opening_m']:.2f} |")
     stats = epochs["cumulative_2006_2010"]
-    lines.append(f"| 2006-2010 cumulative | {stats['volume_km3']:.3f} | "
+    alternatives = payload["cumulative_2006_2010"]["alternatives"]
+    lines.append(f"| 2006-2010 cumulative ({len(cum_tags)} files, "
+                 f"duplicate-free) | {stats['volume_km3']:.3f} | "
                  f"{stats['volume_above_10km_km3']:.3f} | "
                  f"{stats['max_opening_m']:.2f} |")
+    for label, alt in (
+            (f"all {len(EPOCH_TAGS) - 1} delivered files",
+             alternatives["sum_of_all_delivered_files"]),
+            ("catalogue 13 events", alternatives["catalogue_13_events"])):
+        lines.append(f"| — alternative: {label} | "
+                     f"{alt['volume_km3']:.3f} | "
+                     f"{alt['volume_above_10km_km3']:.3f} | "
+                     f"{alt['max_opening_m']:.2f} |")
     fit_stats = epochs["epoch_2026"]
     lines.append(f"| July 2026 ({chain}) | {fit_stats['volume_km3']:.3f} | "
-                 f"{fit_stats['volume_km3']:.3f} | "
+                 f"{fit_stats['volume_above_10km_km3']:.3f} | "
                  f"{fit_stats['max_opening_m']:.2f} |")
+    bottom = fit_stats["plane_bottom_km"]
+    dupe_text = "; ".join(
+        f"{d['contained']} is an exact sub-array of {d['container']} "
+        f"({d['n_cells']} nonzero cells)" for d in dupes) or "none found"
     lines += [
+        "",
+        "The delivery has 15 post-2005 files against the 13 published "
+        f"post-megadike intrusions. Exact duplication: {dupe_text}. The "
+        "cumulative drops the contained file(s) so no delivered value is "
+        "counted twice; the file-to-event mapping (apr10, july09) awaits "
+        "Ian Hamling's confirmation, and the table quotes the "
+        "all-files and catalogue-count sums as alternatives.",
         "",
         "The 2005 model carries "
         f"{epochs['sept05']['volume_km3'] - epochs['sept05']['volume_above_10km_km3']:.2f}"
         " km3 below 10 km depth (a deep lobe peaking at 13-20 km in its "
-        "northern half); the 2026 model plane ends at 10 km, so "
+        f"northern half); the 2026 model plane ends at {bottom:g} km, so "
         "like-for-like volume comparisons should quote the above-10-km "
         "column. Caveats: see the notes block in the JSON and "
         "LIMITATIONS.md. Exact event dates are not part of the delivery; "
@@ -451,6 +545,8 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
           f"{registration['span_km'][1]:.2f} km, off-plane median "
           f"{registration['median_offplane_m']:.0f} m / max "
           f"{registration['max_offplane_m']:.0f} m")
+    print(f"cumulative: {len(cum_tags)} files summed; duplicates excluded: "
+          f"{dropped or 'none'}")
     print(f"volumes (km3): 2005 {epochs['sept05']['volume_km3']:.2f} "
           f"({epochs['sept05']['volume_above_10km_km3']:.2f} above 10 km), "
           f"2006-2010 {stats['volume_km3']:.2f} "

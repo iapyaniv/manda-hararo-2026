@@ -75,8 +75,10 @@ Manda Hararo intrusion.
   compares rewrapped observed and modelled fringes with a cross-axis
   profile.
 - `mh26/hamling.py` decodes Ian Hamling's `dyke_files.zip` delivery (the
-  September 2005 and fifteen 2006–2010 opening distributions on the ~74 km
-  Hamling computational grid; the format is documented in the module
+  September 2005 and fifteen later opening files on the ~74 km Hamling
+  computational grid; one file exactly duplicates part of another, so the
+  cumulative de-duplicates and the report quotes the alternative sums;
+  the format is documented in the module
   docstring and the tracked tables live in `data/ihamling/opening_files/`,
   see `data/README.md`), registers that grid on the Wright-plane s axis,
   and writes the three-epoch U⊥ comparison per input chain:

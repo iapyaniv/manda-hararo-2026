@@ -1,16 +1,67 @@
 {
  "cumulative_2006_2010": {
-  "max_opening_m": 8.44,
-  "n_events": 15,
-  "volume_above_10km_km3": 0.8792,
-  "volume_km3": 0.9677
+  "alternatives": {
+   "catalogue_13_events": {
+    "files": [
+     "june06",
+     "july06",
+     "sept06",
+     "dec06",
+     "jan07",
+     "aug07",
+     "nov07",
+     "apr08",
+     "july08",
+     "oct08",
+     "feb09",
+     "june09",
+     "may10"
+    ],
+    "max_opening_m": 6.675,
+    "volume_above_10km_km3": 0.7883,
+    "volume_km3": 0.8768
+   },
+   "sum_of_all_delivered_files": {
+    "max_opening_m": 8.44,
+    "volume_above_10km_km3": 0.8792,
+    "volume_km3": 0.9677
+   }
+  },
+  "duplicate_subsets_excluded": [
+   {
+    "contained": "may10",
+    "container": "apr10",
+    "n_cells": 36
+   }
+  ],
+  "files_summed": [
+   "june06",
+   "july06",
+   "sept06",
+   "dec06",
+   "jan07",
+   "aug07",
+   "nov07",
+   "apr08",
+   "july08",
+   "oct08",
+   "feb09",
+   "june09",
+   "july09",
+   "apr10"
+  ],
+  "max_opening_m": 7.716,
+  "volume_above_10km_km3": 0.8445,
+  "volume_km3": 0.933
  },
  "epoch_2026": {
-  "dike_volume_km3": 0.18,
   "geometry_sha256": "23e42105d82ea9cdcadb770cccdbf9d9585b670e132b6c18c6e99d74daf8a01a",
   "max_opening_m": 2.311,
-  "reference_fit": "distributed_fit_geometry_4a7b2386c8b5_gslc.json",
-  "reference_fit_sha256": "993b8c9ce35e9734d801ad90908a9916b46c98d86f54681454b332cd20ce966e"
+  "plane_bottom_km": 10.0,
+  "reference_fit": "results/distributed_fit_geometry_4a7b2386c8b5_gslc.json",
+  "reference_fit_sha256": "993b8c9ce35e9734d801ad90908a9916b46c98d86f54681454b332cd20ce966e",
+  "volume_above_10km_km3": 0.18,
+  "volume_km3": 0.18
  },
  "epochs": {
   "apr08": {
@@ -102,7 +153,7 @@
    1.136807
   ],
   "crs": "UTM 37N metres",
-  "depth_edges_km": [
+  "depth_range_km": [
    0.0,
    20.0
   ],
@@ -115,6 +166,7 @@
  "notes": [
   "openings are the published Envisat-era inversions exactly as provided (no uncertainties; different regularization and greens functions from the 2026 fit)",
   "the epoch-file row order is assumed to follow plot_3d_dyke_only.dat and awaits Ian Hamling's confirmation",
+  "the delivery has 15 post-2005 files against the 13 published post-megadike intrusions; files whose nonzero cells are exactly contained in another are dropped from the cumulative so no delivered value is counted twice, and the file-to-event mapping awaits Ian Hamling's confirmation",
   "the shared s axis compares openings by along-axis position; the two traces differ by up to 1412 m mid-plane"
  ],
  "registration": {
