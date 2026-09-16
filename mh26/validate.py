@@ -596,37 +596,35 @@ def validate_new_products(require_gslc_sources: bool = True) -> None:
                 if sha256(delivery_dir / fname) != digest:
                     raise ValueError(f"{name}: {fname} does not match the "
                                      "recorded delivery hash")
-            from .hamling import (EPOCH_TAGS, PRIMARY_EXCLUDED,
-                                  _epoch_stats, load_openings,
-                                  version_diagnostics)
-            delivery = load_openings(delivery_dir)
-            flags = sorted({d["contained"] for d in
-                            version_diagnostics(delivery["openings_m"])})
-            cumulative = report["cumulative_2006_2010"]
-            if (flags != sorted(PRIMARY_EXCLUDED)
-                    or sorted(cumulative["primary_excluded"]) != flags):
-                raise ValueError(f"{name}: recorded exclusions do not "
-                                 "match the data-derived duplicate flags")
-            cum_tags = [t for t in EPOCH_TAGS[1:]
-                        if t not in PRIMARY_EXCLUDED]
-            if cumulative["files_summed"] != cum_tags:
-                raise ValueError(f"{name}: summed files are not the "
-                                 "primary selection")
-            widths = delivery["columns_width_km"]
-            recomputed = _epoch_stats(
-                sum(delivery["openings_m"][t] for t in cum_tags), widths)
-            for key, value in recomputed.items():
-                if abs(cumulative[key] - value) > 5e-4:
-                    raise ValueError(f"{name}: cumulative {key} does not "
-                                     "match a recomputation")
-            for tag in EPOCH_TAGS:
-                recomputed = _epoch_stats(delivery["openings_m"][tag],
-                                          widths)
-                for key, value in recomputed.items():
-                    if abs(report["epochs"][tag][key] - value) > 5e-4:
-                        raise ValueError(
-                            f"{name}: epoch {tag} {key} does not match "
-                            "a recomputation")
+            from .hamling import _find_fit, compute_report
+            expected, _ = compute_report(expected_source,
+                                         _find_fit(expected_source),
+                                         delivery_dir)
+            expected = _json.loads(_json.dumps(expected, sort_keys=True))
+            if expected != report:
+                def _first_diff(a, b, at=""):
+                    if isinstance(a, dict) and isinstance(b, dict):
+                        for key in sorted(set(a) | set(b)):
+                            if key not in a or key not in b:
+                                return f"{at}.{key} (missing on one side)"
+                            found = _first_diff(a[key], b[key],
+                                                f"{at}.{key}")
+                            if found:
+                                return found
+                        return None
+                    if isinstance(a, list) and isinstance(b, list):
+                        if len(a) != len(b):
+                            return f"{at} (length {len(a)} vs {len(b)})"
+                        for i, (x, y) in enumerate(zip(a, b)):
+                            found = _first_diff(x, y, f"{at}[{i}]")
+                            if found:
+                                return found
+                        return None
+                    return at if a != b else None
+                raise ValueError(
+                    f"{name}: report does not match a full recomputation "
+                    f"from the canonical fit and the tracked delivery "
+                    f"(first difference at {_first_diff(expected, report)})")
 
     traces = _json.loads((REPO / "results" / "fault_traces.json").read_text())
     for key in ("los_step_across_ridges", "trace_support",

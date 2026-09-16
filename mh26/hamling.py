@@ -384,9 +384,12 @@ def three_epoch_figure(delivery: dict, registration: dict, fit: dict,
                  f"below the 2026 model plane ({z_edges[-1]:g} km)",
                  ha="center", va="center", fontsize=8, color="0.35",
                  zorder=2)
-    ax_2026.text(se_2005 + 0.4, 0.06, "2005 SE limit",
+    # The dashed line is the Wright et al. (2006) model-plane SE edge,
+    # not the limit of 2005 opening: the delivered 2005 field holds
+    # ~0.22 km3 southeast of it.
+    ax_2026.text(se_2005 + 0.4, 0.5, "Wright 2006 plane edge",
                  transform=ax_2026.get_xaxis_transform(), rotation=90,
-                 ha="left", va="top", fontsize=7.5, color="0.20",
+                 ha="left", va="center", fontsize=7.5, color="0.20",
                  bbox={"facecolor": "white", "edgecolor": "none",
                        "alpha": 0.78, "pad": 1.2}, zorder=5)
     ax_2026.set_xlabel("Distance along the 2005 dike plane, NW→SE (km)")
@@ -414,10 +417,16 @@ def _find_fit(chain: str) -> Path:
     return matches[0]
 
 
-def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
+def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
+    """Rebuild the full report payload deterministically.
+
+    mh26.validate calls this against the canonical fit and the tracked
+    delivery and requires exact equality with the stored JSON, so every
+    number in the report is re-derived, not just hash-checked.
+    """
     data_dir = Path(data_dir).resolve()
     delivery = load_openings(data_dir)
-    fit_path = Path(fit_path or _find_fit(chain)).resolve()
+    fit_path = Path(fit_path).resolve()
     fit = json.loads(fit_path.read_text())
     if (fit.get("nisar_source") or "gunw") != chain:
         raise SystemExit(f"{fit_path} is not a {chain}-chain fit")
@@ -446,9 +455,6 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
     epochs["cumulative_2006_2010"]["volume_at_0p5m_floor_km3"] = \
         _epoch_stats(floored_cum, widths)["volume_km3"]
     epochs["epoch_2026"] = _fit_opening_stats(fit, geometry)
-
-    figure = three_epoch_figure(delivery, registration, fit, geometry,
-                                chain, epochs, cum)
 
     suffix = "_gslc" if chain == "gslc" else ""
     payload = {
@@ -533,8 +539,27 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
             "the two traces differ by up to "
             f"{registration['max_offplane_m']:.0f} m mid-plane",
         ],
-        "figure": figure.name,
+        "figure": f"uperp_three_epoch{suffix}.png",
     }
+    context = {"delivery": delivery, "registration": registration,
+               "fit": fit, "geometry": geometry, "epochs": epochs,
+               "cum": cum, "cum_tags": cum_tags}
+    return payload, context
+
+
+def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
+    fit_path = Path(fit_path or _find_fit(chain)).resolve()
+    payload, context = compute_report(chain, fit_path, data_dir)
+    delivery = context["delivery"]
+    registration = context["registration"]
+    fit, geometry = context["fit"], context["geometry"]
+    epochs, cum = context["epochs"], context["cum"]
+    cum_tags = context["cum_tags"]
+
+    figure = three_epoch_figure(delivery, registration, fit, geometry,
+                                chain, epochs, cum)
+
+    suffix = "_gslc" if chain == "gslc" else ""
     json_path = RESULTS / f"uperp_three_epoch{suffix}.json"
     json_path.write_text(json.dumps(payload, indent=1, sort_keys=True))
 
