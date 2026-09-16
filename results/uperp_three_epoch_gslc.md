@@ -6,7 +6,7 @@ Openings of the September 2005 megadike and the fifteen post-2005 opening files 
 
 | epoch | volume (km3) | above 10 km (km3) | max opening (m) |
 |---|---|---|---|
-| sept05 | 3.554 | 1.815 | 12.91 |
+| sept05 | 3.554 | 1.815 | 12.92 |
 | june06 | 0.102 | 0.098 | 2.16 |
 | july06 | 0.025 | 0.025 | 1.15 |
 | sept06 | 0.050 | 0.044 | 1.03 |
@@ -32,4 +32,4 @@ Openings of the September 2005 megadike and the fifteen post-2005 opening files 
 
 The delivery has 15 post-2005 files against the 13 published post-megadike intrusions, and the data flag two as duplicate content: may10 equals apr10 with every cell below 0.5 m set to zero (38% of that field's volume), and july09's positive cells all lie inside june09's at correlation 0.994 while no other pair exceeds |r| = 0.44 — two estimates of one event. The primary cumulative therefore sums 13 files (drops may10 and july09); the alternatives above bracket the mapping ambiguity (0.871-0.968 km3), which Ian Hamling has been asked to resolve.
 
-Comparability caveats: the delivered historical fields were filtered below local uncertainty per the papers (the recovered 0.5-m floor is specific to the may10/apr10 pair), while the 2026 totals keep all fitted opening. As a uniform-floor sensitivity — not a matched reconstruction — a 0.5-m floor gives 0.822 km3 for the primary cumulative and 0.154 km3 for 2026. The 2005 model carries 1.74 km3 below 10 km depth (a deep lobe peaking at 13-20 km in its northern half); the 2026 model plane ends at 10 km, so like-for-like volume comparisons should quote the above-10-km column. See also the notes block in the JSON and LIMITATIONS.md. Exact event dates are not part of the delivery; take them from the Hamling et al. (2009, 2010) catalogue when captioning.
+Comparability caveats: the papers describe masking opening below local uncertainty, but only the may10/apr10 pair evidences a cut in the delivery (the recovered 0.5-m floor); sept05 keeps positive cells down to 4e-4 m, so each file's filtering status is unconfirmed (asked of Ian Hamling). The 2026 totals keep all fitted opening. As a uniform-floor sensitivity — not a matched reconstruction — a 0.5-m floor gives 0.821 km3 for the primary cumulative and 0.154 km3 for 2026. The 2005 model carries 1.74 km3 below 10 km depth (a deep lobe peaking at 13-20 km in its northern half); the 2026 model plane ends at 10 km, so like-for-like volume comparisons should quote the above-10-km column. See also the notes block in the JSON and LIMITATIONS.md. Exact event dates are not part of the delivery; take them from the Hamling et al. (2009, 2010) catalogue when captioning.

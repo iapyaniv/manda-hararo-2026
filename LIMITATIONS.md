@@ -211,10 +211,13 @@
   |r| = 0.44), so the primary cumulative sums thirteen files (drops may10
   and july09) and the report brackets the mapping ambiguity (0.871–0.968
   km³); the file-to-event mapping awaits the same confirmation. The
-  delivered fields were also filtered below local uncertainty per the
-  papers while the 2026 totals keep all fitted opening; the report
-  records a uniform 0.5-m floor for the primary cumulative and for 2026
-  as a sensitivity, not a matched reconstruction of that filtering. The
+  papers describe masking opening below local uncertainty, but only the
+  may10/apr10 pair evidences a cut in the delivery (the recovered 0.5-m
+  floor) and sept05 keeps positive cells down to 4×10⁻⁴ m, so each
+  file's filtering status is unconfirmed while the 2026 totals keep all
+  fitted opening; the report records a uniform 0.5-m floor for the
+  primary cumulative and for 2026 as a sensitivity, not a matched
+  reconstruction of any delivered filtering. The
   2005 model places 1.74 of its
   3.55 km³ below 10 km depth, where the 2026 plane has no patches, so
   like-for-like volume comparisons must quote the above-10-km values.

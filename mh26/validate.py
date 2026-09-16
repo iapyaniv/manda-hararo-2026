@@ -423,6 +423,74 @@ def validate_distributed_result(name: str, expected_source: str) -> None:
             raise ValueError(f"{name}: lambda selection is inconsistent")
 
 
+def check_three_epoch_report(name: str, expected_source: str,
+                             report: dict | None = None) -> None:
+    """Check one three-epoch report against the tracked inputs.
+
+    The report never chooses the paths: the delivery directory is the
+    tracked one, its files are hashed unconditionally, and the whole
+    payload must equal a recomputation from the canonical fit — so a
+    stale, edited, or re-pointed report fails.
+    """
+    import json as _json
+
+    from .distributed import _display_source_path
+    from .hamling import DATA_DIR, _find_fit, compute_report
+
+    if report is None:
+        report = _json.loads((REPO / "results" / name).read_text())
+    if report.get("nisar_source") != expected_source:
+        raise ValueError(f"{name}: nisar_source is not {expected_source!r}")
+    ref = report["epoch_2026"]
+    ref_path = Path(ref["reference_fit"])
+    if not ref_path.is_absolute():
+        ref_path = REPO / ref_path
+    if ref["reference_fit_sha256"] != sha256(ref_path):
+        raise ValueError(f"{name}: comparison predates the current "
+                         f"{ref['reference_fit']}")
+    s_km = np.asarray(report["registration"]["s_km"], dtype=float)
+    if s_km.shape != (75,) or not np.all(np.diff(s_km) < 0):
+        raise ValueError(f"{name}: registration s axis is not the "
+                         "monotone 75-column projection")
+    if report["source"]["directory"] != _display_source_path(DATA_DIR):
+        raise ValueError(f"{name}: source.directory is not the tracked "
+                         f"delivery {_display_source_path(DATA_DIR)}")
+    for fname, digest in report["source"]["files"].items():
+        path = DATA_DIR / fname
+        if not path.is_file():
+            raise ValueError(f"{name}: {fname} is not in the tracked "
+                             "delivery")
+        if sha256(path) != digest:
+            raise ValueError(f"{name}: {fname} does not match the "
+                             "recorded delivery hash")
+    expected, _ = compute_report(expected_source, _find_fit(expected_source),
+                                 DATA_DIR)
+    expected = _json.loads(_json.dumps(expected, sort_keys=True))
+    if expected != report:
+        def _first_diff(a, b, at=""):
+            if isinstance(a, dict) and isinstance(b, dict):
+                for key in sorted(set(a) | set(b)):
+                    if key not in a or key not in b:
+                        return f"{at}.{key} (missing on one side)"
+                    found = _first_diff(a[key], b[key], f"{at}.{key}")
+                    if found:
+                        return found
+                return None
+            if isinstance(a, list) and isinstance(b, list):
+                if len(a) != len(b):
+                    return f"{at} (length {len(a)} vs {len(b)})"
+                for i, (x, y) in enumerate(zip(a, b)):
+                    found = _first_diff(x, y, f"{at}[{i}]")
+                    if found:
+                        return found
+                return None
+            return at if a != b else None
+        raise ValueError(
+            f"{name}: report does not match a full recomputation "
+            f"from the canonical fit and the tracked delivery "
+            f"(first difference at {_first_diff(expected, report)})")
+
+
 def validate_new_products(require_gslc_sources: bool = True) -> None:
     """Contract checks on the distributed, decomposition, and GSLC results."""
     import json as _json
@@ -573,58 +641,7 @@ def validate_new_products(require_gslc_sources: bool = True) -> None:
 
     for name, expected_source in (("uperp_three_epoch.json", "gunw"),
                                   ("uperp_three_epoch_gslc.json", "gslc")):
-        report = _json.loads((REPO / "results" / name).read_text())
-        if report.get("nisar_source") != expected_source:
-            raise ValueError(f"{name}: nisar_source is not {expected_source!r}")
-        ref = report["epoch_2026"]
-        ref_path = Path(ref["reference_fit"])
-        if not ref_path.is_absolute():
-            ref_path = REPO / ref_path
-        if ref["reference_fit_sha256"] != sha256(ref_path):
-            raise ValueError(f"{name}: comparison predates the current "
-                             f"{ref['reference_fit']}")
-        s_km = np.asarray(report["registration"]["s_km"], dtype=float)
-        if s_km.shape != (75,) or not np.all(np.diff(s_km) < 0):
-            raise ValueError(f"{name}: registration s axis is not the "
-                             "monotone 75-column projection")
-        # The delivery itself is optional data; verify it when installed,
-        # and recompute the summed statistics so a stale report fails
-        # instead of passing on hashes alone.
-        delivery_dir = REPO / report["source"]["directory"]
-        if delivery_dir.is_dir():
-            for fname, digest in report["source"]["files"].items():
-                if sha256(delivery_dir / fname) != digest:
-                    raise ValueError(f"{name}: {fname} does not match the "
-                                     "recorded delivery hash")
-            from .hamling import _find_fit, compute_report
-            expected, _ = compute_report(expected_source,
-                                         _find_fit(expected_source),
-                                         delivery_dir)
-            expected = _json.loads(_json.dumps(expected, sort_keys=True))
-            if expected != report:
-                def _first_diff(a, b, at=""):
-                    if isinstance(a, dict) and isinstance(b, dict):
-                        for key in sorted(set(a) | set(b)):
-                            if key not in a or key not in b:
-                                return f"{at}.{key} (missing on one side)"
-                            found = _first_diff(a[key], b[key],
-                                                f"{at}.{key}")
-                            if found:
-                                return found
-                        return None
-                    if isinstance(a, list) and isinstance(b, list):
-                        if len(a) != len(b):
-                            return f"{at} (length {len(a)} vs {len(b)})"
-                        for i, (x, y) in enumerate(zip(a, b)):
-                            found = _first_diff(x, y, f"{at}[{i}]")
-                            if found:
-                                return found
-                        return None
-                    return at if a != b else None
-                raise ValueError(
-                    f"{name}: report does not match a full recomputation "
-                    f"from the canonical fit and the tracked delivery "
-                    f"(first difference at {_first_diff(expected, report)})")
+        check_three_epoch_report(name, expected_source)
 
     traces = _json.loads((REPO / "results" / "fault_traces.json").read_text())
     for key in ("los_step_across_ridges", "trace_support",

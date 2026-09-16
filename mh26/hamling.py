@@ -211,10 +211,12 @@ def _epoch_stats(opening: np.ndarray, width_km: np.ndarray) -> dict:
     area_km2 = width_km[:, None] * 1.0  # one-km depth rows
     volume = float((opening * area_km2).sum()) * 1e-3
     above10 = float((opening[:, :10] * area_km2[:, :10]).sum()) * 1e-3
+    # Full precision: the renderers round exactly once at format time
+    # (an intermediate round() shifted third-decimal displays by 1).
     return {
-        "volume_km3": round(volume, 4),
-        "volume_above_10km_km3": round(above10, 4),
-        "max_opening_m": round(float(opening.max()), 3),
+        "volume_km3": volume,
+        "volume_above_10km_km3": above10,
+        "max_opening_m": float(opening.max()),
     }
 
 
@@ -257,7 +259,7 @@ def version_diagnostics(openings: dict) -> list[dict]:
                     threshold = floor
             pairs.append({"contained": tag, "container": other,
                           "n_cells": int(nz.sum()),
-                          "correlation": round(corr, 4),
+                          "correlation": corr,
                           "exact_value_subset": exact,
                           "threshold_m": threshold})
     return pairs
@@ -269,8 +271,9 @@ def _fit_opening_stats(fit: dict, geometry: dict) -> dict:
     A depth row straddling 10 km contributes its fractional overlap. The
     0.5-m-floor volume is a uniform-floor sensitivity, mirroring the one
     floor recovered from the delivered may10/apr10 pair; the papers
-    filtered by local uncertainty, so it is not a matched reconstruction
-    of their filtering.
+    describe filtering by local uncertainty, but its application to the
+    delivered files is unconfirmed, so this is not a matched
+    reconstruction of their filtering.
     """
     nz, ns = geometry["dike_shape"]
     opening = np.asarray(fit["dislocation_magnitudes_m"])[:nz * ns]
@@ -283,13 +286,12 @@ def _fit_opening_stats(fit: dict, geometry: dict) -> dict:
     above_frac = np.clip((10.0 - z0) / (z1 - z0), 0.0, 1.0)
     floored = np.where(opening >= 0.5, opening, 0.0)
     return {
-        "volume_km3": round(fit["dike"]["dike_volume_km3"], 4),
-        "volume_above_10km_km3": round(
-            float((opening * areas_km2 * above_frac[:, None]).sum())
-            * 1e-3, 4),
-        "volume_at_0p5m_floor_km3": round(
-            float((floored * areas_km2).sum()) * 1e-3, 4),
-        "max_opening_m": round(fit["dike"]["max_opening_m"], 3),
+        "volume_km3": float(fit["dike"]["dike_volume_km3"]),
+        "volume_above_10km_km3":
+            float((opening * areas_km2 * above_frac[:, None]).sum()) * 1e-3,
+        "volume_at_0p5m_floor_km3":
+            float((floored * areas_km2).sum()) * 1e-3,
+        "max_opening_m": float(fit["dike"]["max_opening_m"]),
         "plane_bottom_km": float(z_edges[-1]) / 1e3,
     }
 
@@ -528,13 +530,16 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
             "primary cumulative excludes both and the report quotes the "
             "candidate sums; the file-to-event mapping awaits Ian "
             "Hamling's confirmation",
-            "the delivered historical fields were filtered below local "
-            "uncertainty per the papers (the recovered 0.5-m floor is "
-            "specific to the may10/apr10 pair), while the 2026 totals "
-            "keep all fitted opening; the volume_at_0p5m_floor_km3 "
-            "values apply one uniform 0.5-m floor to the primary "
-            "cumulative and to 2026 as a sensitivity, not as a matched "
-            "reconstruction of that filtering",
+            "the papers describe masking opening below local "
+            "uncertainty, but only the may10/apr10 pair evidences a cut "
+            "in the delivery (the recovered 0.5-m floor); sept05 keeps "
+            "positive cells down to 4e-4 m, so each file's filtering "
+            "status is unconfirmed and has been put to Ian Hamling; the "
+            "2026 totals keep all fitted opening; the "
+            "volume_at_0p5m_floor_km3 values apply one uniform 0.5-m "
+            "floor to the primary cumulative and to 2026 as a "
+            "sensitivity, not as a matched reconstruction of any "
+            "delivered filtering",
             "the shared s axis compares openings by along-axis position; "
             "the two traces differ by up to "
             f"{registration['max_offplane_m']:.0f} m mid-plane",
@@ -629,9 +634,11 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
         f"-{max(v['volume_km3'] for v in [stats, *alternatives.values()]):.3f}"
         " km3), which Ian Hamling has been asked to resolve.",
         "",
-        "Comparability caveats: the delivered historical fields were "
-        "filtered below local uncertainty per the papers (the recovered "
-        "0.5-m floor is specific to the may10/apr10 pair), while the "
+        "Comparability caveats: the papers describe masking opening "
+        "below local uncertainty, but only the may10/apr10 pair "
+        "evidences a cut in the delivery (the recovered 0.5-m floor); "
+        "sept05 keeps positive cells down to 4e-4 m, so each file's "
+        "filtering status is unconfirmed (asked of Ian Hamling). The "
         "2026 totals keep all fitted opening. As a uniform-floor "
         "sensitivity — not a matched reconstruction — a 0.5-m floor "
         "gives "

@@ -562,6 +562,20 @@ class ReferenceAndCacheTests(unittest.TestCase):
                 with self.assertRaises(FileNotFoundError):
                     closure.check()
 
+    def test_three_epoch_report_cannot_choose_its_delivery_path(self) -> None:
+        # A report whose source.directory pointed at a missing directory
+        # once skipped the delivery hashes and the recomputation entirely.
+        from mh26 import validate
+        from mh26.params import REPO
+
+        report = json.loads(
+            (REPO / "results" / "uperp_three_epoch.json").read_text())
+        report["source"]["directory"] = "data/nonexistent"
+        report["epochs"]["sept05"]["volume_km3"] = 999.0
+        with self.assertRaisesRegex(ValueError, "tracked\\s+delivery"):
+            validate.check_three_epoch_report("uperp_three_epoch.json",
+                                              "gunw", report)
+
     def test_snaphu_records_the_executed_binary_even_with_nonzero_version_status(self) -> None:
         # A Python distribution version once described a different system
         # executable. Capture the command identity at the execution boundary.

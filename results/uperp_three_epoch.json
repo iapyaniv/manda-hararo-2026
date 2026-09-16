@@ -17,29 +17,29 @@
      "june09",
      "may10"
     ],
-    "max_opening_m": 6.675,
-    "volume_above_10km_km3": 0.7883,
-    "volume_km3": 0.8768
+    "max_opening_m": 6.67488878,
+    "volume_above_10km_km3": 0.7882796542550211,
+    "volume_km3": 0.8767696680908792
    },
    "counted_once_14_files": {
-    "max_opening_m": 7.716,
-    "volume_above_10km_km3": 0.8445,
-    "volume_km3": 0.933
+    "max_opening_m": 7.71628859,
+    "volume_above_10km_km3": 0.8445363249565607,
+    "volume_km3": 0.9330263387924188
    },
    "drop_june09_and_apr10": {
-    "max_opening_m": 6.675,
-    "volume_above_10km_km3": 0.7829,
-    "volume_km3": 0.8714
+    "max_opening_m": 6.67488878,
+    "volume_above_10km_km3": 0.7829337301174171,
+    "volume_km3": 0.8714237439532752
    },
    "keep_july09_drop_june09": {
-    "max_opening_m": 6.675,
-    "volume_above_10km_km3": 0.8041,
-    "volume_km3": 0.8926
+    "max_opening_m": 6.67488878,
+    "volume_above_10km_km3": 0.8041399906109293,
+    "volume_km3": 0.8926300044467875
    },
    "sum_of_all_delivered_files": {
-    "max_opening_m": 8.44,
-    "volume_above_10km_km3": 0.8792,
-    "volume_km3": 0.9677
+    "max_opening_m": 8.43971802,
+    "volume_above_10km_km3": 0.8791760743056444,
+    "volume_km3": 0.9676660881415023
    }
   },
   "files_summed": [
@@ -57,12 +57,12 @@
    "june09",
    "apr10"
   ],
-  "max_opening_m": 6.675,
+  "max_opening_m": 6.67488878,
   "pair_diagnostics": [
    {
     "contained": "july09",
     "container": "june09",
-    "correlation": 0.9939,
+    "correlation": 0.993878833978855,
     "exact_value_subset": false,
     "n_cells": 43,
     "threshold_m": null
@@ -70,7 +70,7 @@
    {
     "contained": "may10",
     "container": "apr10",
-    "correlation": 0.8945,
+    "correlation": 0.8945494237443249,
     "exact_value_subset": true,
     "n_cells": 36,
     "threshold_m": 0.50221617
@@ -80,100 +80,100 @@
    "july09",
    "may10"
   ],
-  "volume_above_10km_km3": 0.8095,
-  "volume_at_0p5m_floor_km3": 0.8215,
-  "volume_km3": 0.898
+  "volume_above_10km_km3": 0.8094859147485334,
+  "volume_at_0p5m_floor_km3": 0.8214653335358397,
+  "volume_km3": 0.8979759285843913
  },
  "epoch_2026": {
   "geometry_sha256": "23e42105d82ea9cdcadb770cccdbf9d9585b670e132b6c18c6e99d74daf8a01a",
-  "max_opening_m": 2.304,
+  "max_opening_m": 2.3038475955339885,
   "plane_bottom_km": 10.0,
   "reference_fit": "results/distributed_fit_geometry_4a7b2386c8b5.json",
   "reference_fit_sha256": "9f707bbb48446a901459a059a0f48d795ba62041af981d4e4275b067740b3399",
-  "volume_above_10km_km3": 0.1815,
-  "volume_at_0p5m_floor_km3": 0.1561,
-  "volume_km3": 0.1815
+  "volume_above_10km_km3": 0.18154902019975305,
+  "volume_at_0p5m_floor_km3": 0.15607233642583107,
+  "volume_km3": 0.18154902019975327
  },
  "epochs": {
   "apr08": {
-   "max_opening_m": 1.266,
-   "volume_above_10km_km3": 0.067,
-   "volume_km3": 0.1177
+   "max_opening_m": 1.2656502,
+   "volume_above_10km_km3": 0.06700157282517757,
+   "volume_km3": 0.11769544164575631
   },
   "apr10": {
-   "max_opening_m": 1.669,
-   "volume_above_10km_km3": 0.0558,
-   "volume_km3": 0.0558
+   "max_opening_m": 1.6693729,
+   "volume_above_10km_km3": 0.05584600984259566,
+   "volume_km3": 0.055846009842595676
   },
   "aug07": {
-   "max_opening_m": 2.464,
-   "volume_above_10km_km3": 0.0403,
-   "volume_km3": 0.0403
+   "max_opening_m": 2.4639314,
+   "volume_above_10km_km3": 0.04034320442880249,
+   "volume_km3": 0.04034320442880249
   },
   "dec06": {
-   "max_opening_m": 1.809,
-   "volume_above_10km_km3": 0.0437,
-   "volume_km3": 0.0489
+   "max_opening_m": 1.8094096,
+   "volume_above_10km_km3": 0.043689365243004076,
+   "volume_km3": 0.0488637955136526
   },
   "feb09": {
-   "max_opening_m": 1.574,
-   "volume_above_10km_km3": 0.0686,
-   "volume_km3": 0.0763
+   "max_opening_m": 1.5743008,
+   "volume_above_10km_km3": 0.06860268552469458,
+   "volume_km3": 0.07625774703762138
   },
   "jan07": {
-   "max_opening_m": 0.696,
-   "volume_above_10km_km3": 0.013,
-   "volume_km3": 0.013
+   "max_opening_m": 0.69634915,
+   "volume_above_10km_km3": 0.01295520542047813,
+   "volume_km3": 0.012955205420478129
   },
   "july06": {
-   "max_opening_m": 1.151,
-   "volume_above_10km_km3": 0.025,
-   "volume_km3": 0.025
+   "max_opening_m": 1.1511012,
+   "volume_above_10km_km3": 0.0250278312187292,
+   "volume_km3": 0.0250278312187292
   },
   "july08": {
-   "max_opening_m": 1.261,
-   "volume_above_10km_km3": 0.0207,
-   "volume_km3": 0.0207
+   "max_opening_m": 1.2614285,
+   "volume_above_10km_km3": 0.020713029382694384,
+   "volume_km3": 0.02071302938269438
   },
   "july09": {
-   "max_opening_m": 1.643,
-   "volume_above_10km_km3": 0.0351,
-   "volume_km3": 0.0351
+   "max_opening_m": 1.6426173,
+   "volume_above_10km_km3": 0.03505041020802744,
+   "volume_km3": 0.03505041020802745
   },
   "june06": {
-   "max_opening_m": 2.163,
-   "volume_above_10km_km3": 0.0982,
-   "volume_km3": 0.102
+   "max_opening_m": 2.1631847,
+   "volume_above_10km_km3": 0.09816096993229181,
+   "volume_km3": 0.1020156527871663
   },
   "june09": {
-   "max_opening_m": 1.671,
-   "volume_above_10km_km3": 0.0404,
-   "volume_km3": 0.0404
+   "max_opening_m": 1.6707353,
+   "volume_above_10km_km3": 0.040396334345631425,
+   "volume_km3": 0.04039633434563143
   },
   "may10": {
-   "max_opening_m": 1.669,
-   "volume_above_10km_km3": 0.0346,
-   "volume_km3": 0.0346
+   "max_opening_m": 1.6693729,
+   "volume_above_10km_km3": 0.03463974934908346,
+   "volume_km3": 0.03463974934908346
   },
   "nov07": {
-   "max_opening_m": 2.032,
-   "volume_above_10km_km3": 0.1106,
-   "volume_km3": 0.1156
+   "max_opening_m": 2.0321276,
+   "volume_above_10km_km3": 0.11062555489203989,
+   "volume_km3": 0.1156456257408152
   },
   "oct08": {
-   "max_opening_m": 2.473,
-   "volume_above_10km_km3": 0.182,
-   "volume_km3": 0.1918
+   "max_opening_m": 2.4730237,
+   "volume_above_10km_km3": 0.18196470112520158,
+   "volume_km3": 0.19176992455996386
   },
   "sept05": {
-   "max_opening_m": 12.915,
-   "volume_above_10km_km3": 1.8154,
-   "volume_km3": 3.5537
+   "max_opening_m": 12.915161,
+   "volume_above_10km_km3": 1.8153571076089674,
+   "volume_km3": 3.553674348083333
   },
   "sept06": {
-   "max_opening_m": 1.031,
-   "volume_above_10km_km3": 0.0442,
-   "volume_km3": 0.0504
+   "max_opening_m": 1.0305337,
+   "volume_above_10km_km3": 0.044159450567192504,
+   "volume_km3": 0.050446126660484425
   }
  },
  "figure": "uperp_three_epoch.png",
@@ -198,7 +198,7 @@
   "openings are the published Envisat-era inversions exactly as provided (no uncertainties; different regularization and greens functions from the 2026 fit)",
   "the epoch-file row order is assumed to follow plot_3d_dyke_only.dat and awaits Ian Hamling's confirmation",
   "the delivery has 15 post-2005 files against the 13 published post-megadike intrusions; may10 is apr10 with cells below 0.5 m removed, and july09's positive cells all lie inside june09's at r=0.994 (all other pairs |r|<=0.44), so the primary cumulative excludes both and the report quotes the candidate sums; the file-to-event mapping awaits Ian Hamling's confirmation",
-  "the delivered historical fields were filtered below local uncertainty per the papers (the recovered 0.5-m floor is specific to the may10/apr10 pair), while the 2026 totals keep all fitted opening; the volume_at_0p5m_floor_km3 values apply one uniform 0.5-m floor to the primary cumulative and to 2026 as a sensitivity, not as a matched reconstruction of that filtering",
+  "the papers describe masking opening below local uncertainty, but only the may10/apr10 pair evidences a cut in the delivery (the recovered 0.5-m floor); sept05 keeps positive cells down to 4e-4 m, so each file's filtering status is unconfirmed and has been put to Ian Hamling; the 2026 totals keep all fitted opening; the volume_at_0p5m_floor_km3 values apply one uniform 0.5-m floor to the primary cumulative and to 2026 as a sensitivity, not as a matched reconstruction of any delivered filtering",
   "the shared s axis compares openings by along-axis position; the two traces differ by up to 1412 m mid-plane"
  ],
  "registration": {
