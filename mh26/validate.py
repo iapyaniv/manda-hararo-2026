@@ -587,13 +587,46 @@ def validate_new_products(require_gslc_sources: bool = True) -> None:
         if s_km.shape != (75,) or not np.all(np.diff(s_km) < 0):
             raise ValueError(f"{name}: registration s axis is not the "
                              "monotone 75-column projection")
-        # The delivery itself is optional data; verify it when installed.
+        # The delivery itself is optional data; verify it when installed,
+        # and recompute the summed statistics so a stale report fails
+        # instead of passing on hashes alone.
         delivery_dir = REPO / report["source"]["directory"]
         if delivery_dir.is_dir():
             for fname, digest in report["source"]["files"].items():
                 if sha256(delivery_dir / fname) != digest:
                     raise ValueError(f"{name}: {fname} does not match the "
                                      "recorded delivery hash")
+            from .hamling import (EPOCH_TAGS, PRIMARY_EXCLUDED,
+                                  _epoch_stats, load_openings,
+                                  version_diagnostics)
+            delivery = load_openings(delivery_dir)
+            flags = sorted({d["contained"] for d in
+                            version_diagnostics(delivery["openings_m"])})
+            cumulative = report["cumulative_2006_2010"]
+            if (flags != sorted(PRIMARY_EXCLUDED)
+                    or sorted(cumulative["primary_excluded"]) != flags):
+                raise ValueError(f"{name}: recorded exclusions do not "
+                                 "match the data-derived duplicate flags")
+            cum_tags = [t for t in EPOCH_TAGS[1:]
+                        if t not in PRIMARY_EXCLUDED]
+            if cumulative["files_summed"] != cum_tags:
+                raise ValueError(f"{name}: summed files are not the "
+                                 "primary selection")
+            widths = delivery["columns_width_km"]
+            recomputed = _epoch_stats(
+                sum(delivery["openings_m"][t] for t in cum_tags), widths)
+            for key, value in recomputed.items():
+                if abs(cumulative[key] - value) > 5e-4:
+                    raise ValueError(f"{name}: cumulative {key} does not "
+                                     "match a recomputation")
+            for tag in EPOCH_TAGS:
+                recomputed = _epoch_stats(delivery["openings_m"][tag],
+                                          widths)
+                for key, value in recomputed.items():
+                    if abs(report["epochs"][tag][key] - value) > 5e-4:
+                        raise ValueError(
+                            f"{name}: epoch {tag} {key} does not match "
+                            "a recomputation")
 
     traces = _json.loads((REPO / "results" / "fault_traces.json").read_text())
     for key in ("los_step_across_ridges", "trace_support",

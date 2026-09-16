@@ -26,6 +26,11 @@
     "volume_above_10km_km3": 0.8445,
     "volume_km3": 0.933
    },
+   "drop_june09_and_apr10": {
+    "max_opening_m": 6.675,
+    "volume_above_10km_km3": 0.7829,
+    "volume_km3": 0.8714
+   },
    "keep_july09_drop_june09": {
     "max_opening_m": 6.675,
     "volume_above_10km_km3": 0.8041,
@@ -76,6 +81,7 @@
    "may10"
   ],
   "volume_above_10km_km3": 0.8095,
+  "volume_at_0p5m_floor_km3": 0.8215,
   "volume_km3": 0.898
  },
  "epoch_2026": {
@@ -192,7 +198,7 @@
   "openings are the published Envisat-era inversions exactly as provided (no uncertainties; different regularization and greens functions from the 2026 fit)",
   "the epoch-file row order is assumed to follow plot_3d_dyke_only.dat and awaits Ian Hamling's confirmation",
   "the delivery has 15 post-2005 files against the 13 published post-megadike intrusions; may10 is apr10 with cells below 0.5 m removed, and july09's positive cells all lie inside june09's at r=0.994 (all other pairs |r|<=0.44), so the primary cumulative excludes both and the report quotes the candidate sums; the file-to-event mapping awaits Ian Hamling's confirmation",
-  "the delivered historical fields appear threshold-filtered (the papers remove opening below local uncertainty), while the 2026 totals keep all fitted opening; volume_at_0p5m_floor_km3 records the 2026 volume under the same 0.5-m floor for a like-filtered comparison",
+  "the delivered historical fields were filtered below local uncertainty per the papers (the recovered 0.5-m floor is specific to the may10/apr10 pair), while the 2026 totals keep all fitted opening; the volume_at_0p5m_floor_km3 values apply one uniform 0.5-m floor to the primary cumulative and to 2026 as a sensitivity, not as a matched reconstruction of that filtering",
   "the shared s axis compares openings by along-axis position; the two traces differ by up to 1412 m mid-plane"
  ],
  "registration": {

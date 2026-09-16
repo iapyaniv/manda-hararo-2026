@@ -209,12 +209,13 @@
   may10 equals apr10 with cells below 0.5 m removed, and july09's positive
   cells all lie inside june09's at r = 0.994 (no other pair exceeds
   |r| = 0.44), so the primary cumulative sums thirteen files (drops may10
-  and july09) and the report brackets the mapping ambiguity (0.877–0.968
+  and july09) and the report brackets the mapping ambiguity (0.871–0.968
   km³); the file-to-event mapping awaits the same confirmation. The
-  delivered fields also appear threshold-filtered (the papers remove
-  opening below local uncertainty) while the 2026 totals keep all fitted
-  opening; the report records the 2026 volume under a matching 0.5-m
-  floor. The 2005 model places 1.74 of its
+  delivered fields were also filtered below local uncertainty per the
+  papers while the 2026 totals keep all fitted opening; the report
+  records a uniform 0.5-m floor for the primary cumulative and for 2026
+  as a sensitivity, not a matched reconstruction of that filtering. The
+  2005 model places 1.74 of its
   3.55 km³ below 10 km depth, where the 2026 plane has no patches, so
   like-for-like volume comparisons must quote the above-10-km values.
 

@@ -266,10 +266,11 @@ def version_diagnostics(openings: dict) -> list[dict]:
 def _fit_opening_stats(fit: dict, geometry: dict) -> dict:
     """Integrate the fitted opening on its own grid, split at 10 km.
 
-    A depth row straddling 10 km contributes its fractional overlap, and
-    the 0.5-m-floor volume mirrors the thresholding observed in the
-    delivered historical fields (may10 = apr10 with cells below 0.5 m
-    removed), for a like-filtered comparison.
+    A depth row straddling 10 km contributes its fractional overlap. The
+    0.5-m-floor volume is a uniform-floor sensitivity, mirroring the one
+    floor recovered from the delivered may10/apr10 pair; the papers
+    filtered by local uncertainty, so it is not a matched reconstruction
+    of their filtering.
     """
     nz, ns = geometry["dike_shape"]
     opening = np.asarray(fit["dislocation_magnitudes_m"])[:nz * ns]
@@ -439,6 +440,11 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
     cum = sum(delivery["openings_m"][t] for t in cum_tags)
     widths = delivery["columns_width_km"]
     epochs["cumulative_2006_2010"] = _epoch_stats(cum, widths)
+    floored_cum = sum(np.where(delivery["openings_m"][t] >= 0.5,
+                               delivery["openings_m"][t], 0.0)
+                      for t in cum_tags)
+    epochs["cumulative_2006_2010"]["volume_at_0p5m_floor_km3"] = \
+        _epoch_stats(floored_cum, widths)["volume_km3"]
     epochs["epoch_2026"] = _fit_opening_stats(fit, geometry)
 
     figure = three_epoch_figure(delivery, registration, fit, geometry,
@@ -486,6 +492,9 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
                 "keep_july09_drop_june09": _epoch_stats(
                     sum(delivery["openings_m"][t] for t in EPOCH_TAGS[1:]
                         if t not in ("june09", "may10")), widths),
+                "drop_june09_and_apr10": _epoch_stats(
+                    sum(delivery["openings_m"][t] for t in EPOCH_TAGS[1:]
+                        if t not in ("june09", "apr10")), widths),
                 "catalogue_13_events": {
                     "files": list(CATALOGUE_13),
                     **_epoch_stats(
@@ -513,11 +522,13 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
             "primary cumulative excludes both and the report quotes the "
             "candidate sums; the file-to-event mapping awaits Ian "
             "Hamling's confirmation",
-            "the delivered historical fields appear threshold-filtered "
-            "(the papers remove opening below local uncertainty), while "
-            "the 2026 totals keep all fitted opening; "
-            "volume_at_0p5m_floor_km3 records the 2026 volume under the "
-            "same 0.5-m floor for a like-filtered comparison",
+            "the delivered historical fields were filtered below local "
+            "uncertainty per the papers (the recovered 0.5-m floor is "
+            "specific to the may10/apr10 pair), while the 2026 totals "
+            "keep all fitted opening; the volume_at_0p5m_floor_km3 "
+            "values apply one uniform 0.5-m floor to the primary "
+            "cumulative and to 2026 as a sensitivity, not as a matched "
+            "reconstruction of that filtering",
             "the shared s axis compares openings by along-axis position; "
             "the two traces differ by up to "
             f"{registration['max_offplane_m']:.0f} m mid-plane",
@@ -566,6 +577,8 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
              alternatives["counted_once_14_files"]),
             ("keep july09, drop june09",
              alternatives["keep_july09_drop_june09"]),
+            ("keep july09 + may10, drop june09 + apr10",
+             alternatives["drop_june09_and_apr10"]),
             ("catalogue 13 events (filtered may10)",
              alternatives["catalogue_13_events"])):
         lines.append(f"| — alternative: {label} | "
@@ -587,13 +600,19 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
         "pair exceeds |r| = 0.44 — two estimates of one event. The "
         "primary cumulative therefore sums 13 files (drops may10 and "
         "july09); the alternatives above bracket the mapping ambiguity "
-        "(0.877-0.968 km3), which Ian Hamling has been asked to resolve.",
+        f"({min(v['volume_km3'] for v in [stats, *alternatives.values()]):.3f}"
+        f"-{max(v['volume_km3'] for v in [stats, *alternatives.values()]):.3f}"
+        " km3), which Ian Hamling has been asked to resolve.",
         "",
-        "Comparability caveats: the delivered historical fields appear "
-        "threshold-filtered (the papers remove opening below local "
-        "uncertainty), while the 2026 totals keep all fitted opening — "
-        "under the same 0.5-m floor the 2026 volume is "
-        f"{fit_stats['volume_at_0p5m_floor_km3']:.3f} km3. The 2005 model "
+        "Comparability caveats: the delivered historical fields were "
+        "filtered below local uncertainty per the papers (the recovered "
+        "0.5-m floor is specific to the may10/apr10 pair), while the "
+        "2026 totals keep all fitted opening. As a uniform-floor "
+        "sensitivity — not a matched reconstruction — a 0.5-m floor "
+        "gives "
+        f"{stats['volume_at_0p5m_floor_km3']:.3f} km3 for the primary "
+        f"cumulative and {fit_stats['volume_at_0p5m_floor_km3']:.3f} km3 "
+        "for 2026. The 2005 model "
         "carries "
         f"{epochs['sept05']['volume_km3'] - epochs['sept05']['volume_above_10km_km3']:.2f}"
         " km3 below 10 km depth (a deep lobe peaking at 13-20 km in its "
