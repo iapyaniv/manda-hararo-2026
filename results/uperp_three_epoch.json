@@ -1,0 +1,313 @@
+{
+ "cumulative_2006_2010": {
+  "max_opening_m": 8.44,
+  "n_events": 15,
+  "volume_above_10km_km3": 0.8792,
+  "volume_km3": 0.9677
+ },
+ "epoch_2026": {
+  "dike_volume_km3": 0.1815,
+  "geometry_sha256": "23e42105d82ea9cdcadb770cccdbf9d9585b670e132b6c18c6e99d74daf8a01a",
+  "max_opening_m": 2.304,
+  "reference_fit": "distributed_fit_geometry_4a7b2386c8b5.json",
+  "reference_fit_sha256": "9f707bbb48446a901459a059a0f48d795ba62041af981d4e4275b067740b3399"
+ },
+ "epochs": {
+  "apr08": {
+   "max_opening_m": 1.266,
+   "volume_above_10km_km3": 0.067,
+   "volume_km3": 0.1177
+  },
+  "apr10": {
+   "max_opening_m": 1.669,
+   "volume_above_10km_km3": 0.0558,
+   "volume_km3": 0.0558
+  },
+  "aug07": {
+   "max_opening_m": 2.464,
+   "volume_above_10km_km3": 0.0403,
+   "volume_km3": 0.0403
+  },
+  "dec06": {
+   "max_opening_m": 1.809,
+   "volume_above_10km_km3": 0.0437,
+   "volume_km3": 0.0489
+  },
+  "feb09": {
+   "max_opening_m": 1.574,
+   "volume_above_10km_km3": 0.0686,
+   "volume_km3": 0.0763
+  },
+  "jan07": {
+   "max_opening_m": 0.696,
+   "volume_above_10km_km3": 0.013,
+   "volume_km3": 0.013
+  },
+  "july06": {
+   "max_opening_m": 1.151,
+   "volume_above_10km_km3": 0.025,
+   "volume_km3": 0.025
+  },
+  "july08": {
+   "max_opening_m": 1.261,
+   "volume_above_10km_km3": 0.0207,
+   "volume_km3": 0.0207
+  },
+  "july09": {
+   "max_opening_m": 1.643,
+   "volume_above_10km_km3": 0.0351,
+   "volume_km3": 0.0351
+  },
+  "june06": {
+   "max_opening_m": 2.163,
+   "volume_above_10km_km3": 0.0982,
+   "volume_km3": 0.102
+  },
+  "june09": {
+   "max_opening_m": 1.671,
+   "volume_above_10km_km3": 0.0404,
+   "volume_km3": 0.0404
+  },
+  "may10": {
+   "max_opening_m": 1.669,
+   "volume_above_10km_km3": 0.0346,
+   "volume_km3": 0.0346
+  },
+  "nov07": {
+   "max_opening_m": 2.032,
+   "volume_above_10km_km3": 0.1106,
+   "volume_km3": 0.1156
+  },
+  "oct08": {
+   "max_opening_m": 2.473,
+   "volume_above_10km_km3": 0.182,
+   "volume_km3": 0.1918
+  },
+  "sept05": {
+   "max_opening_m": 12.915,
+   "volume_above_10km_km3": 1.8154,
+   "volume_km3": 3.5537
+  },
+  "sept06": {
+   "max_opening_m": 1.031,
+   "volume_above_10km_km3": 0.0442,
+   "volume_km3": 0.0504
+  }
+ },
+ "figure": "uperp_three_epoch.png",
+ "generated_by": "mh26.hamling",
+ "layout": {
+  "column_width_km": [
+   0.940897,
+   1.136807
+  ],
+  "crs": "UTM 37N metres",
+  "depth_edges_km": [
+   0.0,
+   20.0
+  ],
+  "n_columns": 75,
+  "n_depth_rows": 20,
+  "opening_row_order_assumed_from_geometry_file": true,
+  "row_order": "depth-fastest (20 one-km rows per column), columns S->N in the file"
+ },
+ "nisar_source": "gunw",
+ "notes": [
+  "openings are the published Envisat-era inversions exactly as provided (no uncertainties; different regularization and greens functions from the 2026 fit)",
+  "the epoch-file row order is assumed to follow plot_3d_dyke_only.dat and awaits Ian Hamling's confirmation",
+  "the shared s axis compares openings by along-axis position; the two traces differ by up to 1412 m mid-plane"
+ ],
+ "registration": {
+  "columns_within_plane": 71,
+  "frame": "along-plane s of the mh26.wright2006 contract (km, 0 at the NW end of the original plane)",
+  "max_offplane_m": 1411.8847461286496,
+  "median_offplane_m": 93.05831892985607,
+  "offplane_m": [
+   108.03868293945983,
+   87.92898319807885,
+   67.81928260414766,
+   47.70958233985472,
+   27.599882598473744,
+   7.4901820048627625,
+   12.619517736518217,
+   32.729218330350186,
+   52.83891807173117,
+   72.94861866556315,
+   93.05831892985607,
+   113.16801952346705,
+   133.27771926494725,
+   153.38741985877923,
+   173.4971196001602,
+   193.6068201937712,
+   213.71651993527394,
+   233.82622105189608,
+   253.93592079337628,
+   274.04562138710907,
+   294.15532112849,
+   314.26502172220023,
+   334.374721463482,
+   354.4844220574132,
+   374.5941223217061,
+   394.70382291531706,
+   414.8135226567973,
+   434.92322325053004,
+   455.03292299201024,
+   475.1426235856212,
+   495.25232332690297,
+   515.3620235913943,
+   535.4717241851271,
+   555.581423926508,
+   745.1796450856907,
+   1090.548079350109,
+   1312.7833016079128,
+   1411.8847461286496,
+   1269.4272212264968,
+   1012.5226944591128,
+   755.6181678986583,
+   498.7136413380899,
+   241.80911457070587,
+   15.095412968246098,
+   202.21507629542594,
+   226.82255784808007,
+   175.64407638936135,
+   124.46559586586538,
+   73.2871153423694,
+   22.108633883541792,
+   2.3601084086203423e-07,
+   2.0243630325406704e-07,
+   2.9089969075919815e-07,
+   1.475474536376343e-07,
+   3.4581245320643495e-07,
+   9.255018085241318e-08,
+   4.0070128406323406e-07,
+   4.008097535135975e-07,
+   9.255018085241318e-08,
+   3.4581245320643495e-07,
+   1.4743898249219696e-07,
+   2.9089969075919815e-07,
+   2.0243630325406704e-07,
+   2.3601084086203423e-07,
+   9.853661317234668e-08,
+   3.350568871681594e-07,
+   2.2859143744853064e-07,
+   1.2993874381495851e-07,
+   4.337095741721083e-07,
+   1.1641532182693481e-10,
+   4.3359348819407913e-07,
+   1.3005482929205661e-07,
+   2.284753534431438e-07,
+   3.3517297429419883e-07,
+   9.842053150722363e-08
+  ],
+  "plane_span_km": [
+   0.0,
+   71.00949223636361
+  ],
+  "s_km": [
+   74.62067760952849,
+   73.67999524109318,
+   72.7393128731807,
+   71.79863050389302,
+   70.85794813545772,
+   69.91726576754539,
+   68.97658339911007,
+   68.0359010311978,
+   67.09521866276228,
+   66.15453629484993,
+   65.21385392556228,
+   64.27317155764995,
+   63.332489189214684,
+   62.39180682130215,
+   61.451124452866836,
+   60.5104420849545,
+   59.56975971651924,
+   58.62907734775455,
+   57.68839497931904,
+   56.747712611406705,
+   55.807030242971386,
+   54.86634787505911,
+   53.925665506623794,
+   52.984983138711264,
+   52.04430076942359,
+   51.103618401511255,
+   50.162936033076,
+   49.22225366516367,
+   48.28157129672815,
+   47.340888928815815,
+   46.400206560380504,
+   45.45952419109289,
+   44.51884182318056,
+   43.57815945474524,
+   42.606404578986535,
+   41.62572364307326,
+   40.61345485721172,
+   39.569598196923245,
+   38.04536053252125,
+   37.02876922444278,
+   36.01217791538569,
+   34.995586606328594,
+   33.978995298250126,
+   32.96240398898638,
+   31.90939582280909,
+   30.819321443825874,
+   29.68366732338597,
+   28.548013202592305,
+   27.4123590817986,
+   26.27670496135848,
+   25.20734714262324,
+   24.185823428134057,
+   23.16429971400826,
+   22.142775999519333,
+   21.12125228539353,
+   20.099728570904343,
+   19.078204856778544,
+   18.056681143221365,
+   17.035157429095307,
+   16.013633714606378,
+   14.992110000480578,
+   13.97058628599165,
+   12.949062571865593,
+   11.927538857376664,
+   10.897832590761267,
+   9.859943772778344,
+   8.822054954870556,
+   7.784166135890453,
+   6.746277317982895,
+   5.708388499999976,
+   4.670499682017046,
+   3.6326108641092563,
+   2.5947220451291546,
+   1.5568332272213645,
+   0.5189444092384444
+  ],
+  "se_limit_2005_km": 61.001693599999975,
+  "span_km": [
+   0.5189444092384444,
+   74.62067760952849
+  ]
+ },
+ "source": {
+  "directory": "data/ihamling/opening_files",
+  "files": {
+   "dyke_only_apr08_ex.txt": "608e3bee106cf69e9045383c2ee95f1ea763bf5d2a9d33741787ba939ab5d192",
+   "dyke_only_apr10_ex.txt": "4a95ce7037e37ab90b4ee35c67a83a46c436ebf7418de17ecf26fa37e19b6c22",
+   "dyke_only_aug07_ex.txt": "77a1112d5325117e05076bf038af30e0bdd74976641e001a75e608d7c812242a",
+   "dyke_only_dec06_ex.txt": "546a73aa28ecd0254b6609f67d48f8379b16ef1d09ee3712fd89cf156114ea5a",
+   "dyke_only_feb09_ex.txt": "5ae9e2d793aeaa17f34e26a67493ea3bbd9d152b36abc51be3bfdb9d18cb3ed1",
+   "dyke_only_jan07_ex.txt": "35cfef86ab21ff72349aebd79a14643b0b6c7e208c828fe2216f02f124334c26",
+   "dyke_only_july06_ex.txt": "375f777762d0ff02e4dedce1e9e886ae7852891a71fc5a94c09971f9f2ac282d",
+   "dyke_only_july08_ex.txt": "f1911a0b903a3624679d5eebbc075c5ebc24b5ffb6e8a2168d6109cf5fd40c9d",
+   "dyke_only_july09_ex.txt": "f2b2dd68fe336582cd4a9163c0876c6024f34ca354d9548e5839d4f5c5d30dfe",
+   "dyke_only_june06_ex.txt": "92c65047306ec08c2848e7fc73feec79ee0380d49bf8c6696069b5d0d789cd6e",
+   "dyke_only_june09_ex.txt": "5baf0457cab89c486d6eb6095cf39f3ea3b644ba021e0fb552f06507dffcd6a8",
+   "dyke_only_may10_ex.txt": "a22a41378b904e5b061d03ff3e6e37cf92cd739f9f77ece8dd690c302b2463d1",
+   "dyke_only_nov07_ex.txt": "926845cc5dba8c4722a10188d6ded55e4278bea75580dd682efa3f8d75dad7b7",
+   "dyke_only_oct08_ex.txt": "3318af5c79d77129ec1e9e96db6cc6b5176cfc136ebe1d6fbc8eb4a0dcb2db4a",
+   "dyke_only_sept05_ex.txt": "61f46387d70728709eb95655a4f4d1d7c7cbcee8196803927328c6053b144915",
+   "dyke_only_sept06_ex.txt": "3a1add974b22fba819ba30748f74a3c59077faf43c6ca50fe6b61b65c2f8f8f5",
+   "plot_3d_dyke_only.dat": "f51fb02a772b0750b68f964fec8764f466741c9c354b32838ac0fead8830bc63"
+  },
+  "received": "linked by Tim Wright in the paper thread on 2026-09-16 (files produced by Ian Hamling, GNS)",
+  "url": "https://sftp.gns.cri.nz/pub/ihamling/dyke_files.zip"
+ }
+}

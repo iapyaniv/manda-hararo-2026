@@ -35,8 +35,9 @@ differs by ~4 deg; its endpoints lie 0.35 and 0.88 km off the segment's
 line) and overruns the segment's SE end by ~3 km, so the plane is extended
 SE along that segment's strike (--extend-se) and the extension is recorded
 in the output. The along-plane coordinate s starts at 0 at the NW end of the
-ORIGINAL plane and increases SE; it can be remapped once the 2005/2006-2010
-opening distributions arrive.
+ORIGINAL plane and increases SE. The delivered 2005/2006-2010 opening
+distributions project monotonically onto this axis (mh26.hamling), so s
+needs no remap.
 
 The plane is segmented, so no single straight strike-frame reproduces it.
 The scalar `strike`/`trace_centre` contract fields are set to the chord of

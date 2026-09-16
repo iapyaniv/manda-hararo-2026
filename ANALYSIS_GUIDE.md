@@ -74,6 +74,15 @@ Manda Hararo intrusion.
   (pivotal, about the noiseless refit); `results/fringes_model_comparison.png`
   compares rewrapped observed and modelled fringes with a cross-axis
   profile.
+- `mh26/hamling.py` decodes Ian Hamling's `dyke_files.zip` delivery (the
+  September 2005 and fifteen 2006–2010 opening distributions on the ~74 km
+  Hamling computational grid; the format is documented in the module
+  docstring and the tracked tables live in `data/ihamling/opening_files/`,
+  see `data/README.md`), registers that grid on the Wright-plane s axis,
+  and writes the three-epoch U⊥ comparison per input chain:
+  `results/uperp_three_epoch{,_gslc}.{json,md,png,pdf}` (September 2005,
+  cumulative 2006–2010, July 2026 on one along-plane axis, with per-epoch
+  volume and maximum-opening tables).
 - `mh26/fault_depth.py` sweeps the depth extent of the mapped east-fault
   term (truncation caps re-solved at the reused smoothing weight) and
   reports changes in misfit and fault potency/moment, per

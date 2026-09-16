@@ -571,6 +571,28 @@ def validate_new_products(require_gslc_sources: bool = True) -> None:
                           * base["fault_potency_m3"]):
             raise ValueError(f"{name}: baseline moment is not mu x potency")
 
+    for name, expected_source in (("uperp_three_epoch.json", "gunw"),
+                                  ("uperp_three_epoch_gslc.json", "gslc")):
+        report = _json.loads((REPO / "results" / name).read_text())
+        if report.get("nisar_source") != expected_source:
+            raise ValueError(f"{name}: nisar_source is not {expected_source!r}")
+        ref = report["epoch_2026"]
+        if ref["reference_fit_sha256"] != sha256(
+                REPO / "results" / ref["reference_fit"]):
+            raise ValueError(f"{name}: comparison predates the current "
+                             f"{ref['reference_fit']}")
+        s_km = np.asarray(report["registration"]["s_km"], dtype=float)
+        if s_km.shape != (75,) or not np.all(np.diff(s_km) < 0):
+            raise ValueError(f"{name}: registration s axis is not the "
+                             "monotone 75-column projection")
+        # The delivery itself is optional data; verify it when installed.
+        delivery_dir = REPO / report["source"]["directory"]
+        if delivery_dir.is_dir():
+            for fname, digest in report["source"]["files"].items():
+                if sha256(delivery_dir / fname) != digest:
+                    raise ValueError(f"{name}: {fname} does not match the "
+                                     "recorded delivery hash")
+
     traces = _json.loads((REPO / "results" / "fault_traces.json").read_text())
     for key in ("los_step_across_ridges", "trace_support",
                 "threshold_sensitivity", "cross_geometry_alignment_null"):

@@ -137,6 +137,28 @@ Each archive contains a checksum manifest for its own files. The core archive
 can therefore be verified without the separate pre-event archive. Top-level
 archive checksums are in `dist/SHA256SUMS.txt`.
 
+## Hamling dike files (2005 and 2006–2010 opening distributions)
+
+`data/ihamling/` holds Ian Hamling's `dyke_files.zip` delivery (linked by
+Tim Wright in the paper thread on 16 September 2026):
+
+```bash
+curl -L -o data/ihamling/dyke_files.zip \
+  https://sftp.gns.cri.nz/pub/ihamling/dyke_files.zip
+# sha256 28a866cb1712c325e0f9b22326d9389c51a58bde5a4b97704dedac4ebd4c7d59
+python -c "import zipfile; zipfile.ZipFile('data/ihamling/dyke_files.zip')\
+.extractall('data/ihamling')"
+```
+
+The 17 small `opening_files/` tables (the `dyke_only_*_ex.txt` openings and
+the `plot_3d_dyke_only.dat` patch geometry, ~0.5 MB) are tracked in git, so
+`mh26.hamling` runs from a plain clone; `mh26.validate` checks them against
+the hashes recorded in `results/uperp_three_epoch*.json`. The zip itself and
+the 15 `t300_*_wrp_dyke.grd` grids (GMT classic netCDF, 1024×1024 at 90 m,
+UTM 37N, wrapped Envisat track-300 LOS in centimetres — the z range spans
+one 2.81-cm fringe) stay out of git; re-download the zip for them. The
+decoded table format is documented in the `mh26/hamling.py` docstring.
+
 ## Contents
 
 The core NISAR set is:

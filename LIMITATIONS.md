@@ -193,6 +193,20 @@
   grid with different patch widths and twice the parameters of the primary
   fit, so regularization is matched only nominally; the reported λ-envelope
   brackets the effect.
+- The three-epoch comparison (`mh26.hamling`) uses the September 2005 and
+  2006–2010 openings exactly as delivered in Ian Hamling's `dyke_files.zip`:
+  published Envisat-era inversions on the ~74 km Hamling computational
+  grid, with no uncertainties, and with regularization and Green's
+  functions that differ from the 2026 fit's. Only the along-axis
+  coordinate is shared: the grid's columns project monotonically onto the
+  Wright-plane s axis with a median off-plane offset of about 0.1 km but
+  up to 1.4 km mid-plane, so the two model surfaces are close but not
+  identical. The opening files carry no coordinates; their row order is
+  taken from `plot_3d_dyke_only.dat` (equal row count, physically coherent
+  depth profiles) and awaits Ian Hamling's confirmation, and exact event
+  dates are not part of the delivery. The 2005 model places 1.74 of its
+  3.55 km³ below 10 km depth, where the 2026 plane has no patches, so
+  like-for-like volume comparisons must quote the above-10-km values.
 
 ## Timing and continuation
 

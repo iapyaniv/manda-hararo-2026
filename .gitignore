@@ -7,6 +7,10 @@ data/*
 !data/SHA256SUMS-gslc.txt
 !data/SHA256SUMS-closure.txt
 !data/complex_geom2_revised_test.dat
+!data/ihamling/
+data/ihamling/*
+!data/ihamling/opening_files/
+data/ihamling/opening_files/*.grd
 dist/
 .venv/
 __pycache__/
