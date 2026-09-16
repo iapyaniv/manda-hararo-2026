@@ -22,11 +22,13 @@ Openings of the September 2005 megadike and the fifteen post-2005 opening files 
 | july09 | 0.035 | 0.035 | 1.64 |
 | apr10 | 0.056 | 0.056 | 1.67 |
 | may10 | 0.035 | 0.035 | 1.67 |
-| 2006-2010 cumulative (14 files, duplicate-free) | 0.933 | 0.845 | 7.72 |
+| 2006-2010 cumulative (13 files, primary) | 0.898 | 0.809 | 6.67 |
 | — alternative: all 15 delivered files | 0.968 | 0.879 | 8.44 |
-| — alternative: catalogue 13 events | 0.877 | 0.788 | 6.67 |
+| — alternative: 14 files (only may10 dropped) | 0.933 | 0.845 | 7.72 |
+| — alternative: keep july09, drop june09 | 0.893 | 0.804 | 6.67 |
+| — alternative: catalogue 13 events (filtered may10) | 0.877 | 0.788 | 6.67 |
 | July 2026 (gslc) | 0.180 | 0.180 | 2.31 |
 
-The delivery has 15 post-2005 files against the 13 published post-megadike intrusions. Exact duplication: may10 is an exact sub-array of apr10 (36 nonzero cells). The cumulative drops the contained file(s) so no delivered value is counted twice; the file-to-event mapping (apr10, july09) awaits Ian Hamling's confirmation, and the table quotes the all-files and catalogue-count sums as alternatives.
+The delivery has 15 post-2005 files against the 13 published post-megadike intrusions, and the data flag two as duplicate content: may10 equals apr10 with every cell below 0.5 m set to zero (38% of that field's volume), and july09's positive cells all lie inside june09's at correlation 0.994 while no other pair exceeds |r| = 0.44 — two estimates of one event. The primary cumulative therefore sums 13 files (drops may10 and july09); the alternatives above bracket the mapping ambiguity (0.877-0.968 km3), which Ian Hamling has been asked to resolve.
 
-The 2005 model carries 1.74 km3 below 10 km depth (a deep lobe peaking at 13-20 km in its northern half); the 2026 model plane ends at 10 km, so like-for-like volume comparisons should quote the above-10-km column. Caveats: see the notes block in the JSON and LIMITATIONS.md. Exact event dates are not part of the delivery; take them from the Hamling et al. (2009, 2010) catalogue when captioning.
+Comparability caveats: the delivered historical fields appear threshold-filtered (the papers remove opening below local uncertainty), while the 2026 totals keep all fitted opening — under the same 0.5-m floor the 2026 volume is 0.154 km3. The 2005 model carries 1.74 km3 below 10 km depth (a deep lobe peaking at 13-20 km in its northern half); the 2026 model plane ends at 10 km, so like-for-like volume comparisons should quote the above-10-km column. See also the notes block in the JSON and LIMITATIONS.md. Exact event dates are not part of the delivery; take them from the Hamling et al. (2009, 2010) catalogue when captioning.

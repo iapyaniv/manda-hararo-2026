@@ -205,12 +205,16 @@
   taken from `plot_3d_dyke_only.dat` (equal row count, physically coherent
   depth profiles) and awaits Ian Hamling's confirmation, and exact event
   dates are not part of the delivery. The delivery also holds fifteen
-  post-2005 files against the thirteen published post-megadike intrusions,
-  and one file's nonzero cells are exactly contained in another (may10 in
-  apr10), so the cumulative counts each delivered value once by dropping
-  contained files and the report quotes the all-files and catalogue-count
-  sums as alternatives; the file-to-event mapping awaits the same
-  confirmation. The 2005 model places 1.74 of its
+  post-2005 files against the thirteen published post-megadike intrusions;
+  may10 equals apr10 with cells below 0.5 m removed, and july09's positive
+  cells all lie inside june09's at r = 0.994 (no other pair exceeds
+  |r| = 0.44), so the primary cumulative sums thirteen files (drops may10
+  and july09) and the report brackets the mapping ambiguity (0.877–0.968
+  km³); the file-to-event mapping awaits the same confirmation. The
+  delivered fields also appear threshold-filtered (the papers remove
+  opening below local uncertainty) while the 2026 totals keep all fitted
+  opening; the report records the 2026 volume under a matching 0.5-m
+  floor. The 2005 model places 1.74 of its
   3.55 km³ below 10 km depth, where the 2026 plane has no patches, so
   like-for-like volume comparisons must quote the above-10-km values.
 

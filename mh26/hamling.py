@@ -5,8 +5,8 @@ paper thread on 2026-09-16), whose `opening_files/` holds the published
 opening distributions of the September 2005 megadike and fifteen later
 (2006-2010) opening files on the ~74 km Hamling computational grid
 (Hamling et al. 2009, 2010; the published sequence has 13 post-megadike
-intrusions, so two files await identification, and one is an exact
-duplicate subset of another — see `duplicate_subsets` and the report).
+intrusions and the data flag two files as duplicate content — see
+`version_diagnostics`, `PRIMARY_EXCLUDED`, and the report).
 This module decodes that delivery, registers the grid against
 the Wright et al. (2006) plane the 2026 fit uses (mh26.wright2006), and
 renders the three-epoch U_perp comparison the plane was built for:
@@ -78,17 +78,26 @@ N_DEPTH = 20
 
 # Filename month tags in event order. The delivery carries no exact dates;
 # event dates must come from the Hamling et al. (2009, 2010) catalogue when
-# captioning, so only the tags are recorded here. The delivery holds 15
-# post-2005 files against the 13 published post-megadike intrusions, and
-# may10's nonzero cells are all exactly contained in apr10, so the
-# file-to-event correspondence (apr10, july09) awaits Ian Hamling's
-# confirmation; the cumulative below de-duplicates by construction.
+# captioning, so only the tags are recorded here.
 EPOCH_TAGS = ("sept05", "june06", "july06", "sept06", "dec06", "jan07",
               "aug07", "nov07", "apr08", "july08", "oct08", "feb09",
               "june09", "july09", "apr10", "may10")
 
+# The delivery holds 15 post-2005 files against the 13 published
+# post-megadike intrusions, and two files duplicate others' content:
+# may10 equals apr10 with every cell below 0.5 m set to zero (an exact,
+# deterministic relation), and july09's positive cells all lie inside
+# june09's with a 0.994 correlation, against at most 0.44 between any
+# other pair — two estimates of one event, not two events. The primary
+# cumulative therefore excludes the two files below; the report quotes the
+# other candidate sums, and `version_diagnostics` re-derives the evidence
+# from the data so a changed delivery cannot silently keep this decision.
+# The file-to-event mapping still awaits Ian Hamling's confirmation.
+PRIMARY_EXCLUDED = ("july09", "may10")
+
 # The 13 post-2005 intrusions of the published sequence, used only for the
-# alternative catalogue-count sum in the report.
+# alternative catalogue-count sum in the report (note it represents the
+# May 2010 event by the filtered may10 field).
 CATALOGUE_13 = ("june06", "july06", "sept06", "dec06", "jan07", "aug07",
                 "nov07", "apr08", "july08", "oct08", "feb09", "june09",
                 "may10")
@@ -209,12 +218,17 @@ def _epoch_stats(opening: np.ndarray, width_km: np.ndarray) -> dict:
     }
 
 
-def duplicate_subsets(openings: dict) -> list[dict]:
-    """Post-2005 files whose nonzero cells are exactly contained in another.
+def version_diagnostics(openings: dict) -> list[dict]:
+    """Post-2005 file pairs whose content duplicates another's.
 
-    Independent inversions do not reproduce another model's values cell for
-    cell, so exact containment marks duplicate model content inside the
-    delivery; summing such a pair counts the contained field twice.
+    Two independent intrusions on the same plane share little: no
+    distinct-event pair in this delivery correlates above |r| = 0.44.
+    A pair is flagged when the smaller file's positive cells all lie
+    inside the larger's and either the shared values are exactly equal
+    (a thresholded copy — the threshold is recovered and recorded; the
+    removed small cells depress the correlation, so exactness alone
+    suffices) or the whole fields correlate at r >= 0.98 (a re-estimate
+    of the same event). Summing a flagged pair counts one event twice.
     """
     pairs = []
     for tag in EPOCH_TAGS[1:]:
@@ -226,15 +240,37 @@ def duplicate_subsets(openings: dict) -> list[dict]:
             if other == tag:
                 continue
             container = openings[other]
-            if ((container > 0).sum() > nz.sum()
-                    and np.array_equal(contained[nz], container[nz])):
-                pairs.append({"contained": tag, "container": other,
-                              "n_cells": int(nz.sum())})
+            nz_other = container > 0
+            if nz_other.sum() <= nz.sum() or not np.all(nz_other[nz]):
+                continue
+            corr = float(np.corrcoef(contained.ravel(),
+                                     container.ravel())[0, 1])
+            exact = bool(np.array_equal(contained[nz], container[nz]))
+            if not exact and corr < 0.98:
+                continue
+            threshold = None
+            if exact:
+                floor = float(contained[nz].min())
+                if np.array_equal(contained,
+                                  np.where(container >= floor, container,
+                                           0.0)):
+                    threshold = floor
+            pairs.append({"contained": tag, "container": other,
+                          "n_cells": int(nz.sum()),
+                          "correlation": round(corr, 4),
+                          "exact_value_subset": exact,
+                          "threshold_m": threshold})
     return pairs
 
 
 def _fit_opening_stats(fit: dict, geometry: dict) -> dict:
-    """Integrate the fitted opening on its own grid, split at 10 km."""
+    """Integrate the fitted opening on its own grid, split at 10 km.
+
+    A depth row straddling 10 km contributes its fractional overlap, and
+    the 0.5-m-floor volume mirrors the thresholding observed in the
+    delivered historical fields (may10 = apr10 with cells below 0.5 m
+    removed), for a like-filtered comparison.
+    """
     nz, ns = geometry["dike_shape"]
     opening = np.asarray(fit["dislocation_magnitudes_m"])[:nz * ns]
     opening = opening.reshape(nz, ns)
@@ -242,12 +278,16 @@ def _fit_opening_stats(fit: dict, geometry: dict) -> dict:
     z_edges = np.asarray(geometry["dike_z_edges_m"], dtype=float)
     areas_km2 = (np.diff(s_edges)[None, :] / 1e3
                  * np.diff(z_edges)[:, None] / 1e3)
-    z_centres_km = 0.5 * (z_edges[:-1] + z_edges[1:]) / 1e3
-    shallow = z_centres_km < 10.0
+    z0, z1 = z_edges[:-1] / 1e3, z_edges[1:] / 1e3
+    above_frac = np.clip((10.0 - z0) / (z1 - z0), 0.0, 1.0)
+    floored = np.where(opening >= 0.5, opening, 0.0)
     return {
         "volume_km3": round(fit["dike"]["dike_volume_km3"], 4),
         "volume_above_10km_km3": round(
-            float((opening[shallow] * areas_km2[shallow]).sum()) * 1e-3, 4),
+            float((opening * areas_km2 * above_frac[:, None]).sum())
+            * 1e-3, 4),
+        "volume_at_0p5m_floor_km3": round(
+            float((floored * areas_km2).sum()) * 1e-3, 4),
         "max_opening_m": round(fit["dike"]["max_opening_m"], 3),
         "plane_bottom_km": float(z_edges[-1]) / 1e3,
     }
@@ -287,9 +327,9 @@ def three_epoch_figure(delivery: dict, registration: dict, fit: dict,
          s_ham, np.arange(21.0), 13.0, [2, 4, 6, 8, 10, 12],
          "Hamling dike files, as provided",
          epochs["sept05"]),
-        ("2006–2010 (cumulative, duplicate-free)", cumulative[::-1].T,
+        ("2006–2010 (cumulative, provisional set)", cumulative[::-1].T,
          s_ham, np.arange(21.0), 9.0, [1, 2, 4, 6, 8],
-         "Hamling dike files, as provided",
+         "Hamling dike files; two-file mapping pending",
          epochs["cumulative_2006_2010"]),
     ]
 
@@ -388,9 +428,14 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
     epochs = {tag: _epoch_stats(delivery["openings_m"][tag],
                                 delivery["columns_width_km"])
               for tag in EPOCH_TAGS}
-    dupes = duplicate_subsets(delivery["openings_m"])
-    dropped = sorted({d["contained"] for d in dupes})
-    cum_tags = [t for t in EPOCH_TAGS[1:] if t not in dropped]
+    diagnostics = version_diagnostics(delivery["openings_m"])
+    flagged = sorted({d["contained"] for d in diagnostics})
+    if flagged != sorted(PRIMARY_EXCLUDED):
+        raise ValueError(
+            f"data-derived duplicate flags {flagged} no longer match the "
+            f"reviewed exclusions {sorted(PRIMARY_EXCLUDED)}; the delivery "
+            "changed — revisit PRIMARY_EXCLUDED before summing")
+    cum_tags = [t for t in EPOCH_TAGS[1:] if t not in PRIMARY_EXCLUDED]
     cum = sum(delivery["openings_m"][t] for t in cum_tags)
     widths = delivery["columns_width_km"]
     epochs["cumulative_2006_2010"] = _epoch_stats(cum, widths)
@@ -428,12 +473,19 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
         "epochs": {tag: epochs[tag] for tag in EPOCH_TAGS},
         "cumulative_2006_2010": {
             "files_summed": cum_tags,
-            "duplicate_subsets_excluded": dupes,
+            "primary_excluded": list(PRIMARY_EXCLUDED),
+            "pair_diagnostics": diagnostics,
             **epochs["cumulative_2006_2010"],
             "alternatives": {
                 "sum_of_all_delivered_files": _epoch_stats(
                     sum(delivery["openings_m"][t] for t in EPOCH_TAGS[1:]),
                     widths),
+                "counted_once_14_files": _epoch_stats(
+                    sum(delivery["openings_m"][t] for t in EPOCH_TAGS[1:]
+                        if t != "may10"), widths),
+                "keep_july09_drop_june09": _epoch_stats(
+                    sum(delivery["openings_m"][t] for t in EPOCH_TAGS[1:]
+                        if t not in ("june09", "may10")), widths),
                 "catalogue_13_events": {
                     "files": list(CATALOGUE_13),
                     **_epoch_stats(
@@ -455,10 +507,17 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
             "the epoch-file row order is assumed to follow "
             "plot_3d_dyke_only.dat and awaits Ian Hamling's confirmation",
             "the delivery has 15 post-2005 files against the 13 published "
-            "post-megadike intrusions; files whose nonzero cells are "
-            "exactly contained in another are dropped from the cumulative "
-            "so no delivered value is counted twice, and the file-to-event "
-            "mapping awaits Ian Hamling's confirmation",
+            "post-megadike intrusions; may10 is apr10 with cells below "
+            "0.5 m removed, and july09's positive cells all lie inside "
+            "june09's at r=0.994 (all other pairs |r|<=0.44), so the "
+            "primary cumulative excludes both and the report quotes the "
+            "candidate sums; the file-to-event mapping awaits Ian "
+            "Hamling's confirmation",
+            "the delivered historical fields appear threshold-filtered "
+            "(the papers remove opening below local uncertainty), while "
+            "the 2026 totals keep all fitted opening; "
+            "volume_at_0p5m_floor_km3 records the 2026 volume under the "
+            "same 0.5-m floor for a like-filtered comparison",
             "the shared s axis compares openings by along-axis position; "
             "the two traces differ by up to "
             f"{registration['max_offplane_m']:.0f} m mid-plane",
@@ -496,14 +555,19 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
                      f"{stats['max_opening_m']:.2f} |")
     stats = epochs["cumulative_2006_2010"]
     alternatives = payload["cumulative_2006_2010"]["alternatives"]
-    lines.append(f"| 2006-2010 cumulative ({len(cum_tags)} files, "
-                 f"duplicate-free) | {stats['volume_km3']:.3f} | "
+    lines.append(f"| 2006-2010 cumulative ({len(cum_tags)} files, primary) "
+                 f"| {stats['volume_km3']:.3f} | "
                  f"{stats['volume_above_10km_km3']:.3f} | "
                  f"{stats['max_opening_m']:.2f} |")
     for label, alt in (
             (f"all {len(EPOCH_TAGS) - 1} delivered files",
              alternatives["sum_of_all_delivered_files"]),
-            ("catalogue 13 events", alternatives["catalogue_13_events"])):
+            ("14 files (only may10 dropped)",
+             alternatives["counted_once_14_files"]),
+            ("keep july09, drop june09",
+             alternatives["keep_july09_drop_june09"]),
+            ("catalogue 13 events (filtered may10)",
+             alternatives["catalogue_13_events"])):
         lines.append(f"| — alternative: {label} | "
                      f"{alt['volume_km3']:.3f} | "
                      f"{alt['volume_above_10km_km3']:.3f} | "
@@ -513,27 +577,31 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
                  f"{fit_stats['volume_above_10km_km3']:.3f} | "
                  f"{fit_stats['max_opening_m']:.2f} |")
     bottom = fit_stats["plane_bottom_km"]
-    dupe_text = "; ".join(
-        f"{d['contained']} is an exact sub-array of {d['container']} "
-        f"({d['n_cells']} nonzero cells)" for d in dupes) or "none found"
     lines += [
         "",
         "The delivery has 15 post-2005 files against the 13 published "
-        f"post-megadike intrusions. Exact duplication: {dupe_text}. The "
-        "cumulative drops the contained file(s) so no delivered value is "
-        "counted twice; the file-to-event mapping (apr10, july09) awaits "
-        "Ian Hamling's confirmation, and the table quotes the "
-        "all-files and catalogue-count sums as alternatives.",
+        "post-megadike intrusions, and the data flag two as duplicate "
+        "content: may10 equals apr10 with every cell below 0.5 m set to "
+        "zero (38% of that field's volume), and july09's positive cells "
+        "all lie inside june09's at correlation 0.994 while no other "
+        "pair exceeds |r| = 0.44 — two estimates of one event. The "
+        "primary cumulative therefore sums 13 files (drops may10 and "
+        "july09); the alternatives above bracket the mapping ambiguity "
+        "(0.877-0.968 km3), which Ian Hamling has been asked to resolve.",
         "",
-        "The 2005 model carries "
+        "Comparability caveats: the delivered historical fields appear "
+        "threshold-filtered (the papers remove opening below local "
+        "uncertainty), while the 2026 totals keep all fitted opening — "
+        "under the same 0.5-m floor the 2026 volume is "
+        f"{fit_stats['volume_at_0p5m_floor_km3']:.3f} km3. The 2005 model "
+        "carries "
         f"{epochs['sept05']['volume_km3'] - epochs['sept05']['volume_above_10km_km3']:.2f}"
         " km3 below 10 km depth (a deep lobe peaking at 13-20 km in its "
         f"northern half); the 2026 model plane ends at {bottom:g} km, so "
         "like-for-like volume comparisons should quote the above-10-km "
-        "column. Caveats: see the notes block in the JSON and "
-        "LIMITATIONS.md. Exact event dates are not part of the delivery; "
-        "take them from the Hamling et al. (2009, 2010) catalogue when "
-        "captioning.",
+        "column. See also the notes block in the JSON and LIMITATIONS.md. "
+        "Exact event dates are not part of the delivery; take them from "
+        "the Hamling et al. (2009, 2010) catalogue when captioning.",
         "",
     ]
     md_path = RESULTS / f"uperp_three_epoch{suffix}.md"
@@ -545,8 +613,8 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
           f"{registration['span_km'][1]:.2f} km, off-plane median "
           f"{registration['median_offplane_m']:.0f} m / max "
           f"{registration['max_offplane_m']:.0f} m")
-    print(f"cumulative: {len(cum_tags)} files summed; duplicates excluded: "
-          f"{dropped or 'none'}")
+    print(f"cumulative: {len(cum_tags)} files summed; excluded "
+          f"{list(PRIMARY_EXCLUDED)} per the recorded pair diagnostics")
     print(f"volumes (km3): 2005 {epochs['sept05']['volume_km3']:.2f} "
           f"({epochs['sept05']['volume_above_10km_km3']:.2f} above 10 km), "
           f"2006-2010 {stats['volume_km3']:.2f} "

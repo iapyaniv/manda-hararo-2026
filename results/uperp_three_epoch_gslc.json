@@ -21,19 +21,22 @@
     "volume_above_10km_km3": 0.7883,
     "volume_km3": 0.8768
    },
+   "counted_once_14_files": {
+    "max_opening_m": 7.716,
+    "volume_above_10km_km3": 0.8445,
+    "volume_km3": 0.933
+   },
+   "keep_july09_drop_june09": {
+    "max_opening_m": 6.675,
+    "volume_above_10km_km3": 0.8041,
+    "volume_km3": 0.8926
+   },
    "sum_of_all_delivered_files": {
     "max_opening_m": 8.44,
     "volume_above_10km_km3": 0.8792,
     "volume_km3": 0.9677
    }
   },
-  "duplicate_subsets_excluded": [
-   {
-    "contained": "may10",
-    "container": "apr10",
-    "n_cells": 36
-   }
-  ],
   "files_summed": [
    "june06",
    "july06",
@@ -47,12 +50,33 @@
    "oct08",
    "feb09",
    "june09",
-   "july09",
    "apr10"
   ],
-  "max_opening_m": 7.716,
-  "volume_above_10km_km3": 0.8445,
-  "volume_km3": 0.933
+  "max_opening_m": 6.675,
+  "pair_diagnostics": [
+   {
+    "contained": "july09",
+    "container": "june09",
+    "correlation": 0.9939,
+    "exact_value_subset": false,
+    "n_cells": 43,
+    "threshold_m": null
+   },
+   {
+    "contained": "may10",
+    "container": "apr10",
+    "correlation": 0.8945,
+    "exact_value_subset": true,
+    "n_cells": 36,
+    "threshold_m": 0.50221617
+   }
+  ],
+  "primary_excluded": [
+   "july09",
+   "may10"
+  ],
+  "volume_above_10km_km3": 0.8095,
+  "volume_km3": 0.898
  },
  "epoch_2026": {
   "geometry_sha256": "23e42105d82ea9cdcadb770cccdbf9d9585b670e132b6c18c6e99d74daf8a01a",
@@ -61,6 +85,7 @@
   "reference_fit": "results/distributed_fit_geometry_4a7b2386c8b5_gslc.json",
   "reference_fit_sha256": "993b8c9ce35e9734d801ad90908a9916b46c98d86f54681454b332cd20ce966e",
   "volume_above_10km_km3": 0.18,
+  "volume_at_0p5m_floor_km3": 0.1538,
   "volume_km3": 0.18
  },
  "epochs": {
@@ -166,7 +191,8 @@
  "notes": [
   "openings are the published Envisat-era inversions exactly as provided (no uncertainties; different regularization and greens functions from the 2026 fit)",
   "the epoch-file row order is assumed to follow plot_3d_dyke_only.dat and awaits Ian Hamling's confirmation",
-  "the delivery has 15 post-2005 files against the 13 published post-megadike intrusions; files whose nonzero cells are exactly contained in another are dropped from the cumulative so no delivered value is counted twice, and the file-to-event mapping awaits Ian Hamling's confirmation",
+  "the delivery has 15 post-2005 files against the 13 published post-megadike intrusions; may10 is apr10 with cells below 0.5 m removed, and july09's positive cells all lie inside june09's at r=0.994 (all other pairs |r|<=0.44), so the primary cumulative excludes both and the report quotes the candidate sums; the file-to-event mapping awaits Ian Hamling's confirmation",
+  "the delivered historical fields appear threshold-filtered (the papers remove opening below local uncertainty), while the 2026 totals keep all fitted opening; volume_at_0p5m_floor_km3 records the 2026 volume under the same 0.5-m floor for a like-filtered comparison",
   "the shared s axis compares openings by along-axis position; the two traces differ by up to 1412 m mid-plane"
  ],
  "registration": {
