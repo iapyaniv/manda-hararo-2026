@@ -1513,12 +1513,16 @@
  },
  "style": "after Fig. 13 of Hamling et al. (2009): top-10-km depth-averaged opening per intrusion and the cumulative stack, versus distance along the segment",
  "threshold_sensitivity": {
-  "cumulative_2006_2010_km3_at_0p5m_floor": 0.8171694502680773,
-  "note": "every canonical post-2005 file carries a positive floor, consistent with the papers' discard of opening below the local 2-sigma uncertainty, while the September 2005 model and the 2026 fit keep all fitted opening; magnitude and extent comparisons inherit that asymmetry",
+  "cumulative_2006_2010_above10km_km3": 0.7829337301174171,
+  "cumulative_2006_2010_above10km_km3_at_0p5m_floor": 0.752954643949232,
+  "note": "every canonical post-2005 file carries a positive floor, consistent with the papers' discard of opening below the local 2-sigma uncertainty, and the 2026 fit keeps all fitted opening, while the September 2005 model is used as supplied: it holds zero cells and no small positive opening (sept05_model_* fields), so it may itself exclude small opening and its filtering history is not part of the delivery; magnitude and extent comparisons inherit these asymmetries. The 0.5-m values are one uniform illustrative floor over the same 0-10 km interval as every volume in this report, not a matched reconstruction of the historical thresholds",
   "post2005_positive_floors_m": [
    0.30791004,
    0.71786443
   ],
+  "sept05_model_min_positive_m": 1.2603789,
+  "sept05_model_n_cells": 750,
+  "sept05_model_zero_cells": 295,
   "volume_2026_km3_at_0p5m_floor": 0.15607233642583107
  }
 }

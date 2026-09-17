@@ -283,26 +283,49 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
     }
 
     # The historical post-2005 files floor small opening while the
-    # 2005 model and the 2026 fit keep all of it; state that asymmetry
-    # with this product instead of only pointing at the three-epoch
-    # report (the 0.5-m values are one uniform illustrative floor,
-    # mirrored from that report, not a matched reconstruction of the
-    # papers' local-uncertainty thresholds).
+    # 2026 fit keeps all of it; state that asymmetry with this product
+    # instead of only pointing at the three-epoch report. Every value
+    # here is over the same 0-10 km interval as the rest of this
+    # report (the three-epoch report's floored cumulative is a 0-20 km
+    # figure and does not belong here; the 2026 plane ends at 10 km,
+    # so its floored value needs no truncation). The 2005 model gets
+    # no keeps-everything claim: as supplied it holds zero cells and
+    # no small positive opening, so it may itself exclude small
+    # opening, and its filtering history is not part of the delivery.
     floors = [float(delivery["openings_m"][tag]
                     [delivery["openings_m"][tag] > 0].min())
               for tag in cum_tags]
+    floored_above10 = float(sum(
+        (np.where(delivery["openings_m"][tag] >= 0.5,
+                  delivery["openings_m"][tag], 0.0)[:, :10]
+         * widths[:, None]).sum()
+        for tag in cum_tags)) * 1e-3
+    updated_field = context["updated_field"]
+    positive_2005 = updated_field[updated_field > 0]
     threshold_sensitivity = {
         "post2005_positive_floors_m": [min(floors), max(floors)],
         "volume_2026_km3_at_0p5m_floor":
             epochs["epoch_2026"]["volume_at_0p5m_floor_km3"],
-        "cumulative_2006_2010_km3_at_0p5m_floor":
-            epochs["cumulative_2006_2010"]["volume_at_0p5m_floor_km3"],
+        "cumulative_2006_2010_above10km_km3":
+            epochs["cumulative_2006_2010"]["volume_above_10km_km3"],
+        "cumulative_2006_2010_above10km_km3_at_0p5m_floor":
+            floored_above10,
+        "sept05_model_zero_cells": int((updated_field == 0.0).sum()),
+        "sept05_model_n_cells": int(updated_field.size),
+        "sept05_model_min_positive_m": float(positive_2005.min()),
         "note": "every canonical post-2005 file carries a positive "
                 "floor, consistent with the papers' discard of opening "
-                "below the local 2-sigma uncertainty, while the "
-                "September 2005 model and the 2026 fit keep all fitted "
-                "opening; magnitude and extent comparisons inherit "
-                "that asymmetry",
+                "below the local 2-sigma uncertainty, and the 2026 fit "
+                "keeps all fitted opening, while the September 2005 "
+                "model is used as supplied: it holds zero cells and no "
+                "small positive opening (sept05_model_* fields), so it "
+                "may itself exclude small opening and its filtering "
+                "history is not part of the delivery; magnitude and "
+                "extent comparisons inherit these asymmetries. The "
+                "0.5-m values are one uniform illustrative floor over "
+                "the same 0-10 km interval as every volume in this "
+                "report, not a matched reconstruction of the "
+                "historical thresholds",
     }
 
     suffix = "_gslc" if chain == "gslc" else ""
@@ -362,10 +385,13 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
 
 
 def _threshold_caveat(payload: dict) -> str:
-    floors = payload["threshold_sensitivity"]["post2005_positive_floors_m"]
+    ts = payload["threshold_sensitivity"]
+    floors = ts["post2005_positive_floors_m"]
     return (f"2006–2010 files floor small opening "
-            f"({floors[0]:.1f}–{floors[1]:.1f} m);\n"
-            "2005 and 2026 keep all fitted opening")
+            f"({floors[0]:.1f}–{floors[1]:.1f} m); "
+            "2026 keeps all fitted opening;\n"
+            "2005 model as supplied (positive cells ≥ "
+            f"{ts['sept05_model_min_positive_m']:.1f} m)")
 
 
 def _cumulative_panel(ax, payload, context, xlim, show_caveat=True):
@@ -420,8 +446,8 @@ def _cumulative_panel(ax, payload, context, xlim, show_caveat=True):
     n_events = len(payload["events"]) + 1
     label = f"{total:.2f} km$^3$ above 10 km · {n_events} intrusions"
     if show_caveat:
-        label += "\n" + _threshold_caveat(payload).replace("\n", " ")
-    ax.text(0.24, 0.93, label,
+        label += "\n" + _threshold_caveat(payload)
+    ax.text(0.24, 0.965, label,
             transform=ax.transAxes, ha="left", va="top", fontsize=8.5,
             linespacing=1.5,
             bbox={"facecolor": "white", "edgecolor": "none",
@@ -582,18 +608,32 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
         "–"
         f"{payload['threshold_sensitivity']['post2005_positive_floors_m'][1]:.2f}"
         " m, consistent with the papers' discard of opening below the "
-        "local 2σ uncertainty), while the September 2005 model and the "
-        "2026 fit keep all fitted opening. As one uniform illustrative "
-        "floor — a sensitivity, not a reconstruction of the historical "
+        "local 2σ uncertainty) and the 2026 fit keeps all fitted "
+        "opening, while the September 2005 model is used as supplied: "
+        "it has no positive cell below "
+        f"{payload['threshold_sensitivity']['sept05_model_min_positive_m']:.2f}"
+        " m ("
+        f"{payload['threshold_sensitivity']['sept05_model_zero_cells']}"
+        " of its "
+        f"{payload['threshold_sensitivity']['sept05_model_n_cells']}"
+        " cells are zero), so it may itself exclude small opening — "
+        "its filtering history is not part of the delivery. As one "
+        "uniform illustrative floor over the same 0–10 km interval — "
+        "a sensitivity, not a reconstruction of the historical "
         "thresholds — 0.5 m reduces the July 2026 volume from "
         f"{payload['epoch_2026']['volume_above_10km_km3']:.3f} to "
         f"{payload['threshold_sensitivity']['volume_2026_km3_at_0p5m_floor']:.3f}"
         " km3 (about "
         f"{1 - payload['threshold_sensitivity']['volume_2026_km3_at_0p5m_floor'] / payload['epoch_2026']['volume_above_10km_km3']:.0%}"
-        "); the matching cumulative sensitivity is in "
-        "`uperp_three_epoch*.md`, whose remaining comparability caveats "
-        "(different regularization and greens functions) apply "
-        "unchanged.",
+        ") and the 2006–2010 cumulative above 10 km from "
+        f"{payload['threshold_sensitivity']['cumulative_2006_2010_above10km_km3']:.3f}"
+        " to "
+        f"{payload['threshold_sensitivity']['cumulative_2006_2010_above10km_km3_at_0p5m_floor']:.3f}"
+        " km3 (about "
+        f"{1 - payload['threshold_sensitivity']['cumulative_2006_2010_above10km_km3_at_0p5m_floor'] / payload['threshold_sensitivity']['cumulative_2006_2010_above10km_km3']:.0%}"
+        "); the remaining comparability caveats of "
+        "`uperp_three_epoch*.md` (different regularization and greens "
+        "functions) apply unchanged.",
         "",
         "| intrusion | file | volume above 10 km (km3) | "
         "max average opening (m) | at s (km) |",

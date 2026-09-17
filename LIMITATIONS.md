@@ -236,8 +236,11 @@
   event; `mh26.hamling` re-verifies this on every run). It integrates to
   2.23 km³ (maximum 16.1 m, all above 10 km), near the published
   ∼2.5 km³; the earlier whole-file total of 2.478 km³ included the fault
-  values. It holds no opening southeast of the Wright 2006 plane edge,
-  where the raw field holds 0.22 km³.
+  values. As supplied it has no positive cell below 1.26 m (295 of its
+  750 cells are zero), so it may itself exclude small opening; its
+  filtering history is not part of the delivery. It holds no opening
+  southeast of the Wright 2006 plane edge, where the raw field holds
+  0.22 km³.
 
 ## Timing and continuation
 
