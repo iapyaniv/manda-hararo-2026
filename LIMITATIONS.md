@@ -227,11 +227,17 @@
   10 km depth (deep lobes up to 12.9 m at 16–17 km). Per his answer the
   figure shows the upper 10 km of every panel and like-for-like volume
   comparisons quote the above-10-km values. His updated 10-km 2005 model
-  (`model_slip_sept05.txt`, provided the same day) sums to 2.478 km³ at 1-km²
-  patches, consistent with the published total, but its 931 values match
-  no delivered patch grid; until its geometry file arrives it enters the
-  report by order-invariant quantities only and is not drawn on the
-  shared axis.
+  (`model_slip_sept05.txt`, provided the same day) is drawn as the
+  September 2005 panel: per his layout note the dyke section is lines
+  171–920 of the 931 values — 10 one-km depth rows per column,
+  depth-fastest, at the same 75 horizontal positions, with untrimmed
+  fault sections on the ends — and the decoded field correlates at
+  r = 0.69 with the raw field's upper 10 km (two inversions of the same
+  event; `mh26.hamling` re-verifies this on every run). It integrates to
+  2.23 km³ (maximum 16.1 m, all above 10 km), near the published
+  ∼2.5 km³; the earlier whole-file total of 2.478 km³ included the fault
+  values. It holds no opening southeast of the Wright 2006 plane edge,
+  where the raw field holds 0.22 km³.
 
 ## Timing and continuation
 

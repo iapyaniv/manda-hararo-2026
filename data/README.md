@@ -164,8 +164,11 @@ follow-up delivery of 17 September 2026 (both tracked): `doplot3d.m`,
 his MATLAB plotting script, which indexes an opening file by the row
 number of `plot_3d_dyke_only.dat` and thereby confirms the decoded row
 order; and `model_slip_sept05.txt`, his updated September 2005 model with
-opening limited to 10 km (931 values on an as-yet-undelivered patch
-geometry; order-invariant total 2.478 km³ at 1-km² patches). The same
+opening limited to 10 km. Its dyke section is lines 171–920 of the 931
+values — 10 one-km depth rows per column, depth-fastest, at the
+`plot_3d_dyke_only.dat` horizontal positions — and the untrimmed ends
+are fault sections (his layout note of the same date; decoded and
+verified in `mh26.hamling.load_updated_sept05`). The same
 delivery names the canonical thirteen post-2005 files (june09 and apr10
 are defunct earlier versions of july09 and may10).
 

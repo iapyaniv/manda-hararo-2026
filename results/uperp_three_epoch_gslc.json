@@ -173,7 +173,7 @@
  "notes": [
   "openings are Envisat-era inversions exactly as provided (no uncertainties; different regularization and greens functions from the 2026 fit)",
   "the epoch-file row order follows plot_3d_dyke_only.dat, confirmed by Ian Hamling's own plotting script doplot3d.m (provided 2026-09-17), which indexes an opening file by the geometry file's row number",
-  "the delivered sept05 file is the raw inversion regridded to 20 km (Ian Hamling, 2026-09-17): it integrates to 3.55 km3 against the published ~2.5 km3 and its deep opening (up to 12.9 m at 16-17 km; 1.74 km3 below 10 km) is ill-constrained, so the figure shows the upper 10 km and like-for-like comparisons quote the above-10-km column; his updated 10-km model is recorded under sept05_updated_model by order-invariant quantities only, pending its patch geometry",
+  "the delivered sept05 file is the raw inversion regridded to 20 km (Ian Hamling, 2026-09-17): it integrates to 3.55 km3 against the published ~2.5 km3 and its deep opening (up to 12.9 m at 16-17 km; 1.74 km3 below 10 km) is ill-constrained, so the figure shows the upper 10 km and like-for-like comparisons quote the above-10-km column; his updated 10-km model (sept05_updated_model) is decoded per his 2026-09-17 layout note \u2014 dyke section lines 171-920, 10 one-km rows per column at the same 75 horizontal positions, the trimmed ends fault sections \u2014 and drawn as the September 2005 panel",
   "the delivery has 15 post-2005 files against the 13 published post-megadike intrusions; Ian Hamling's 2026-09-17 update lists the canonical 13 (keep july09 and may10, drop the defunct june09 and apr10), matching the data-derived version pairs (may10 is apr10 with cells below 0.5 m removed; july09's positive cells all lie inside june09's at r=0.994, all other pairs |r|<=0.44); the alternatives record the superseded selection and the untrimmed-apr10 variant",
   "every post-2005 file carries a positive floor of 0.29-0.72 m, consistent with the papers' discard of opening below the local 2-sigma uncertainty (typically 0.3-0.4 m; only may10's 0.5-m cut is proven exactly, against apr10), while sept05 is unfiltered (cells down to 4e-4 m) and the 2026 totals keep all fitted opening; the volume_at_0p5m_floor_km3 values apply one uniform 0.5-m floor to the primary cumulative and to 2026 as a sensitivity, not as a matched reconstruction of any delivered filtering",
   "the shared s axis compares openings by along-axis position; the two traces differ by up to 1412 m mid-plane"
@@ -348,12 +348,20 @@
   ]
  },
  "sept05_updated_model": {
+  "decode_correlation_vs_raw_upper10km": 0.6894601508807404,
   "file": "data/ihamling/2026-09-17/model_slip_sept05.txt",
+  "layout": "dyke section lines 171-920 (1-indexed): 10 one-km depth rows (0-10 km) per column, depth-fastest, at the plot_3d_dyke_only.dat horizontal positions; lines 1-170 and 921-931 are untrimmed fault sections, excluded (Ian Hamling, 2026-09-17)",
   "max_opening_m": 16.093668,
   "n_values": 931,
-  "note": "Ian Hamling's updated 10-km September 2005 model (provided 2026-09-17), consistent with the Wright et al. (2006) original; 931 values match no delivered patch grid, so only order-invariant quantities are quoted (the volume assumes the 1-km2 patches of his grids) and the field is not drawn on the shared axis \u2014 the patch geometry has been requested",
+  "note": "Ian Hamling's updated 10-km September 2005 model (provided 2026-09-17), consistent with the Wright et al. (2006) original; decoded per his layout note of the same day and drawn as the September 2005 panel \u2014 the trimmed ends are fault sections, so the whole-file sum (2.478 km3 at 1-km2 patches) overstates the dyke",
   "sha256": "66259c5b09bee78c4c54d3bc9d6357626d31733aab5a392ebccdd6ae41d7b611",
-  "volume_km3_at_1km2_patches": 2.4777892771839998
+  "trimmed_fault_value_sums_m": [
+   310.882932884,
+   6.2797711
+  ],
+  "volume_above_10km_km3": 2.230355076692883,
+  "volume_km3": 2.230355076692883,
+  "volume_km3_at_1km2_patches": 2.1606265731999996
  },
  "source": {
   "directory": "data/ihamling/opening_files",
@@ -378,5 +386,10 @@
   },
   "received": "provided by Ian Hamling (GNS) via Tim Wright, 2026-09-16",
   "url": "https://sftp.gns.cri.nz/pub/ihamling/dyke_files.zip"
+ },
+ "volume_se_of_wright_plane_edge_km3": {
+  "sept05_raw": 0.21845363607933505,
+  "sept05_raw_above_10km": 0.03581668439916561,
+  "sept05_updated": 0.0
  }
 }

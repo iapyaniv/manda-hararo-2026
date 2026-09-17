@@ -84,9 +84,11 @@ Manda Hararo intrusion.
   17 September update in `data/ihamling/2026-09-17/`,
   see `data/README.md`), registers that grid on the Wright-plane s axis,
   and writes the three-epoch U⊥ comparison per input chain:
-  `results/uperp_three_epoch{,_gslc}.{json,md,png,pdf}` (September 2005,
-  cumulative 2006–2010, July 2026 on one along-plane axis, with per-epoch
-  volume and maximum-opening tables).
+  `results/uperp_three_epoch{,_gslc}.{json,md,png,pdf}` (September 2005 —
+  drawn from the updated 10-km model of the 17 September delivery, with
+  the raw 20-km field tabled — cumulative 2006–2010, and July 2026 on
+  one along-plane axis, with per-epoch volume and maximum-opening
+  tables).
 - `mh26/fault_depth.py` sweeps the depth extent of the mapped east-fault
   term (truncation caps re-solved at the reused smoothing weight) and
   reports changes in misfit and fault potency/moment, per
