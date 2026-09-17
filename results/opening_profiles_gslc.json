@@ -20,6 +20,35 @@
   ],
   "volume_above_10km_km3_total": 3.1933320740554807
  },
+ "display": {
+  "drawn_area_km3": {
+   "apr08": 0.06698625358518998,
+   "aug07": 0.04008679757403538,
+   "cumulative": 3.1772154464164815,
+   "dec06": 0.043636832212878965,
+   "epoch_2026": 0.1800432384019036,
+   "feb09": 0.07249228265862132,
+   "jan07": 0.012952284451294696,
+   "july06": 0.02480576362332794,
+   "july08": 0.02070829355575269,
+   "july09": 0.03478930953849801,
+   "june06": 0.10265912390436498,
+   "may10": 0.03614208527049876,
+   "nov07": 0.1106002614642112,
+   "oct08": 0.18312128849402318,
+   "sept05": 2.2040422395890436,
+   "sept06": 0.0441493920928376
+  },
+  "fine_grid_step_km": 0.02,
+  "note": "linear interpolation between column centres on the projected axis, for display only; it is not volume-preserving, so quoted volumes come from the native-grid tables",
+  "sept05_drawn_at_plane_edge_m": 0.09949999844717321,
+  "sept05_drawn_positive_to_km": 61.44,
+  "worst_drawn_vs_native": {
+   "relative_error": 0.0566974471068864,
+   "tag": "feb09"
+  },
+  "x_max_km": 75.22067760952848
+ },
  "epoch_2026": {
   "average_opening_m": [
    2.6883455889706046e-36,

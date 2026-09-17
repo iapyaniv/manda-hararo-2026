@@ -10,14 +10,19 @@ through the whole sequence: the September 2005 megadike (Ian Hamling's
 from this repository's fixed-plane fit, all on the along-plane s axis
 of the mh26.wright2006 contract.
 
-The depth average is over 0-10 km everywhere, so a profile integrates
-exactly to the epoch's above-10-km volume (cross-checked against
-mh26.hamling on every run): average(s) x 10 km x column width = column
-volume. The 2026 model plane spans 0-10 km, so its average needs no
-truncation. The delivered inversions carry no uncertainties, so unlike
-the published figure the panels have no error bars; the comparability
-caveats of `results/uperp_three_epoch*.md` (different regularization
-and greens functions, floored post-2005 files) apply unchanged.
+The depth average is over 0-10 km everywhere, so on the native grid a
+profile integrates exactly to the epoch's above-10-km volume
+(cross-checked against mh26.hamling on every run): average(s) x 10 km
+x column width = column volume. The 2026 model plane spans 0-10 km,
+so its average needs no truncation. The drawn curves interpolate
+linearly between column centres on the projected s axis for display
+and are not volume-preserving (the payload's display block records
+every drawn area next to its native volume; worst event ~6%), so
+quoted volumes always come from the native-grid tables. The delivered
+inversions carry no uncertainties, so unlike the published figure the
+panels have no error bars; the comparability caveats of
+`results/uperp_three_epoch*.md` (different regularization and greens
+functions, floored post-2005 files) apply unchanged.
 
 All input decoding, the canonical-13 selection with its duplicate-pair
 guards, and the grid registration are reused from
@@ -102,12 +107,28 @@ EVENT_COLORS = {
 LABEL_2026 = "July 2026"
 
 
+DISPLAY_STEP_KM = 0.02
+
+
 def _profile_stats(s_km: np.ndarray, profile: np.ndarray) -> dict:
     peak = int(np.argmax(profile))
     return {
         "max_average_m": float(profile.max()),
         "s_at_max_km": float(s_km[peak]),
     }
+
+
+def _resample(x: np.ndarray, centres: np.ndarray,
+              values: np.ndarray) -> np.ndarray:
+    """Interpolate a column profile on the fine grid x, zero outside.
+
+    Linear between column centres on the projected axis, so the stack
+    and the per-event panels draw one shape. This display resampling is
+    not volume-preserving: the payload's display block records the
+    drawn areas next to the native-grid volumes, which are the quoted
+    numbers.
+    """
+    return np.interp(x, centres, values, left=0.0, right=0.0)
 
 
 def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
@@ -185,6 +206,59 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
 
     total = float(sum(e["volume_above_10km_km3"] for e in events)
                   + volume_2026)
+
+    # The figures interpolate between column centres on the projected
+    # axis, which redistributes area; record every drawn area beside
+    # its native volume so the deviation is a stated, validated number
+    # rather than a silent property of the rendering.
+    x_max = max(registration["span_km"][1] + 0.6,
+                registration["plane_span_km"][1])
+    x = np.arange(0.0, x_max + 0.01, DISPLAY_STEP_KM)
+    s_nwse = s_km[::-1]
+    drawn_area = {}
+    stack = np.zeros_like(x)
+    worst = ("", 0.0)
+    for event in events:
+        y = _resample(x, s_nwse,
+                      np.asarray(event["average_opening_m"])[::-1])
+        drawn_area[event["tag"]] = \
+            float(np.trapezoid(y, x)) * AVERAGE_DEPTH_KM * 1e-3
+        relative = abs(drawn_area[event["tag"]]
+                       / event["volume_above_10km_km3"] - 1.0)
+        if relative > worst[1]:
+            worst = (event["tag"], relative)
+        stack += y
+    y_2026 = _resample(x, s_2026, profile_2026)
+    drawn_area["epoch_2026"] = \
+        float(np.trapezoid(y_2026, x)) * AVERAGE_DEPTH_KM * 1e-3
+    relative = abs(drawn_area["epoch_2026"] / volume_2026 - 1.0)
+    if relative > worst[1]:
+        worst = ("epoch_2026", relative)
+    stack += y_2026
+    drawn_area["cumulative"] = \
+        float(np.trapezoid(stack, x)) * AVERAGE_DEPTH_KM * 1e-3
+    se_2005 = registration["se_limit_2005_km"]
+    y_sept05 = _resample(x, s_nwse,
+                         np.asarray(events[0]["average_opening_m"])[::-1])
+    past_edge = x[(x > se_2005) & (y_sept05 > 0.0)]
+    display = {
+        "note": "linear interpolation between column centres on the "
+                "projected axis, for display only; it is not "
+                "volume-preserving, so quoted volumes come from the "
+                "native-grid tables",
+        "fine_grid_step_km": DISPLAY_STEP_KM,
+        "x_max_km": x_max,
+        "drawn_area_km3": drawn_area,
+        "worst_drawn_vs_native": {"tag": worst[0],
+                                  "relative_error": worst[1]},
+        "sept05_drawn_at_plane_edge_m":
+            float(_resample(np.array([se_2005]), s_nwse,
+                            np.asarray(events[0]["average_opening_m"])
+                            [::-1])[0]),
+        "sept05_drawn_positive_to_km":
+            float(past_edge.max()) if past_edge.size else se_2005,
+    }
+
     suffix = "_gslc" if chain == "gslc" else ""
     payload = {
         "generated_by": "mh26.opening_profiles",
@@ -207,6 +281,7 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
         },
         "events": events,
         "epoch_2026": epoch_2026,
+        "display": display,
         "cumulative": {
             "stack_order": [e["tag"] for e in events] + ["epoch_2026"],
             "volume_above_10km_km3_total": total,
@@ -239,20 +314,9 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
     return payload, context
 
 
-def _resample(x: np.ndarray, centres: np.ndarray,
-              values: np.ndarray) -> np.ndarray:
-    """Interpolate a column profile on the fine grid x, zero outside.
-
-    Linear between column centres, matching the per-event panels, so
-    the stack and the panels draw one shape; quoted volumes come from
-    the tables, not from this display resampling.
-    """
-    return np.interp(x, centres, values, left=0.0, right=0.0)
-
-
 def _cumulative_panel(ax, payload, context, xlim, label_total=True):
     """Stack the per-event averages into the cumulative profile."""
-    x = np.arange(xlim[0], xlim[1] + 0.01, 0.02)
+    x = np.arange(xlim[0], xlim[1] + 0.01, DISPLAY_STEP_KM)
     centres_ham = np.asarray(payload["s_axis"]["s_km"])[::-1]  # NW->SE
     bottom = np.zeros_like(x)
     for event in payload["events"]:
@@ -264,12 +328,25 @@ def _cumulative_panel(ax, payload, context, xlim, label_total=True):
         ax.plot(x, top, color="white", lw=0.35)
         bottom = top
     epoch_2026 = payload["epoch_2026"]
+    chain_note = ("30-m GSLC" if payload["nisar_source"] == "gslc"
+                  else "GUNW")
     top = bottom + _resample(
         x, np.asarray(epoch_2026["s_centres_km"]),
         np.asarray(epoch_2026["average_opening_m"]))
     ax.fill_between(x, bottom, top, color=epoch_2026["color"], lw=0,
-                    label=epoch_2026["label"])
+                    label=f"{epoch_2026['label']} ({chain_note} chain)")
     ax.plot(x, top, color="0.15", lw=0.7)
+    # Beyond the plane's SE edge the stack holds historical models
+    # only; grey the region as on the July 2026 panel so it does not
+    # read as zero 2026 opening.
+    plane_end = epoch_2026["s_edges_km"][-1]
+    if xlim[1] > plane_end:
+        ax.axvspan(plane_end, xlim[1], color="0.88", zorder=0)
+        ax.text(plane_end + 0.4, 0.45,
+                f"no 2026 model SE of {plane_end:.0f} km",
+                transform=ax.get_xaxis_transform(), rotation=90,
+                ha="left", va="center", fontsize=7.5, color="0.35",
+                zorder=5)
     ax.set_xlim(*xlim)
     ax.set_ylim(0.0, 11.5)
     ax.set_title("Cumulative opening, September 2005 – July 2026",
@@ -295,9 +372,7 @@ def _cumulative_panel(ax, payload, context, xlim, label_total=True):
 
 
 def profiles_figure(payload: dict, context: dict, chain: str) -> Path:
-    registration = context["registration"]
-    xlim = (0.0, max(registration["span_km"][1] + 0.6,
-                     registration["plane_span_km"][1]))
+    xlim = (0.0, payload["display"]["x_max_km"])
     small_max = max(
         max(e["max_average_m"] for e in payload["events"][1:]),
         payload["epoch_2026"]["max_average_m"])
@@ -370,9 +445,7 @@ def profiles_figure(payload: dict, context: dict, chain: str) -> Path:
 def cumulative_figure(payload: dict, context: dict, chain: str) -> Path:
     """The cumulative stack alone, sized to sit under the three-epoch
     comparison figure (same width and x axis)."""
-    registration = context["registration"]
-    xlim = (0.0, max(registration["span_km"][1] + 0.6,
-                     registration["plane_span_km"][1]))
+    xlim = (0.0, payload["display"]["x_max_km"])
     fig, ax = plt.subplots(figsize=(9.0, 3.4), constrained_layout=True)
     _cumulative_panel(ax, payload, context, xlim)
     ax.set_ylabel("Average opening (m)")
@@ -415,13 +488,26 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
         "Hamling's 10-km September 2005 model, the 2006–2010 profiles "
         "the upper 10 km of his canonical thirteen files, and the 2026 "
         "profile this repository's fixed-plane fit (its plane spans "
-        "exactly 0–10 km). A profile integrates to the epoch's "
-        "above-10-km volume: average × 10 km × column width = column "
-        "volume (cross-checked against `uperp_three_epoch*.json` on "
-        "every run). The delivered inversions carry no uncertainties, "
-        "so unlike the published figure the panels have no error bars; "
-        "the comparability caveats of `uperp_three_epoch*.md` apply "
-        "unchanged.",
+        "exactly 0–10 km). On the native grid a profile integrates "
+        "exactly to the epoch's above-10-km volume: average × 10 km × "
+        "column width = column volume (cross-checked against "
+        "`uperp_three_epoch*.json` on every run). The drawn curves "
+        "interpolate linearly between column centres on the projected "
+        "axis and are not volume-preserving: the largest drawn-area "
+        "deviation is "
+        f"{EVENT_LABELS.get(payload['display']['worst_drawn_vs_native']['tag'], LABEL_2026)}"
+        " at "
+        f"{payload['display']['worst_drawn_vs_native']['relative_error']:.1%}"
+        " and the cumulative stack draws as "
+        f"{payload['display']['drawn_area_km3']['cumulative']:.2f} km3 "
+        "against the native "
+        f"{payload['cumulative']['volume_above_10km_km3_total']:.2f} km3 "
+        "(every drawn area is in "
+        "the JSON's display block), so quoted volumes always come from "
+        "the native-grid tables. The delivered inversions carry no "
+        "uncertainties, so unlike the published figure the panels have "
+        "no error bars; the comparability caveats of "
+        "`uperp_three_epoch*.md` apply unchanged.",
         "",
         "| intrusion | file | volume above 10 km (km3) | "
         "max average opening (m) | at s (km) |",
@@ -451,8 +537,16 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
         "belong to the source catalogue. Beyond the SE end of the 2026 "
         "model plane "
         f"({epoch_2026['s_edges_km'][-1]:.1f} km) there is no 2026 "
-        "model; the dashed line is the Wright et al. (2006) model-plane "
-        "SE edge, which also bounds the drawn 2005 opening.",
+        "model, and that region is shaded grey in the July 2026 panel "
+        "and in both cumulative panels (the stack there holds "
+        "historical models only). The dashed line is the Wright et "
+        "al. (2006) model-plane SE edge: no 2005 model column "
+        "southeast of it holds opening, and the drawn 2005 taper "
+        "crosses it only by the interpolation span between column "
+        "centres ("
+        f"{payload['display']['sept05_drawn_at_plane_edge_m']:.2f} m "
+        "at the line, positive to "
+        f"{payload['display']['sept05_drawn_positive_to_km']:.1f} km).",
         "",
     ]
     md_path = RESULTS / f"opening_profiles{suffix}.md"
