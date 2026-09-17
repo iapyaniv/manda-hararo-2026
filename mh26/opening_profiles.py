@@ -371,6 +371,12 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
             "al. (2009, 2010) sequence: the july09 file is the "
             "re-estimate of the June 2009 intrusion; exact onset dates "
             "for captions belong to the source catalogue",
+            "the drawn September 2005 model is a different inversion "
+            "from the one in Fig. 13 of Hamling et al. (2009): its "
+            "top-10-km average peaks at 10.3 m against just under 7 m "
+            "read from the published figure; model-version provenance "
+            "in results/uperp_three_epoch*.md and the sept05_model_* "
+            "fields",
             "input decoding, the canonical-13 selection, and the "
             "comparability caveats are those of "
             "results/uperp_three_epoch*.md, reused unchanged",
@@ -391,7 +397,8 @@ def _threshold_caveat(payload: dict) -> str:
             f"({floors[0]:.1f}–{floors[1]:.1f} m); "
             "2026 keeps all fitted opening;\n"
             "2005 model as supplied (positive cells ≥ "
-            f"{ts['sept05_model_min_positive_m']:.1f} m)")
+            f"{ts['sept05_model_min_positive_m']:.1f} m; a different "
+            "inversion from Fig. 13)")
 
 
 def _cumulative_panel(ax, payload, context, xlim, show_caveat=True):
@@ -431,9 +438,12 @@ def _cumulative_panel(ax, payload, context, xlim, show_caveat=True):
                 zorder=5)
     ax.set_xlim(*xlim)
     ax.set_ylim(0.0, 11.5)
-    ax.set_title("Cumulative opening, September 2005 – July 2026",
+    ax.set_title("Cumulative opening, 2005–2026",
                  loc="left", fontsize=10.5, fontweight="bold", pad=5)
-    ax.set_title("after Fig. 13 of Hamling et al. (2009)", loc="right",
+    # A figure-only reader must not integrate the drawn curves: the
+    # totals are native-grid volumes, the curves display interpolation.
+    ax.set_title("after Fig. 13 of Hamling et al. (2009) · native-grid "
+                 "volumes, interpolated curves", loc="right",
                  fontsize=8, color="0.30", pad=6)
     se_2005 = payload["s_axis"]["se_limit_2005_km"]
     ax.axvline(se_2005, color="0.25", lw=0.9, ls=(0, (4, 3)), zorder=4)
@@ -496,6 +506,11 @@ def profiles_figure(payload: dict, context: dict, chain: str) -> Path:
     axes[0].set_title("Hamling et al. (2009, 2010) models · "
                       "no uncertainties delivered", loc="right",
                       fontsize=8, color="0.30", pad=6)
+    # Not the inversion drawn in the published Fig. 13, whose 2005
+    # curve peaks just under 7 m.
+    axes[0].text(0.988, 0.62, "10-km model — a different inversion "
+                 "from their Fig. 13", transform=axes[0].transAxes,
+                 ha="right", va="top", fontsize=7.5, color="0.30")
 
     for ax, event in zip(axes[1:], payload["events"][1:]):
         draw(ax, *_extend_to_edges(
@@ -580,8 +595,12 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
         "dike, versus distance along the Wright et al. (2006) plane "
         "(NW→SE s axis of the 2026 contract), in the style of Fig. 13 "
         "of Hamling et al. (2009). The 2005 profile averages Ian "
-        "Hamling's 10-km September 2005 model, the 2006–2010 profiles "
-        "the upper 10 km of his canonical thirteen files, and the 2026 "
+        "Hamling's 10-km September 2005 model — a different inversion "
+        "from the one drawn in their Fig. 13, whose 2005 curve peaks "
+        "just under 7 m average against "
+        f"{payload['events'][0]['max_average_m']:.1f} m here — the "
+        "2006–2010 profiles the upper 10 km of his canonical thirteen "
+        "files, and the 2026 "
         "profile this repository's fixed-plane fit (its plane spans "
         "exactly 0–10 km). On the native grid a profile integrates "
         "exactly to the epoch's above-10-km volume: average × 10 km × "

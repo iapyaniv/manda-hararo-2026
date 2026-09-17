@@ -1397,6 +1397,7 @@
   "the depth average is over 0-10 km everywhere, so a profile integrates exactly to the epoch's above-10-km volume (cross-checked against mh26.hamling on every run); the September 2005 profile averages Ian Hamling's 10-km model, the 2006-2010 profiles the upper 10 km of the delivered fields, and the 2026 profile this repository's fixed-plane fit, whose plane spans exactly 0-10 km",
   "the delivered inversions carry no uncertainties, so the panels have no error bars (the published figure's error bars came from the original inversions)",
   "panel labels are the intrusion months of the Hamling et al. (2009, 2010) sequence: the july09 file is the re-estimate of the June 2009 intrusion; exact onset dates for captions belong to the source catalogue",
+  "the drawn September 2005 model is a different inversion from the one in Fig. 13 of Hamling et al. (2009): its top-10-km average peaks at 10.3 m against just under 7 m read from the published figure; model-version provenance in results/uperp_three_epoch*.md and the sept05_model_* fields",
   "input decoding, the canonical-13 selection, and the comparability caveats are those of results/uperp_three_epoch*.md, reused unchanged"
  ],
  "s_axis": {
