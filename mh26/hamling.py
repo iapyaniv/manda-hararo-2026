@@ -419,10 +419,12 @@ def three_epoch_figure(delivery: dict, registration: dict, fit: dict,
     # 10 km, and the raw regridded files keep ill-constrained deep
     # opening that is not shown.
     panels = [
+        # The note names only the studies: "updated" would be
+        # delivery-relative — a manuscript reader knows no earlier
+        # model. The raw-vs-updated distinction stays in the md/JSON.
         ("September 2005", updated_field[::-1].T,
          s_ham, np.arange(11.0), 16.5, [3, 6, 9, 12, 15],
-         "Hamling et al. (2009, 2010) updated model; opening limited "
-         "to 10 km",
+         "Hamling et al. (2009, 2010) model",
          epochs["sept05_updated"]),
         ("2006–2010 (cumulative, 13 events)", cumulative[::-1].T[:10],
          s_ham, np.arange(11.0), 7.0, [1, 2, 4, 6],
