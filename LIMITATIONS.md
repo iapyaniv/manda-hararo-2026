@@ -197,36 +197,41 @@
   2006–2010 openings exactly as delivered in Ian Hamling's `dyke_files.zip`:
   Envisat-era inversions on the ~74 km Hamling computational
   grid, with no uncertainties, and with regularization and Green's
-  functions that differ from the 2026 fit's. Whether each file is the
-  published model version is unconfirmed and has been asked of Ian
-  Hamling. Only the along-axis
+  functions that differ from the 2026 fit's. Only the along-axis
   coordinate is shared: the grid's columns project monotonically onto the
   Wright-plane s axis with a median off-plane offset of about 0.1 km but
   up to 1.4 km mid-plane, so the two model surfaces are close but not
   identical. The opening files carry no coordinates; their row order is
-  taken from `plot_3d_dyke_only.dat` (equal row count, physically coherent
-  depth profiles) and awaits Ian Hamling's confirmation, and exact event
-  dates are not part of the delivery. The delivery also holds fifteen
-  post-2005 files against the thirteen published post-megadike intrusions;
-  may10 equals apr10 with cells below 0.5 m removed, and july09's positive
-  cells all lie inside june09's at r = 0.994 (no other pair exceeds
-  |r| = 0.44), so the primary cumulative sums thirteen files (drops may10
-  and july09) and the report brackets the mapping ambiguity (0.871–0.968
-  km³); the file-to-event mapping awaits the same confirmation. Every
-  post-2005 file carries a positive floor of 0.29–0.72 m, consistent
-  with the papers' discard of opening below the local 2σ uncertainty
-  (typically 0.3–0.4 m; only may10's 0.5-m cut is proven exactly,
-  against apr10), while the 2026 totals keep all fitted opening; the
-  report records a uniform 0.5-m floor for the primary cumulative and
-  for 2026 as a sensitivity, not a matched reconstruction of any
-  delivered filtering. The delivered 2005 field, by contrast, is
-  unfiltered (cells down to 4×10⁻⁴ m), integrates to 3.55 km³ against
-  the published ∼2.5 km³, and places 1.74 km³ below 10 km depth — deep
-  lobes (up to 12.9 m at 16–17 km) that the published opening figure
-  does not show and that the papers attribute largely to the inversion
-  fitting long-wavelength signals unrelated to dike opening. The 2026
-  plane has no patches below 10 km, so like-for-like volume comparisons
-  must quote the above-10-km values.
+  taken from `plot_3d_dyke_only.dat`, a reading confirmed by Ian
+  Hamling's own plotting script (`doplot3d.m`, 17 September 2026, tracked
+  in `data/ihamling/2026-09-17/`), which indexes an opening file by
+  the geometry file's row number. Exact event dates are not part of the
+  delivery. The delivery holds fifteen post-2005 files against the
+  thirteen published post-megadike intrusions; Ian Hamling's 17 September
+  2026 update lists the canonical thirteen and calls june09 and apr10
+  defunct earlier versions, so the primary cumulative keeps july09 (the
+  re-estimate of the June 2009 event) and may10 (apr10 with cells below
+  0.5 m removed) and sums 0.871 km³; the data-derived version pairs
+  (july09 ⊂ june09 at r = 0.994, no other pair above |r| = 0.44) match
+  that identification, and the report records the superseded selection
+  and the untrimmed-apr10 variant. Every post-2005 file carries a
+  positive floor of 0.29–0.72 m, consistent with the papers' discard of
+  opening below the local 2σ uncertainty (typically 0.3–0.4 m; only
+  may10's 0.5-m cut is proven exactly, against apr10), while the 2026
+  totals keep all fitted opening; the report records a uniform 0.5-m
+  floor for the primary cumulative and for 2026 as a sensitivity, not a
+  matched reconstruction of any delivered filtering. The delivered 2005
+  field is the raw inversion regridded to 20 km (Ian Hamling, 17
+  September 2026): unfiltered (cells down to 4×10⁻⁴ m), 3.55 km³ against
+  the published ∼2.5 km³, with 1.74 km³ of ill-constrained opening below
+  10 km depth (deep lobes up to 12.9 m at 16–17 km). Per his answer the
+  figure shows the upper 10 km of every panel and like-for-like volume
+  comparisons quote the above-10-km values. His updated 10-km 2005 model
+  (`model_slip_sept05.txt`, provided the same day) sums to 2.478 km³ at 1-km²
+  patches, consistent with the published total, but its 931 values match
+  no delivered patch grid; until its geometry file arrives it enters the
+  report by order-invariant quantities only and is not drawn on the
+  shared axis.
 
 ## Timing and continuation
 

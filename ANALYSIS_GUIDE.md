@@ -76,10 +76,12 @@ Manda Hararo intrusion.
   profile.
 - `mh26/hamling.py` decodes Ian Hamling's `dyke_files.zip` delivery (the
   September 2005 and fifteen later opening files on the ~74 km Hamling
-  computational grid; the data flag two files as duplicate content, so
-  the primary cumulative sums thirteen files and the report brackets the
-  alternative sums; the format is documented in the module
-  docstring and the tracked tables live in `data/ihamling/opening_files/`,
+  computational grid; the primary cumulative sums the canonical thirteen
+  files of his 17 September 2026 update, which the data-derived version
+  pairs corroborate, and the report records the superseded and
+  untrimmed variants; the format is documented in the module docstring
+  and the tracked tables live in `data/ihamling/opening_files/` with the
+  17 September update in `data/ihamling/2026-09-17/`,
   see `data/README.md`), registers that grid on the Wright-plane s axis,
   and writes the three-epoch U⊥ comparison per input chain:
   `results/uperp_three_epoch{,_gslc}.{json,md,png,pdf}` (September 2005,

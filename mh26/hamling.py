@@ -1,17 +1,22 @@
 """Three-epoch opening comparison from the Hamling dike files.
 
-Ian Hamling (GNS) provided `dyke_files.zip` (linked by Tim Wright in the
-paper thread on 2026-09-16), whose `opening_files/` holds opening
+Ian Hamling (GNS) provided `dyke_files.zip` (via Tim Wright,
+2026-09-16), whose `opening_files/` holds opening
 distributions of the September 2005 megadike and fifteen later
 (2006-2010) opening files on the ~74 km Hamling computational grid
 (Hamling et al. 2009, 2010; the published sequence has 13 post-megadike
-intrusions and the data flag two files as duplicate content — see
-`version_diagnostics`, `PRIMARY_EXCLUDED`, and the report).
-This module decodes that delivery, registers the grid against
-the Wright et al. (2006) plane the 2026 fit uses (mh26.wright2006), and
-renders the three-epoch U_perp comparison the plane was built for:
-September 2005, the cumulative 2006-2010 sequence, and July 2026 on one
-along-plane axis.
+intrusions). His 2026-09-17 update (tracked in
+`data/ihamling/2026-09-17/`) resolved the open
+questions: the canonical 13 post-2005 files keep july09 and may10 and
+drop the defunct earlier versions june09 and apr10 (see
+`PRIMARY_EXCLUDED`); the 20-km sept05 file is the raw inversion whose
+deep opening is ill-constrained (his `model_slip_sept05.txt`
+is the updated 10-km model); and the comparison figure should show the
+upper 10 km only. This module decodes the delivery, registers the grid
+against the Wright et al. (2006) plane the 2026 fit uses
+(mh26.wright2006), and renders the three-epoch U_perp comparison the
+plane was built for: September 2005, the cumulative 2006-2010
+sequence, and July 2026 on one along-plane axis.
 
 Decoded format (verified by the structural checks in `load_openings`):
 
@@ -22,29 +27,33 @@ Decoded format (verified by the structural checks in `load_openings`):
   depth rows (0-20 km) per along-strike column, 75 columns ordered SE->NW,
   in six constant-strike segments (329.7-355.7 deg, ~0.94-1.14 km column
   widths, ~73.9 km trace).
-- `dyke_only_<epoch>_ex.txt`: 1500 opening values in metres, one per patch.
-  The files carry no coordinates; they are taken to follow the
-  `plot_3d_dyke_only.dat` row order. That assumption rests on the equal row
-  count and on the physically coherent profiles it produces (smooth depth
-  profiles; the late small dikes vanish below ~8 km) and is flagged for
-  Ian's confirmation in LIMITATIONS.md.
+- `dyke_only_<epoch>_ex.txt`: 1500 opening values in metres, one per patch,
+  in the `plot_3d_dyke_only.dat` row order. Ian's own plotting script
+  (`doplot3d.m`, provided 2026-09-17) indexes an opening file by the
+  geometry file's row number, confirming the row-order reading that was
+  first adopted on the equal row count and the physically coherent
+  profiles it produces (smooth depth profiles; the late small dikes
+  vanish below ~8 km).
 - `t300_*_wrp_dyke.grd`: GMT classic-netCDF grids (1024x1024, 90 m, UTM
   37N) of wrapped Envisat track-300 LOS in centimetres (z spans one fringe,
   0-2.81 cm = lambda/2); context only, not used here.
 
 The openings are Envisat-era inversions exactly as provided: no
 uncertainties were delivered, and their regularization and greens
-functions differ from the 2026 fit's. Whether each file is the published
-model version is unconfirmed (asked of Ian Hamling): every post-2005
-file carries a positive floor of 0.29-0.72 m, consistent with the
-papers' discard of opening below the local 2-sigma uncertainty
-(typically 0.3-0.4 m), but sept05 is unfiltered (values down to
-4e-4 m), integrates to 3.55 km3 against the published ~2.5 km3, and
-holds deep lobes (up to 12.9 m at 16-17 km) that the published opening
-figure does not show and that the papers attribute largely to the
-inversion fitting long-wavelength signals unrelated to dike opening.
-The comparison is therefore of delivered models on a shared axis, not a
-joint inversion.
+functions differ from the 2026 fit's. Every post-2005 file carries a
+positive floor of 0.29-0.72 m, consistent with the papers' discard of
+opening below the local 2-sigma uncertainty (typically 0.3-0.4 m). The
+sept05 file is unfiltered (values down to 4e-4 m), integrates to
+3.55 km3 against the published ~2.5 km3, and holds deep lobes (up to
+12.9 m at 16-17 km); Ian confirmed (2026-09-17) it is the raw
+inversion regridded to 20 km with the ill-constrained deep opening
+kept, so the figure shows the upper 10 km and comparisons quote the
+above-10-km column. His updated 10-km model (`model_slip_sept05.txt`,
+931 values that match no delivered patch grid) is recorded by its
+order-invariant total, 2.478 km3 at 1-km2 patches, consistent with the
+published ~2.5 km3; its patch geometry has been requested, so it is
+not drawn on the axis. The comparison is of delivered models on a
+shared axis, not a joint inversion.
 
 Registration: each Hamling column centre is projected into the chained
 segment frames of the 2026 contract (mh26.wright2006._project_s), giving a
@@ -79,8 +88,7 @@ from .wright2006 import _chain_frames, _project_s
 DATA_DIR = REPO / "data" / "ihamling" / "opening_files"
 GEOMETRY_FILE = "plot_3d_dyke_only.dat"
 SOURCE_URL = "https://sftp.gns.cri.nz/pub/ihamling/dyke_files.zip"
-RECEIVED = ("linked by Tim Wright in the paper thread on 2026-09-16 "
-            "(files produced by Ian Hamling, GNS)")
+RECEIVED = ("provided by Ian Hamling (GNS) via Tim Wright, 2026-09-16")
 
 N_COLUMNS = 75
 N_DEPTH = 20
@@ -93,23 +101,26 @@ EPOCH_TAGS = ("sept05", "june06", "july06", "sept06", "dec06", "jan07",
               "june09", "july09", "apr10", "may10")
 
 # The delivery holds 15 post-2005 files against the 13 published
-# post-megadike intrusions, and two files duplicate others' content:
-# may10 equals apr10 with every cell below 0.5 m set to zero (an exact,
-# deterministic relation), and july09's positive cells all lie inside
-# june09's with a 0.994 correlation, against at most 0.44 between any
-# other pair — two estimates of one event, not two events. The primary
-# cumulative therefore excludes the two files below; the report quotes the
-# other candidate sums, and `version_diagnostics` re-derives the evidence
-# from the data so a changed delivery cannot silently keep this decision.
-# The file-to-event mapping still awaits Ian Hamling's confirmation.
-PRIMARY_EXCLUDED = ("july09", "may10")
+# post-megadike intrusions. Ian Hamling's 2026-09-17 update
+# lists the canonical 13 files and calls june09 and apr10 "defunct"
+# earlier versions: the set keeps july09 (the re-estimate of the June
+# 2009 event) and may10 (apr10 with every cell below 0.5 m set to
+# zero — for consistency with the other, similarly floored files).
+# `version_diagnostics` still re-derives the two version pairs from the
+# data, and `compute_report` requires them to match DUPLICATE_PAIRS
+# with exactly one member of each pair excluded, so a changed delivery
+# cannot silently keep this selection.
+PRIMARY_EXCLUDED = ("june09", "apr10")
+DUPLICATE_PAIRS = (frozenset({"apr10", "may10"}),
+                   frozenset({"june09", "july09"}))
 
-# The 13 post-2005 intrusions of the published sequence, used only for the
-# alternative catalogue-count sum in the report (note it represents the
-# May 2010 event by the filtered may10 field).
-CATALOGUE_13 = ("june06", "july06", "sept06", "dec06", "jan07", "aug07",
-                "nov07", "apr08", "july08", "oct08", "feb09", "june09",
-                "may10")
+# Ian Hamling's updated September 2005 model (provided 2026-09-17):
+# opening limited to 10 km, consistent with the Wright et
+# al. (2006) original. Its 931 values match no delivered patch grid, so
+# until its geometry file arrives only order-invariant quantities
+# (sum, maximum) are used.
+UPDATED_SEPT05 = (REPO / "data" / "ihamling" / "2026-09-17"
+                  / "model_slip_sept05.txt")
 
 OPENING_CMAP = LinearSegmentedColormap.from_list(
     "hamling_opening",
@@ -345,15 +356,18 @@ def three_epoch_figure(delivery: dict, registration: dict, fit: dict,
                        geometry: dict, chain: str, epochs: dict,
                        cumulative: np.ndarray) -> Path:
     s_ham = registration["s_km"][::-1]  # NW->SE for plotting
+    # Displayed depth range is 0-10 km on every panel, per Ian Hamling
+    # (2026-09-17): the delivered sept05 file keeps the raw inversion's
+    # ill-constrained deep opening, and his updated model stops at 10 km.
     panels = [
-        ("September 2005", delivery["openings_m"]["sept05"][::-1].T,
-         s_ham, np.arange(21.0), 13.0, [2, 4, 6, 8, 10, 12],
-         "Hamling dike files, as provided; version query pending "
-         "(published total ~2.5 km$^3$)",
+        ("September 2005", delivery["openings_m"]["sept05"][::-1].T[:10],
+         s_ham, np.arange(11.0), 11.0, [2, 4, 6, 8, 10],
+         "Hamling dike files; raw inversion shown to 10 km "
+         "(deep opening ill-constrained; I. Hamling, 17 Sep 2026)",
          epochs["sept05"]),
-        ("2006–2010 (cumulative, provisional set)", cumulative[::-1].T,
-         s_ham, np.arange(21.0), 9.0, [1, 2, 4, 6, 8],
-         "Hamling dike files; two-file mapping pending",
+        ("2006–2010 (cumulative, 13 events)", cumulative[::-1].T[:10],
+         s_ham, np.arange(11.0), 7.0, [1, 2, 4, 6],
+         "Hamling dike files; events per I. Hamling (17 Sep 2026)",
          epochs["cumulative_2006_2010"]),
     ]
 
@@ -378,14 +392,18 @@ def three_epoch_figure(delivery: dict, registration: dict, fit: dict,
         filled = _panel(ax, s_centres, z_ax, opening, vmax, lines, title,
                         note)
         ax.set_xlim(*xlim)
-        ax.set_ylim(0.0, 20.0)
+        ax.set_ylim(0.0, 10.0)
         ax.invert_yaxis()
         ax.axvline(se_2005, color="0.25", lw=0.9, ls=(0, (4, 3)), zorder=4)
-        label = (f"{stats['volume_km3']:.2f} km$^3$"
-                 + (f" ({stats['volume_above_10km_km3']:.2f} above 10 km)"
-                    if stats["volume_km3"]
-                    - stats["volume_above_10km_km3"] > 5e-3 else "")
-                 + f" · max {stats['max_opening_m']:.1f} m")
+        # The label quotes the displayed (above-10-km) field; the full
+        # file integral stays in parentheses where it differs.
+        if stats["volume_km3"] - stats["volume_above_10km_km3"] > 5e-3:
+            label = (f"{stats['volume_above_10km_km3']:.2f} km$^3$ above "
+                     f"10 km (file total {stats['volume_km3']:.2f}) "
+                     f"· max {float(np.max(opening)):.1f} m")
+        else:
+            label = (f"{stats['volume_km3']:.2f} km$^3$ "
+                     f"· max {float(np.max(opening)):.1f} m")
         ax.text(0.012, 0.06, label, transform=ax.transAxes, ha="left",
                 va="bottom", fontsize=8.5,
                 bbox={"facecolor": "white", "edgecolor": "none",
@@ -398,15 +416,16 @@ def three_epoch_figure(delivery: dict, registration: dict, fit: dict,
         colorbar.ax.tick_params(labelsize=8)
 
     ax_2026 = axes[2]
-    ax_2026.axhspan(z_edges[-1], 20.0, color="0.88", zorder=1)
+    if z_edges[-1] < 10.0:
+        ax_2026.axhspan(z_edges[-1], 10.0, color="0.88", zorder=1)
+        ax_2026.text(0.5 * sum(xlim), 0.5 * (z_edges[-1] + 10.0),
+                     f"below the 2026 model plane ({z_edges[-1]:g} km)",
+                     ha="center", va="center", fontsize=8, color="0.35",
+                     zorder=2)
     if xlim[1] > s_edges[-1]:
         # Beyond the plane's SE edge there is no 2026 model; grey it so it
         # does not read as zero opening.
         ax_2026.axvspan(s_edges[-1], xlim[1], color="0.88", zorder=1)
-    ax_2026.text(0.5 * sum(xlim), 0.5 * (z_edges[-1] + 20.0),
-                 f"below the 2026 model plane ({z_edges[-1]:g} km)",
-                 ha="center", va="center", fontsize=8, color="0.35",
-                 zorder=2)
     # The dashed line is the Wright et al. (2006) model-plane SE edge,
     # not the limit of 2005 opening: the delivered 2005 field holds
     # ~0.22 km3 southeast of it.
@@ -462,12 +481,18 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
                                 delivery["columns_width_km"])
               for tag in EPOCH_TAGS}
     diagnostics = version_diagnostics(delivery["openings_m"])
-    flagged = sorted({d["contained"] for d in diagnostics})
-    if flagged != sorted(PRIMARY_EXCLUDED):
+    pairs = {frozenset({d["contained"], d["container"]}) for d in diagnostics}
+    if pairs != set(DUPLICATE_PAIRS):
         raise ValueError(
-            f"data-derived duplicate flags {flagged} no longer match the "
-            f"reviewed exclusions {sorted(PRIMARY_EXCLUDED)}; the delivery "
-            "changed — revisit PRIMARY_EXCLUDED before summing")
+            f"data-derived version pairs {sorted(map(sorted, pairs))} no "
+            f"longer match {sorted(map(sorted, DUPLICATE_PAIRS))}; the "
+            "delivery changed — revisit PRIMARY_EXCLUDED (Ian Hamling's "
+            "2026-09-17 mapping) before summing")
+    for pair in DUPLICATE_PAIRS:
+        if len(pair & set(PRIMARY_EXCLUDED)) != 1:
+            raise ValueError(
+                f"PRIMARY_EXCLUDED {PRIMARY_EXCLUDED} must drop exactly "
+                f"one member of the version pair {sorted(pair)}")
     cum_tags = [t for t in EPOCH_TAGS[1:] if t not in PRIMARY_EXCLUDED]
     cum = sum(delivery["openings_m"][t] for t in cum_tags)
     widths = delivery["columns_width_km"]
@@ -478,6 +503,25 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
     epochs["cumulative_2006_2010"]["volume_at_0p5m_floor_km3"] = \
         _epoch_stats(floored_cum, widths)["volume_km3"]
     epochs["epoch_2026"] = _fit_opening_stats(fit, geometry)
+
+    updated = np.loadtxt(UPDATED_SEPT05)
+    if updated.shape != (931,) or updated.min() < 0.0:
+        raise ValueError(f"{UPDATED_SEPT05}: expected 931 non-negative "
+                         f"values, got shape {updated.shape}")
+    updated_sept05 = {
+        "file": _display_source_path(UPDATED_SEPT05),
+        "sha256": _sha256(UPDATED_SEPT05),
+        "n_values": int(updated.size),
+        "max_opening_m": float(updated.max()),
+        "volume_km3_at_1km2_patches": float(updated.sum()) * 1e-3,
+        "note": "Ian Hamling's updated 10-km September 2005 model "
+                "(provided 2026-09-17), consistent with the Wright et al. "
+                "(2006) original; 931 values match no delivered patch "
+                "grid, so only order-invariant quantities are quoted "
+                "(the volume assumes the 1-km2 patches of his grids) "
+                "and the field is not drawn on the shared axis — the "
+                "patch geometry has been requested",
+    }
 
     suffix = "_gslc" if chain == "gslc" else ""
     payload = {
@@ -509,29 +553,24 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
         "cumulative_2006_2010": {
             "files_summed": cum_tags,
             "primary_excluded": list(PRIMARY_EXCLUDED),
+            "mapping": "canonical 13 post-2005 files per Ian Hamling "
+                       "(2026-09-17; june09 and apr10 are "
+                       "defunct earlier versions)",
             "pair_diagnostics": diagnostics,
             **epochs["cumulative_2006_2010"],
             "alternatives": {
                 "sum_of_all_delivered_files": _epoch_stats(
                     sum(delivery["openings_m"][t] for t in EPOCH_TAGS[1:]),
                     widths),
-                "counted_once_14_files": _epoch_stats(
+                "superseded_primary_drop_july09_may10": _epoch_stats(
                     sum(delivery["openings_m"][t] for t in EPOCH_TAGS[1:]
-                        if t != "may10"), widths),
-                "keep_july09_drop_june09": _epoch_stats(
+                        if t not in ("july09", "may10")), widths),
+                "untrimmed_apr10_for_may10": _epoch_stats(
                     sum(delivery["openings_m"][t] for t in EPOCH_TAGS[1:]
                         if t not in ("june09", "may10")), widths),
-                "drop_june09_and_apr10": _epoch_stats(
-                    sum(delivery["openings_m"][t] for t in EPOCH_TAGS[1:]
-                        if t not in ("june09", "apr10")), widths),
-                "catalogue_13_events": {
-                    "files": list(CATALOGUE_13),
-                    **_epoch_stats(
-                        sum(delivery["openings_m"][t] for t in CATALOGUE_13),
-                        widths),
-                },
             },
         },
+        "sept05_updated_model": updated_sept05,
         "epoch_2026": {
             "reference_fit": _display_source_path(fit_path),
             "reference_fit_sha256": _sha256(fit_path),
@@ -542,24 +581,28 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
             "openings are Envisat-era inversions exactly as provided "
             "(no uncertainties; different regularization and greens "
             "functions from the 2026 fit)",
-            "the epoch-file row order is assumed to follow "
-            "plot_3d_dyke_only.dat and awaits Ian Hamling's confirmation",
-            "whether each file is the published model version is "
-            "unconfirmed and has been put to Ian Hamling: sept05 "
-            "integrates to 3.55 km3 against the published ~2.5 km3, and "
-            "its deep lobes (up to 12.9 m at 16-17 km; 1.74 km3 below "
-            "10 km, in either depth orientation) do not appear in the "
-            "published opening figure — the papers attribute deep "
-            "opening largely to the inversion fitting long-wavelength "
-            "signals unrelated to dike opening and discard opening "
-            "below the local 2-sigma uncertainty before use",
-            "the delivery has 15 post-2005 files against the 13 published "
-            "post-megadike intrusions; may10 is apr10 with cells below "
-            "0.5 m removed, and july09's positive cells all lie inside "
-            "june09's at r=0.994 (all other pairs |r|<=0.44), so the "
-            "primary cumulative excludes both and the report quotes the "
-            "candidate sums; the file-to-event mapping awaits Ian "
-            "Hamling's confirmation",
+            "the epoch-file row order follows plot_3d_dyke_only.dat, "
+            "confirmed by Ian Hamling's own plotting script doplot3d.m "
+            "(provided 2026-09-17), which indexes an opening file by the "
+            "geometry file's row number",
+            "the delivered sept05 file is the raw inversion regridded "
+            "to 20 km (Ian Hamling, 2026-09-17): it integrates to "
+            "3.55 km3 against the published ~2.5 km3 and its deep "
+            "opening (up to 12.9 m at 16-17 km; 1.74 km3 below 10 km) "
+            "is ill-constrained, so the figure shows the upper 10 km "
+            "and like-for-like comparisons quote the above-10-km "
+            "column; his updated 10-km model is recorded under "
+            "sept05_updated_model by order-invariant quantities only, "
+            "pending its patch geometry",
+            "the delivery has 15 post-2005 files against the 13 "
+            "published post-megadike intrusions; Ian Hamling's "
+            "2026-09-17 update lists the canonical 13 (keep july09 and "
+            "may10, drop the defunct june09 and apr10), matching the "
+            "data-derived version pairs (may10 is apr10 with cells "
+            "below 0.5 m removed; july09's positive cells all lie "
+            "inside june09's at r=0.994, all other pairs |r|<=0.44); "
+            "the alternatives record the superseded selection and the "
+            "untrimmed-apr10 variant",
             "every post-2005 file carries a positive floor of "
             "0.29-0.72 m, consistent with the papers' discard of "
             "opening below the local 2-sigma uncertainty (typically "
@@ -633,14 +676,10 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
     for label, alt in (
             (f"all {len(EPOCH_TAGS) - 1} delivered files",
              alternatives["sum_of_all_delivered_files"]),
-            ("14 files (only may10 dropped)",
-             alternatives["counted_once_14_files"]),
-            ("keep july09, drop june09",
-             alternatives["keep_july09_drop_june09"]),
-            ("keep july09 + may10, drop june09 + apr10",
-             alternatives["drop_june09_and_apr10"]),
-            ("catalogue 13 events (filtered may10)",
-             alternatives["catalogue_13_events"])):
+            ("superseded primary (kept june09 + apr10)",
+             alternatives["superseded_primary_drop_july09_may10"]),
+            ("untrimmed apr10 in place of may10",
+             alternatives["untrimmed_apr10_for_may10"])):
         lines.append(f"| — alternative: {label} | "
                      f"{alt['volume_km3']:.3f} | "
                      f"{alt['volume_above_10km_km3']:.3f} | "
@@ -650,42 +689,56 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
                  f"{fit_stats['volume_above_10km_km3']:.3f} | "
                  f"{fit_stats['max_opening_m']:.2f} |")
     bottom = fit_stats["plane_bottom_km"]
+    updated = payload["sept05_updated_model"]
     lines += [
         "",
         "The delivery has 15 post-2005 files against the 13 published "
-        "post-megadike intrusions, and the data flag two as duplicate "
-        "content: may10 equals apr10 with every cell below 0.5 m set to "
-        "zero (38% of that field's volume), and july09's positive cells "
-        "all lie inside june09's at correlation 0.994 while no other "
-        "pair exceeds |r| = 0.44 — two estimates of one event. The "
-        "primary cumulative therefore sums 13 files (drops may10 and "
-        "july09); the alternatives above bracket the mapping ambiguity "
-        f"({min(v['volume_km3'] for v in [stats, *alternatives.values()]):.3f}"
-        f"-{max(v['volume_km3'] for v in [stats, *alternatives.values()]):.3f}"
-        " km3), which Ian Hamling has been asked to resolve.",
+        "post-megadike intrusions. Ian Hamling's update of "
+        "17 September 2026 lists the canonical 13 files and calls "
+        "june09 and apr10 defunct earlier versions, so the primary "
+        "cumulative keeps july09 (the re-estimate of the June 2009 "
+        "event) and may10 (apr10 with every cell below 0.5 m set to "
+        "zero, 38% of that field's volume — kept for consistency with "
+        "the other floored files). The data-derived pair diagnostics "
+        "match that identification: july09's positive cells all lie "
+        "inside june09's at correlation 0.994 while no other pair "
+        "exceeds |r| = 0.44. The alternatives above record the "
+        "superseded selection and the untrimmed-apr10 variant.",
         "",
-        "Comparability caveats: whether each file is the published "
-        "model version is unconfirmed (asked of Ian Hamling). Every "
-        "post-2005 file carries a positive floor of 0.29-0.72 m, "
-        "consistent with the papers' discard of opening below the "
-        "local 2-sigma uncertainty (typically 0.3-0.4 m), while sept05 "
-        "is unfiltered (cells down to 4e-4 m), integrates to "
+        "The row order of the opening files follows "
+        "plot_3d_dyke_only.dat; Ian Hamling's own plotting script "
+        "(doplot3d.m, provided 17 September 2026, tracked in "
+        "data/ihamling/2026-09-17/) indexes an opening file by "
+        "the geometry file's row number, confirming that reading.",
+        "",
+        "Comparability caveats: every post-2005 file carries a "
+        "positive floor of 0.29-0.72 m, consistent with the papers' "
+        "discard of opening below the local 2-sigma uncertainty "
+        "(typically 0.3-0.4 m), while the delivered sept05 file is the "
+        "raw inversion regridded to 20 km (Ian Hamling, 17 September "
+        "2026): it is unfiltered (cells down to 4e-4 m), integrates to "
         f"{epochs['sept05']['volume_km3']:.2f} km3 against the "
         "published ~2.5 km3, and carries "
         f"{epochs['sept05']['volume_km3'] - epochs['sept05']['volume_above_10km_km3']:.2f}"
-        " km3 below 10 km depth (deep lobes peaking at 13-20 km, up to "
-        f"{epochs['sept05']['max_opening_m']:.1f} m) that the published "
-        "opening figure does not show and that the papers attribute "
-        "largely to the inversion fitting long-wavelength signals "
-        "unrelated to dike opening. The 2026 totals keep all fitted "
-        "opening. As a uniform-floor sensitivity — not a matched "
-        "reconstruction — a 0.5-m floor gives "
+        " km3 of ill-constrained opening below 10 km (deep lobes "
+        f"peaking at 13-20 km, up to "
+        f"{epochs['sept05']['max_opening_m']:.1f} m). The figure "
+        "therefore shows the upper 10 km of every panel and "
+        "like-for-like volume comparisons should quote the "
+        "above-10-km column. His updated 10-km September 2005 model "
+        f"(`{Path(updated['file']).name}`, provided 17 September 2026) sums to "
+        f"{updated['volume_km3_at_1km2_patches']:.3f} km3 at 1-km2 "
+        f"patches (maximum {updated['max_opening_m']:.2f} m), "
+        "consistent with the published ~2.5 km3; its 931 values match "
+        "no delivered patch grid, so it is not drawn on the axis and "
+        "its patch geometry has been requested. The 2026 totals keep "
+        "all fitted opening. As a uniform-floor sensitivity — not a "
+        "matched reconstruction — a 0.5-m floor gives "
         f"{stats['volume_at_0p5m_floor_km3']:.3f} km3 for the primary "
         f"cumulative and {fit_stats['volume_at_0p5m_floor_km3']:.3f} km3 "
         "for 2026. "
-        f"The 2026 model plane ends at {bottom:g} km, so "
-        "like-for-like volume comparisons should quote the above-10-km "
-        "column. See also the notes block in the JSON and LIMITATIONS.md. "
+        f"The 2026 model plane ends at {bottom:g} km. "
+        "See also the notes block in the JSON and LIMITATIONS.md. "
         "Exact event dates are not part of the delivery; take them from "
         "the Hamling et al. (2009, 2010) catalogue when captioning.",
         "",
@@ -700,7 +753,7 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
           f"{registration['median_offplane_m']:.0f} m / max "
           f"{registration['max_offplane_m']:.0f} m")
     print(f"cumulative: {len(cum_tags)} files summed; excluded "
-          f"{list(PRIMARY_EXCLUDED)} per the recorded pair diagnostics")
+          f"{list(PRIMARY_EXCLUDED)} per Ian Hamling's 2026-09-17 mapping")
     print(f"volumes (km3): 2005 {epochs['sept05']['volume_km3']:.2f} "
           f"({epochs['sept05']['volume_above_10km_km3']:.2f} above 10 km), "
           f"2006-2010 {stats['volume_km3']:.2f} "

@@ -11,6 +11,7 @@ data/*
 data/ihamling/*
 !data/ihamling/opening_files/
 data/ihamling/opening_files/*.grd
+!data/ihamling/2026-09-17/
 dist/
 .venv/
 __pycache__/
