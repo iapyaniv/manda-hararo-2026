@@ -89,6 +89,18 @@ Manda Hararo intrusion.
   the raw 20-km field tabled — cumulative 2006–2010, and July 2026 on
   one along-plane axis, with per-epoch volume and maximum-opening
   tables).
+- `mh26/opening_profiles.py` renders the same inputs as top-10-km
+  depth-averaged opening per intrusion in the style of Fig. 13 of
+  Hamling et al. (2009): one labelled panel per event (September 2005,
+  the canonical thirteen 2006–2010 intrusions, July 2026) plus the
+  cumulative stack, per input chain:
+  `results/opening_profiles{,_gslc}.{json,md,png,pdf}` and the
+  standalone cumulative panel
+  `results/opening_profiles_cumulative{,_gslc}.{png,pdf}` (sized to
+  sit under the three-epoch figure). A profile integrates exactly to
+  the epoch's above-10-km volume, cross-checked against `mh26.hamling`
+  on every run; the delivered inversions carry no uncertainties, so
+  the panels have no error bars.
 - `mh26/fault_depth.py` sweeps the depth extent of the mapped east-fault
   term (truncation caps re-solved at the reused smoothing weight) and
   reports changes in misfit and fault potency/moment, per

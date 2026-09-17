@@ -470,28 +470,57 @@ def check_three_epoch_report(name: str, expected_source: str,
                                  DATA_DIR)
     expected = _json.loads(_json.dumps(expected, sort_keys=True))
     if expected != report:
-        def _first_diff(a, b, at=""):
-            if isinstance(a, dict) and isinstance(b, dict):
-                for key in sorted(set(a) | set(b)):
-                    if key not in a or key not in b:
-                        return f"{at}.{key} (missing on one side)"
-                    found = _first_diff(a[key], b[key], f"{at}.{key}")
-                    if found:
-                        return found
-                return None
-            if isinstance(a, list) and isinstance(b, list):
-                if len(a) != len(b):
-                    return f"{at} (length {len(a)} vs {len(b)})"
-                for i, (x, y) in enumerate(zip(a, b)):
-                    found = _first_diff(x, y, f"{at}[{i}]")
-                    if found:
-                        return found
-                return None
-            return at if a != b else None
         raise ValueError(
             f"{name}: report does not match a full recomputation "
             f"from the canonical fit and the tracked delivery "
-            f"(first difference at {_first_diff(expected, report)})")
+            f"(first difference at {_first_json_diff(expected, report)})")
+
+
+def _first_json_diff(a, b, at=""):
+    if isinstance(a, dict) and isinstance(b, dict):
+        for key in sorted(set(a) | set(b)):
+            if key not in a or key not in b:
+                return f"{at}.{key} (missing on one side)"
+            found = _first_json_diff(a[key], b[key], f"{at}.{key}")
+            if found:
+                return found
+        return None
+    if isinstance(a, list) and isinstance(b, list):
+        if len(a) != len(b):
+            return f"{at} (length {len(a)} vs {len(b)})"
+        for i, (x, y) in enumerate(zip(a, b)):
+            found = _first_json_diff(x, y, f"{at}[{i}]")
+            if found:
+                return found
+        return None
+    return at if a != b else None
+
+
+def check_opening_profiles_report(name: str, expected_source: str) -> None:
+    """Check one depth-averaged-profiles report against the tracked inputs.
+
+    mh26.opening_profiles rebuilds its payload through
+    mh26.hamling.compute_report, so this check pins the same tracked
+    delivery directory and canonical fit and requires exact equality
+    with a full recomputation — every guard of the three-epoch check
+    applies transitively.
+    """
+    import json as _json
+
+    from .hamling import DATA_DIR, _find_fit
+    from .opening_profiles import compute_report
+
+    report = _json.loads((REPO / "results" / name).read_text())
+    if report.get("nisar_source") != expected_source:
+        raise ValueError(f"{name}: nisar_source is not {expected_source!r}")
+    expected, _ = compute_report(expected_source, _find_fit(expected_source),
+                                 DATA_DIR)
+    expected = _json.loads(_json.dumps(expected, sort_keys=True))
+    if expected != report:
+        raise ValueError(
+            f"{name}: report does not match a full recomputation "
+            f"from the canonical fit and the tracked delivery "
+            f"(first difference at {_first_json_diff(expected, report)})")
 
 
 def validate_new_products(require_gslc_sources: bool = True) -> None:
@@ -645,6 +674,10 @@ def validate_new_products(require_gslc_sources: bool = True) -> None:
     for name, expected_source in (("uperp_three_epoch.json", "gunw"),
                                   ("uperp_three_epoch_gslc.json", "gslc")):
         check_three_epoch_report(name, expected_source)
+
+    for name, expected_source in (("opening_profiles.json", "gunw"),
+                                  ("opening_profiles_gslc.json", "gslc")):
+        check_opening_profiles_report(name, expected_source)
 
     traces = _json.loads((REPO / "results" / "fault_traces.json").read_text())
     for key in ("los_step_across_ridges", "trace_support",
