@@ -118,17 +118,31 @@ def _profile_stats(s_km: np.ndarray, profile: np.ndarray) -> dict:
     }
 
 
-def _resample(x: np.ndarray, centres: np.ndarray,
-              values: np.ndarray) -> np.ndarray:
+def _extend_to_edges(centres: np.ndarray, values: np.ndarray,
+                     lo: float, hi: float) -> tuple[np.ndarray, np.ndarray]:
+    """Carry the end columns flat to their true cell boundaries.
+
+    An end column is a constant-value cell; stopping the curve at its
+    centre would drop half the cell and draw a false boundary half a
+    column inside the model's real extent.
+    """
+    return (np.concatenate(([lo], centres, [hi])),
+            np.concatenate(([values[0]], values, [values[-1]])))
+
+
+def _resample(x: np.ndarray, centres: np.ndarray, values: np.ndarray,
+              lo: float, hi: float) -> np.ndarray:
     """Interpolate a column profile on the fine grid x, zero outside.
 
-    Linear between column centres on the projected axis, so the stack
-    and the per-event panels draw one shape. This display resampling is
-    not volume-preserving: the payload's display block records the
-    drawn areas next to the native-grid volumes, which are the quoted
+    Linear between column centres on the projected axis and flat from
+    the end centres to the model edges lo/hi, so the stack and the
+    per-event panels draw one shape. This display resampling is not
+    volume-preserving: the payload's display block records the drawn
+    areas next to the native-grid volumes, which are the quoted
     numbers.
     """
-    return np.interp(x, centres, values, left=0.0, right=0.0)
+    c, v = _extend_to_edges(centres, values, lo, hi)
+    return np.interp(x, c, v, left=0.0, right=0.0)
 
 
 def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
@@ -215,12 +229,17 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
                 registration["plane_span_km"][1])
     x = np.arange(0.0, x_max + 0.01, DISPLAY_STEP_KM)
     s_nwse = s_km[::-1]
+    widths_nwse = widths[::-1]
+    extent_ham = (float(s_nwse[0] - 0.5 * widths_nwse[0]),
+                  float(s_nwse[-1] + 0.5 * widths_nwse[-1]))
+    extent_2026 = (float(s_edges[0]), float(s_edges[-1]))
     drawn_area = {}
     stack = np.zeros_like(x)
     worst = ("", 0.0)
     for event in events:
         y = _resample(x, s_nwse,
-                      np.asarray(event["average_opening_m"])[::-1])
+                      np.asarray(event["average_opening_m"])[::-1],
+                      *extent_ham)
         drawn_area[event["tag"]] = \
             float(np.trapezoid(y, x)) * AVERAGE_DEPTH_KM * 1e-3
         relative = abs(drawn_area[event["tag"]]
@@ -228,7 +247,7 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
         if relative > worst[1]:
             worst = (event["tag"], relative)
         stack += y
-    y_2026 = _resample(x, s_2026, profile_2026)
+    y_2026 = _resample(x, s_2026, profile_2026, *extent_2026)
     drawn_area["epoch_2026"] = \
         float(np.trapezoid(y_2026, x)) * AVERAGE_DEPTH_KM * 1e-3
     relative = abs(drawn_area["epoch_2026"] / volume_2026 - 1.0)
@@ -239,24 +258,51 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
         float(np.trapezoid(stack, x)) * AVERAGE_DEPTH_KM * 1e-3
     se_2005 = registration["se_limit_2005_km"]
     y_sept05 = _resample(x, s_nwse,
-                         np.asarray(events[0]["average_opening_m"])[::-1])
+                         np.asarray(events[0]["average_opening_m"])[::-1],
+                         *extent_ham)
     past_edge = x[(x > se_2005) & (y_sept05 > 0.0)]
     display = {
         "note": "linear interpolation between column centres on the "
-                "projected axis, for display only; it is not "
-                "volume-preserving, so quoted volumes come from the "
-                "native-grid tables",
+                "projected axis, carried flat from the end centres to "
+                "the model edges (extent_km), for display only; it is "
+                "not volume-preserving, so quoted volumes come from "
+                "the native-grid tables",
         "fine_grid_step_km": DISPLAY_STEP_KM,
         "x_max_km": x_max,
+        "extent_km": {"hamling_grid": list(extent_ham),
+                      "epoch_2026": list(extent_2026)},
         "drawn_area_km3": drawn_area,
         "worst_drawn_vs_native": {"tag": worst[0],
                                   "relative_error": worst[1]},
         "sept05_drawn_at_plane_edge_m":
             float(_resample(np.array([se_2005]), s_nwse,
                             np.asarray(events[0]["average_opening_m"])
-                            [::-1])[0]),
+                            [::-1], *extent_ham)[0]),
         "sept05_drawn_positive_to_km":
             float(past_edge.max()) if past_edge.size else se_2005,
+    }
+
+    # The historical post-2005 files floor small opening while the
+    # 2005 model and the 2026 fit keep all of it; state that asymmetry
+    # with this product instead of only pointing at the three-epoch
+    # report (the 0.5-m values are one uniform illustrative floor,
+    # mirrored from that report, not a matched reconstruction of the
+    # papers' local-uncertainty thresholds).
+    floors = [float(delivery["openings_m"][tag]
+                    [delivery["openings_m"][tag] > 0].min())
+              for tag in cum_tags]
+    threshold_sensitivity = {
+        "post2005_positive_floors_m": [min(floors), max(floors)],
+        "volume_2026_km3_at_0p5m_floor":
+            epochs["epoch_2026"]["volume_at_0p5m_floor_km3"],
+        "cumulative_2006_2010_km3_at_0p5m_floor":
+            epochs["cumulative_2006_2010"]["volume_at_0p5m_floor_km3"],
+        "note": "every canonical post-2005 file carries a positive "
+                "floor, consistent with the papers' discard of opening "
+                "below the local 2-sigma uncertainty, while the "
+                "September 2005 model and the 2026 fit keep all fitted "
+                "opening; magnitude and extent comparisons inherit "
+                "that asymmetry",
     }
 
     suffix = "_gslc" if chain == "gslc" else ""
@@ -282,6 +328,7 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
         "events": events,
         "epoch_2026": epoch_2026,
         "display": display,
+        "threshold_sensitivity": threshold_sensitivity,
         "cumulative": {
             "stack_order": [e["tag"] for e in events] + ["epoch_2026"],
             "volume_above_10km_km3_total": total,
@@ -314,14 +361,23 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
     return payload, context
 
 
-def _cumulative_panel(ax, payload, context, xlim, label_total=True):
+def _threshold_caveat(payload: dict) -> str:
+    floors = payload["threshold_sensitivity"]["post2005_positive_floors_m"]
+    return (f"2006–2010 files floor small opening "
+            f"({floors[0]:.1f}–{floors[1]:.1f} m);\n"
+            "2005 and 2026 keep all fitted opening")
+
+
+def _cumulative_panel(ax, payload, context, xlim, show_caveat=True):
     """Stack the per-event averages into the cumulative profile."""
     x = np.arange(xlim[0], xlim[1] + 0.01, DISPLAY_STEP_KM)
     centres_ham = np.asarray(payload["s_axis"]["s_km"])[::-1]  # NW->SE
+    extent_ham = payload["display"]["extent_km"]["hamling_grid"]
+    extent_2026 = payload["display"]["extent_km"]["epoch_2026"]
     bottom = np.zeros_like(x)
     for event in payload["events"]:
         values = np.asarray(event["average_opening_m"])[::-1]
-        top = bottom + _resample(x, centres_ham, values)
+        top = bottom + _resample(x, centres_ham, values, *extent_ham)
         ax.fill_between(x, bottom, top, color=event["color"], lw=0,
                         label=event["label"])
         # A hairline gap keeps neighbouring layers of similar hue apart.
@@ -332,7 +388,7 @@ def _cumulative_panel(ax, payload, context, xlim, label_total=True):
                   else "GUNW")
     top = bottom + _resample(
         x, np.asarray(epoch_2026["s_centres_km"]),
-        np.asarray(epoch_2026["average_opening_m"]))
+        np.asarray(epoch_2026["average_opening_m"]), *extent_2026)
     ax.fill_between(x, bottom, top, color=epoch_2026["color"], lw=0,
                     label=f"{epoch_2026['label']} ({chain_note} chain)")
     ax.plot(x, top, color="0.15", lw=0.7)
@@ -342,7 +398,7 @@ def _cumulative_panel(ax, payload, context, xlim, label_total=True):
     plane_end = epoch_2026["s_edges_km"][-1]
     if xlim[1] > plane_end:
         ax.axvspan(plane_end, xlim[1], color="0.88", zorder=0)
-        ax.text(plane_end + 0.4, 0.45,
+        ax.text(plane_end + 0.4, 0.30,
                 f"no 2026 model SE of {plane_end:.0f} km",
                 transform=ax.get_xaxis_transform(), rotation=90,
                 ha="left", va="center", fontsize=7.5, color="0.35",
@@ -355,19 +411,21 @@ def _cumulative_panel(ax, payload, context, xlim, label_total=True):
                  fontsize=8, color="0.30", pad=6)
     se_2005 = payload["s_axis"]["se_limit_2005_km"]
     ax.axvline(se_2005, color="0.25", lw=0.9, ls=(0, (4, 3)), zorder=4)
-    ax.text(se_2005 + 0.4, 0.45, "Wright 2006 plane edge",
+    ax.text(se_2005 + 0.4, 0.30, "Wright 2006 plane edge",
             transform=ax.get_xaxis_transform(), rotation=90, ha="left",
             va="center", fontsize=7.5, color="0.20",
             bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.78,
                   "pad": 1.2}, zorder=5)
-    if label_total:
-        total = payload["cumulative"]["volume_above_10km_km3_total"]
-        n_events = len(payload["events"]) + 1
-        ax.text(0.24, 0.93,
-                f"{total:.2f} km$^3$ above 10 km · {n_events} intrusions",
-                transform=ax.transAxes, ha="left", va="top", fontsize=8.5,
-                bbox={"facecolor": "white", "edgecolor": "none",
-                      "alpha": 0.8, "pad": 1.6})
+    total = payload["cumulative"]["volume_above_10km_km3_total"]
+    n_events = len(payload["events"]) + 1
+    label = f"{total:.2f} km$^3$ above 10 km · {n_events} intrusions"
+    if show_caveat:
+        label += "\n" + _threshold_caveat(payload).replace("\n", " ")
+    ax.text(0.24, 0.93, label,
+            transform=ax.transAxes, ha="left", va="top", fontsize=8.5,
+            linespacing=1.5,
+            bbox={"facecolor": "white", "edgecolor": "none",
+                  "alpha": 0.8, "pad": 1.6})
     ax.set_xlabel("Distance along the 2005 dike plane, NW→SE (km)")
 
 
@@ -387,6 +445,8 @@ def profiles_figure(payload: dict, context: dict, chain: str) -> Path:
 
     se_2005 = payload["s_axis"]["se_limit_2005_km"]
     centres_ham = np.asarray(payload["s_axis"]["s_km"])[::-1]  # NW->SE
+    extent_ham = payload["display"]["extent_km"]["hamling_grid"]
+    extent_2026 = payload["display"]["extent_km"]["epoch_2026"]
 
     def draw(ax, s, profile, event, top):
         ax.fill_between(s, 0.0, profile, color=event["color"], alpha=0.30,
@@ -400,8 +460,9 @@ def profiles_figure(payload: dict, context: dict, chain: str) -> Path:
         ax.tick_params(labelsize=8)
 
     sept05 = payload["events"][0]
-    draw(axes[0], centres_ham,
-         np.asarray(sept05["average_opening_m"])[::-1], sept05,
+    draw(axes[0], *_extend_to_edges(
+             centres_ham, np.asarray(sept05["average_opening_m"])[::-1],
+             *extent_ham), sept05,
          1.12 * sept05["max_average_m"])
     axes[0].axvline(se_2005, color="0.25", lw=0.8, ls=(0, (4, 3)))
     axes[0].set_title("Depth-averaged opening, 0–10 km", loc="left",
@@ -411,14 +472,18 @@ def profiles_figure(payload: dict, context: dict, chain: str) -> Path:
                       fontsize=8, color="0.30", pad=6)
 
     for ax, event in zip(axes[1:], payload["events"][1:]):
-        draw(ax, centres_ham, np.asarray(event["average_opening_m"])[::-1],
-             event, small_top)
+        draw(ax, *_extend_to_edges(
+                 centres_ham,
+                 np.asarray(event["average_opening_m"])[::-1],
+                 *extent_ham), event, small_top)
         ax.set_yticks([0.0, small_top])
 
     ax_2026 = axes[1 + len(payload["events"][1:])]
     epoch_2026 = payload["epoch_2026"]
-    draw(ax_2026, np.asarray(epoch_2026["s_centres_km"]),
-         np.asarray(epoch_2026["average_opening_m"]), epoch_2026, small_top)
+    draw(ax_2026, *_extend_to_edges(
+             np.asarray(epoch_2026["s_centres_km"]),
+             np.asarray(epoch_2026["average_opening_m"]),
+             *extent_2026), epoch_2026, small_top)
     ax_2026.set_yticks([0.0, small_top])
     plane_end = epoch_2026["s_edges_km"][-1]
     if xlim[1] > plane_end:
@@ -447,14 +512,18 @@ def cumulative_figure(payload: dict, context: dict, chain: str) -> Path:
     comparison figure (same width and x axis)."""
     xlim = (0.0, payload["display"]["x_max_km"])
     fig, ax = plt.subplots(figsize=(9.0, 3.4), constrained_layout=True)
-    _cumulative_panel(ax, payload, context, xlim)
+    _cumulative_panel(ax, payload, context, xlim, show_caveat=False)
     ax.set_ylabel("Average opening (m)")
     # Identity needs a legend here: the labelled per-event panels of the
-    # full profiles figure are absent.
-    ax.legend(loc="upper right", fontsize=6.8, ncols=3, frameon=True,
-              framealpha=0.9, edgecolor="none",
-              columnspacing=1.0, handlelength=1.2, handleheight=0.9,
-              borderaxespad=0.2)
+    # full profiles figure are absent. The threshold caveat rides as
+    # its title so the panel carries the asymmetry statement on its own.
+    legend = ax.legend(loc="upper right", fontsize=6.8, ncols=3,
+                       frameon=True, framealpha=0.9, edgecolor="none",
+                       columnspacing=1.0, handlelength=1.2,
+                       handleheight=0.9, borderaxespad=0.2,
+                       title=_threshold_caveat(payload),
+                       title_fontsize=6.8)
+    legend.get_title().set_color("0.30")
     suffix = "_gslc" if chain == "gslc" else ""
     out = RESULTS / f"opening_profiles_cumulative{suffix}"
     for ext in ("png", "pdf"):
@@ -506,8 +575,25 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
         "the JSON's display block), so quoted volumes always come from "
         "the native-grid tables. The delivered inversions carry no "
         "uncertainties, so unlike the published figure the panels have "
-        "no error bars; the comparability caveats of "
-        "`uperp_three_epoch*.md` apply unchanged.",
+        "no error bars. Magnitude and extent comparisons also inherit "
+        "a threshold asymmetry, stated on the cumulative panels: every "
+        "canonical post-2005 file floors small opening ("
+        f"{payload['threshold_sensitivity']['post2005_positive_floors_m'][0]:.2f}"
+        "–"
+        f"{payload['threshold_sensitivity']['post2005_positive_floors_m'][1]:.2f}"
+        " m, consistent with the papers' discard of opening below the "
+        "local 2σ uncertainty), while the September 2005 model and the "
+        "2026 fit keep all fitted opening. As one uniform illustrative "
+        "floor — a sensitivity, not a reconstruction of the historical "
+        "thresholds — 0.5 m reduces the July 2026 volume from "
+        f"{payload['epoch_2026']['volume_above_10km_km3']:.3f} to "
+        f"{payload['threshold_sensitivity']['volume_2026_km3_at_0p5m_floor']:.3f}"
+        " km3 (about "
+        f"{1 - payload['threshold_sensitivity']['volume_2026_km3_at_0p5m_floor'] / payload['epoch_2026']['volume_above_10km_km3']:.0%}"
+        "); the matching cumulative sensitivity is in "
+        "`uperp_three_epoch*.md`, whose remaining comparability caveats "
+        "(different regularization and greens functions) apply "
+        "unchanged.",
         "",
         "| intrusion | file | volume above 10 km (km3) | "
         "max average opening (m) | at s (km) |",

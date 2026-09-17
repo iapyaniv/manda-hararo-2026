@@ -24,7 +24,7 @@
   "drawn_area_km3": {
    "apr08": 0.06698625358518998,
    "aug07": 0.04008679757403538,
-   "cumulative": 3.1772154464164815,
+   "cumulative": 3.2024822460094815,
    "dec06": 0.043636832212878965,
    "epoch_2026": 0.1800432384019036,
    "feb09": 0.07249228265862132,
@@ -36,11 +36,21 @@
    "may10": 0.03614208527049876,
    "nov07": 0.1106002614642112,
    "oct08": 0.18312128849402318,
-   "sept05": 2.2040422395890436,
+   "sept05": 2.2293090391820436,
    "sept06": 0.0441493920928376
   },
+  "extent_km": {
+   "epoch_2026": [
+    0.0,
+    71.00949223636361
+   ],
+   "hamling_grid": [
+    -9.076155560450161e-08,
+    75.09112610952849
+   ]
+  },
   "fine_grid_step_km": 0.02,
-  "note": "linear interpolation between column centres on the projected axis, for display only; it is not volume-preserving, so quoted volumes come from the native-grid tables",
+  "note": "linear interpolation between column centres on the projected axis, carried flat from the end centres to the model edges (extent_km), for display only; it is not volume-preserving, so quoted volumes come from the native-grid tables",
   "sept05_drawn_at_plane_edge_m": 0.09949999844717321,
   "sept05_drawn_positive_to_km": 61.44,
   "worst_drawn_vs_native": {
@@ -1501,5 +1511,14 @@
   "received": "provided by Ian Hamling (GNS) via Tim Wright, 2026-09-16",
   "url": "https://sftp.gns.cri.nz/pub/ihamling/dyke_files.zip"
  },
- "style": "after Fig. 13 of Hamling et al. (2009): top-10-km depth-averaged opening per intrusion and the cumulative stack, versus distance along the segment"
+ "style": "after Fig. 13 of Hamling et al. (2009): top-10-km depth-averaged opening per intrusion and the cumulative stack, versus distance along the segment",
+ "threshold_sensitivity": {
+  "cumulative_2006_2010_km3_at_0p5m_floor": 0.8171694502680773,
+  "note": "every canonical post-2005 file carries a positive floor, consistent with the papers' discard of opening below the local 2-sigma uncertainty, while the September 2005 model and the 2026 fit keep all fitted opening; magnitude and extent comparisons inherit that asymmetry",
+  "post2005_positive_floors_m": [
+   0.30791004,
+   0.71786443
+  ],
+  "volume_2026_km3_at_0p5m_floor": 0.15376992719227098
+ }
 }
