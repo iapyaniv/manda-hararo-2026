@@ -576,6 +576,23 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
         "sept05_updated": float(
             (updated_field[se_mask] * widths[se_mask, None]).sum()) * 1e-3,
     }
+    # Why the drawn 2005 opening sits further NW than the raw field's
+    # upper 10 km: the raw model's below-10-km opening is NW-weighted,
+    # and the 10-km inversion must carry that moment in shallow patches.
+    centroids = {}
+    for key, field in (("raw_upper_10km", raw05[:, :10]),
+                       ("raw_below_10km", raw05[:, 10:]),
+                       ("updated_model", updated_field)):
+        col_volumes = field.sum(axis=1) * widths
+        centroids[key] = float((registration["s_km"] * col_volumes).sum()
+                               / col_volumes.sum())
+    deep_volumes = raw05[:, 10:].sum(axis=1) * widths
+    along_strike = {
+        "volume_centroid_km_from_nw": centroids,
+        "raw_below_10km_fraction_nw_of_25km": float(
+            deep_volumes[registration["s_km"] < 25.0].sum()
+            / deep_volumes.sum()),
+    }
     updated_sept05 = {
         **updated_meta,
         **epochs["sept05_updated"],
@@ -637,6 +654,7 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
         },
         "sept05_updated_model": updated_sept05,
         "volume_se_of_wright_plane_edge_km3": se_volumes,
+        "sept05_along_strike": along_strike,
         "epoch_2026": {
             "reference_fit": _display_source_path(fit_path),
             "reference_fit_sha256": _sha256(fit_path),
@@ -662,6 +680,11 @@ def compute_report(chain: str, fit_path: Path, data_dir: Path) -> tuple:
             "lines 171-920, 10 one-km rows per column at the same 75 "
             "horizontal positions, the trimmed ends fault sections — "
             "and drawn as the September 2005 panel",
+            "the updated model shifts opening toward the NW relative "
+            "to the raw field's upper 10 km because the raw "
+            "below-10-km opening is NW-weighted and the 10-km "
+            "inversion carries that moment in shallow patches; "
+            "sept05_along_strike records the volume centroids",
             "the delivery has 15 post-2005 files against the 13 "
             "published post-megadike intrusions; Ian Hamling's "
             "2026-09-17 update lists the canonical 13 (keep july09 and "
@@ -814,7 +837,20 @@ def run(chain: str, fit_path: Path | None, data_dir: Path) -> None:
         f"{updated['max_opening_m']:.2f} m, all above 10 km), near the "
         "published ~2.5 km3 — the earlier whole-file total of "
         "2.478 km3 at 1-km2 patches included the fault values now "
-        "trimmed. The updated model holds "
+        "trimmed. Relative to the raw field's upper 10 km, the updated "
+        "model shifts opening toward the NW (along-strike volume "
+        "centroid "
+        f"{payload['sept05_along_strike']['volume_centroid_km_from_nw']['raw_upper_10km']:.1f}"
+        " -> "
+        f"{payload['sept05_along_strike']['volume_centroid_km_from_nw']['updated_model']:.1f}"
+        " km from the NW end): the raw model's below-10-km opening is "
+        "itself NW-weighted ("
+        f"{payload['sept05_along_strike']['raw_below_10km_fraction_nw_of_25km']:.0%}"
+        " of it NW of s = 25 km, centroid "
+        f"{payload['sept05_along_strike']['volume_centroid_km_from_nw']['raw_below_10km']:.1f}"
+        " km), and limited to 10 km the inversion carries that moment "
+        "in shallow NW patches instead — hence also the larger drawn "
+        "maximum. The updated model holds "
         f"{payload['volume_se_of_wright_plane_edge_km3']['sept05_updated']:.3f}"
         " km3 southeast of the Wright 2006 plane edge (the raw field "
         "holds "
