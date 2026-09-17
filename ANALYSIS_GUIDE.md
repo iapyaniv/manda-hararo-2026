@@ -101,6 +101,13 @@ Manda Hararo intrusion.
   the epoch's above-10-km volume, cross-checked against `mh26.hamling`
   on every run; the delivered inversions carry no uncertainties, so
   the panels have no error bars.
+- `mh26/export_2026_opening.py` samples the fixed-plane 2026 fit at
+  the patch centres of the Hamling computational grid and writes it in
+  the delivery's `dyke_only_<epoch>_ex.txt` file convention (one value
+  per geometry row, row order of `plot_3d_dyke_only.dat`), per input
+  chain: `results/opening_2026_hamling_grid{,_gslc}.{txt,json}`. The
+  sampled field integrates to 0.999 of the native fit volume; the
+  JSON records the sampling rule, coverage, and that ratio.
 - `mh26/fault_depth.py` sweeps the depth extent of the mapped east-fault
   term (truncation caps re-solved at the reused smoothing weight) and
   reports changes in misfit and fault potency/moment, per

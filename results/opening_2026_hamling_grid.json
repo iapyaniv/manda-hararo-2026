@@ -1,0 +1,23 @@
+{
+ "columns_inside_plane": 71,
+ "file": "opening_2026_hamling_grid.txt",
+ "format": "one opening value (m) per row of the geometry file, in its row order, formatted '%.7e' \u2014 the dyke_only_<epoch>_ex.txt convention",
+ "generated_by": "mh26.export_2026_opening",
+ "geometry_file": "plot_3d_dyke_only.dat",
+ "geometry_file_sha256": "f51fb02a772b0750b68f964fec8764f466741c9c354b32838ac0fead8830bc63",
+ "geometry_sha256": "23e42105d82ea9cdcadb770cccdbf9d9585b670e132b6c18c6e99d74daf8a01a",
+ "max_opening_m": 2.3038475955339885,
+ "n_nonzero": 710,
+ "native_fit_volume_km3": 0.18154902019975327,
+ "nisar_source": "gunw",
+ "plane_bottom_km": 10.0,
+ "plane_span_km": [
+  0.0,
+  71.00949223636361
+ ],
+ "reference_fit": "results/distributed_fit_geometry_4a7b2386c8b5.json",
+ "reference_fit_sha256": "9f707bbb48446a901459a059a0f48d795ba62041af981d4e4275b067740b3399",
+ "sampled_to_native_ratio": 0.9992892294777286,
+ "sampled_volume_km3": 0.18141998050784802,
+ "sampling": "piecewise-constant: each patch centre takes the value of the 2026 model patch containing its projected (s, depth) position; zero outside the model plane (s past its SE edge, depth below its bottom)"
+}

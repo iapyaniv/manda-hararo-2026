@@ -679,6 +679,29 @@ def validate_new_products(require_gslc_sources: bool = True) -> None:
                                   ("opening_profiles_gslc.json", "gslc")):
         check_opening_profiles_report(name, expected_source)
 
+    from .export_2026_opening import (VALUE_FORMAT, _find_fit as _export_fit,
+                                      compute_export)
+    from .hamling import DATA_DIR as _hamling_dir
+
+    for name, expected_source in (("opening_2026_hamling_grid", "gunw"),
+                                  ("opening_2026_hamling_grid_gslc", "gslc")):
+        report = _json.loads((REPO / "results" / f"{name}.json").read_text())
+        if report.get("nisar_source") != expected_source:
+            raise ValueError(f"{name}.json: nisar_source is not "
+                             f"{expected_source!r}")
+        values, expected = compute_export(
+            expected_source, _export_fit(expected_source), _hamling_dir)
+        expected = _json.loads(_json.dumps(expected, sort_keys=True))
+        if expected != report:
+            raise ValueError(
+                f"{name}.json: report does not match a full recomputation "
+                f"(first difference at {_first_json_diff(expected, report)})")
+        rendered = "\n".join(VALUE_FORMAT % v
+                             for v in values.reshape(-1)) + "\n"
+        if (REPO / "results" / f"{name}.txt").read_text() != rendered:
+            raise ValueError(f"{name}.txt does not match a full "
+                             "recomputation from the canonical fit")
+
     traces = _json.loads((REPO / "results" / "fault_traces.json").read_text())
     for key in ("los_step_across_ridges", "trace_support",
                 "threshold_sensitivity", "cross_geometry_alignment_null"):
