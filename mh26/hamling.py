@@ -362,12 +362,12 @@ def three_epoch_figure(delivery: dict, registration: dict, fit: dict,
     panels = [
         ("September 2005", delivery["openings_m"]["sept05"][::-1].T[:10],
          s_ham, np.arange(11.0), 11.0, [2, 4, 6, 8, 10],
-         "Hamling dike files; raw inversion shown to 10 km "
-         "(deep opening ill-constrained; I. Hamling, 17 Sep 2026)",
+         "Hamling et al. (2009, 2010) raw model; opening below 10 km "
+         "poorly resolved, not shown",
          epochs["sept05"]),
         ("2006–2010 (cumulative, 13 events)", cumulative[::-1].T[:10],
          s_ham, np.arange(11.0), 7.0, [1, 2, 4, 6],
-         "Hamling dike files; events per I. Hamling (17 Sep 2026)",
+         "sum of the 13 dike models of Hamling et al. (2009, 2010)",
          epochs["cumulative_2006_2010"]),
     ]
 
