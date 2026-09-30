@@ -401,7 +401,8 @@ def _threshold_caveat(payload: dict) -> str:
             "inversion from Fig. 13)")
 
 
-def _cumulative_panel(ax, payload, context, xlim, show_caveat=True):
+def _cumulative_panel(ax, payload, context, xlim, show_caveat=True,
+                      label_xy=(0.24, 0.965)):
     """Stack the per-event averages into the cumulative profile."""
     x = np.arange(xlim[0], xlim[1] + 0.01, DISPLAY_STEP_KM)
     centres_ham = np.asarray(payload["s_axis"]["s_km"])[::-1]  # NW->SE
@@ -457,7 +458,7 @@ def _cumulative_panel(ax, payload, context, xlim, show_caveat=True):
     label = f"{total:.2f} km$^3$ above 10 km · {n_events} intrusions"
     if show_caveat:
         label += "\n" + _threshold_caveat(payload)
-    ax.text(0.24, 0.965, label,
+    ax.text(*label_xy, label,
             transform=ax.transAxes, ha="left", va="top", fontsize=8.5,
             linespacing=1.5,
             bbox={"facecolor": "white", "edgecolor": "none",
@@ -548,16 +549,9 @@ def profiles_figure(payload: dict, context: dict, chain: str) -> Path:
     return Path(f"{out}.png")
 
 
-def cumulative_figure(payload: dict, context: dict, chain: str) -> Path:
-    """The cumulative stack alone, sized to sit under the three-epoch
-    comparison figure (same width and x axis)."""
-    xlim = (0.0, payload["display"]["x_max_km"])
-    fig, ax = plt.subplots(figsize=(9.0, 3.4), constrained_layout=True)
-    _cumulative_panel(ax, payload, context, xlim, show_caveat=False)
-    ax.set_ylabel("Average opening (m)")
-    # Identity needs a legend here: the labelled per-event panels of the
-    # full profiles figure are absent. The threshold caveat rides as
-    # its title so the panel carries the asymmetry statement on its own.
+def _cumulative_legend(ax, payload):
+    """Event identity plus the threshold caveat as the legend title, for
+    layouts where the labelled per-event panels are absent."""
     legend = ax.legend(loc="upper right", fontsize=6.8, ncols=3,
                        frameon=True, framealpha=0.9, edgecolor="none",
                        columnspacing=1.0, handlelength=1.2,
@@ -565,6 +559,16 @@ def cumulative_figure(payload: dict, context: dict, chain: str) -> Path:
                        title=_threshold_caveat(payload),
                        title_fontsize=6.8)
     legend.get_title().set_color("0.30")
+
+
+def cumulative_figure(payload: dict, context: dict, chain: str) -> Path:
+    """The cumulative stack alone, sized to sit under the three-epoch
+    comparison figure (same width and x axis)."""
+    xlim = (0.0, payload["display"]["x_max_km"])
+    fig, ax = plt.subplots(figsize=(9.0, 3.4), constrained_layout=True)
+    _cumulative_panel(ax, payload, context, xlim, show_caveat=False)
+    ax.set_ylabel("Average opening (m)")
+    _cumulative_legend(ax, payload)
     suffix = "_gslc" if chain == "gslc" else ""
     out = RESULTS / f"opening_profiles_cumulative{suffix}"
     for ext in ("png", "pdf"):

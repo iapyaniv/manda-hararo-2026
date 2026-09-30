@@ -101,6 +101,14 @@ Manda Hararo intrusion.
   the epoch's above-10-km volume, cross-checked against `mh26.hamling`
   on every run; the delivered inversions carry no uncertainties, so
   the panels have no error bars.
+- `mh26/opening_history.py` lays the three-epoch U⊥ sections and the
+  cumulative depth-averaged stack out as one figure, per input chain:
+  `results/opening_history{,_gslc}.{png,pdf}` (per-section colour
+  scales) and `results/opening_history_common_scale{,_gslc}.{png,pdf}`
+  (one shared scale topped at the September 2005 panel's 16.5 m, on
+  which the July 2026 section reads mainly through its contour
+  lines). Every drawn quantity comes from the `mh26.hamling` and
+  `mh26.opening_profiles` reports; the module computes nothing new.
 - `mh26/export_2026_opening.py` samples the fixed-plane 2026 fit at
   the patch centres of the Hamling computational grid and writes it in
   the delivery's `dyke_only_<epoch>_ex.txt` file convention (one value

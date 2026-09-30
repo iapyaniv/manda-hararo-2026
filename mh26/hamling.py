@@ -409,10 +409,18 @@ def _panel(ax, s_centres, z_edges, opening, vmax, line_levels, title,
     return filled
 
 
-def three_epoch_figure(delivery: dict, registration: dict, fit: dict,
-                       geometry: dict, chain: str, epochs: dict,
-                       cumulative: np.ndarray,
-                       updated_field: np.ndarray) -> Path:
+def draw_epoch_sections(fig, axes, registration: dict, fit: dict,
+                        geometry: dict, chain: str, epochs: dict,
+                        cumulative: np.ndarray,
+                        updated_field: np.ndarray,
+                        common_vmax: float | None = None) -> tuple:
+    """Draw the three U_perp sections onto ``axes``; returns their xlim.
+
+    ``common_vmax`` replaces the per-section colour scales with that
+    single scale and one shared colorbar, so the three amplitudes
+    compare directly. The caller sets the x label: the July 2026
+    section need not be the figure's bottom row.
+    """
     s_ham = registration["s_km"][::-1]  # NW->SE for plotting
     # Displayed depth range is 0-10 km on every panel, per Ian Hamling
     # (2026-09-17): the 2005 panel is his updated model, which stops at
@@ -443,13 +451,14 @@ def three_epoch_figure(delivery: dict, registration: dict, fit: dict,
     panels.append(("July 2026", opening_2026, s_2026, z_edges, 2.5,
                    [0.5, 1.0, 1.5, 2.0], source_note, epochs["epoch_2026"]))
 
-    fig, axes = plt.subplots(3, 1, figsize=(9.0, 8.2), sharex=True,
-                             constrained_layout=True)
     xlim = (0.0, max(registration["span_km"][1] + 0.6,
                      registration["plane_span_km"][1]))
     se_2005 = registration["se_limit_2005_km"]
+    filled = None
     for ax, (title, opening, s_centres, z_ax, vmax, lines, note,
              stats) in zip(axes, panels):
+        if common_vmax is not None:
+            vmax = common_vmax
         filled = _panel(ax, s_centres, z_ax, opening, vmax, lines, title,
                         note)
         ax.set_xlim(*xlim)
@@ -469,11 +478,19 @@ def three_epoch_figure(delivery: dict, registration: dict, fit: dict,
                 va="bottom", fontsize=8.5,
                 bbox={"facecolor": "white", "edgecolor": "none",
                       "alpha": 0.8, "pad": 1.6}, zorder=6)
-        ticks = np.arange(0.0, vmax + 0.01, max(1.0, round(vmax / 5)))
-        if vmax <= 3.0:
-            ticks = np.arange(0.0, vmax + 0.01, 0.5)
-        colorbar = fig.colorbar(filled, ax=ax, label="U$_\\perp$ (m)",
-                                ticks=ticks, shrink=0.94, pad=0.015)
+        if common_vmax is None:
+            ticks = np.arange(0.0, vmax + 0.01, max(1.0, round(vmax / 5)))
+            if vmax <= 3.0:
+                ticks = np.arange(0.0, vmax + 0.01, 0.5)
+            colorbar = fig.colorbar(filled, ax=ax, label="U$_\\perp$ (m)",
+                                    ticks=ticks, shrink=0.94, pad=0.015)
+            colorbar.ax.tick_params(labelsize=8)
+    if common_vmax is not None:
+        ticks = np.arange(0.0, common_vmax + 0.01,
+                          max(1.0, round(common_vmax / 5)))
+        colorbar = fig.colorbar(filled, ax=list(axes[:3]),
+                                label="U$_\\perp$ (m)", ticks=ticks,
+                                shrink=0.97, pad=0.015)
         colorbar.ax.tick_params(labelsize=8)
 
     ax_2026 = axes[2]
@@ -496,7 +513,18 @@ def three_epoch_figure(delivery: dict, registration: dict, fit: dict,
                  ha="left", va="center", fontsize=7.5, color="0.20",
                  bbox={"facecolor": "white", "edgecolor": "none",
                        "alpha": 0.78, "pad": 1.2}, zorder=5)
-    ax_2026.set_xlabel("Distance along the 2005 dike plane, NW→SE (km)")
+    return xlim
+
+
+def three_epoch_figure(delivery: dict, registration: dict, fit: dict,
+                       geometry: dict, chain: str, epochs: dict,
+                       cumulative: np.ndarray,
+                       updated_field: np.ndarray) -> Path:
+    fig, axes = plt.subplots(3, 1, figsize=(9.0, 8.2), sharex=True,
+                             constrained_layout=True)
+    draw_epoch_sections(fig, axes, registration, fit, geometry, chain,
+                        epochs, cumulative, updated_field)
+    axes[2].set_xlabel("Distance along the 2005 dike plane, NW→SE (km)")
 
     suffix = "_gslc" if chain == "gslc" else ""
     out = RESULTS / f"uperp_three_epoch{suffix}"
