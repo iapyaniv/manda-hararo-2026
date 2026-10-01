@@ -1638,6 +1638,7 @@ def three_component_figure(
     frame_strike_deg: float | None = None,
     look_row: tuple[tuple[str, np.ndarray], ...] | None = None,
     weak_mask_sigma_cm: float | None = None,
+    publication: bool = False,
 ) -> list[Path]:
     """Map figure: three components with formal σ, coverage, closure.
 
@@ -1646,7 +1647,11 @@ def three_component_figure(
     exceeds WEAK_SIGMA_STIPPLE_CM, or, when ``weak_mask_sigma_cm`` is set,
     masked above that σ instead. ``look_row`` prepends a row with the four
     LOS inputs (title, display-grid field in metres); the figure is then
-    three rows instead of two.
+    three rows instead of two. ``publication`` drops the in-figure title,
+    subtitle, and footnote (a manuscript caption carries them) and the
+    display-bookkeeping annotations (counts and medians of the display
+    resampling, which stay recorded in the result payloads); the weak-mask
+    note stays, since it explains missing cells.
     """
     centres_e, centres_n = lattice_axes()
     terrain_x, terrain_y, terrain_transform = display_grid()
@@ -1703,6 +1708,8 @@ def three_component_figure(
             spine.set_color("#303030")
 
     def add_annotation(ax, text):
+        if publication:
+            return
         ax.text(
             0.975, 0.025, text,
             transform=ax.transAxes, ha="right", va="bottom", fontsize=6.0,
@@ -1717,8 +1724,10 @@ def three_component_figure(
         left=0.075,
         # room for the latitude labels on the rightmost panel column
         right=0.925,
+        # The bottom margin stays: the horizontal colorbars live there.
         bottom=0.21 if n_rows == 2 else 0.135,
-        top=0.88 if n_rows == 2 else 0.905,
+        top=(0.95 if publication else 0.88) if n_rows == 2
+        else (0.955 if publication else 0.905),
         hspace=0.32 if n_rows == 2 else 0.30,
         wspace=0.10,
     )
@@ -1896,25 +1905,26 @@ def three_component_figure(
         label_top=n_rows == 3,
     )
 
-    fig.suptitle(title, x=0.5, y=0.992, fontweight="bold")
-    fig.text(
-        0.5,
-        0.947,
-        subtitle,
-        ha="center",
-        va="bottom",
-        fontsize=7.0,
-        color="#3a3a3a",
-    )
-    fig.text(
-        0.5,
-        0.006 if n_rows == 2 else 0.002,
-        footnote,
-        ha="center",
-        va="bottom",
-        fontsize=6.0,
-        color="#4a4a4a",
-    )
+    if not publication:
+        fig.suptitle(title, x=0.5, y=0.992, fontweight="bold")
+        fig.text(
+            0.5,
+            0.947,
+            subtitle,
+            ha="center",
+            va="bottom",
+            fontsize=7.0,
+            color="#3a3a3a",
+        )
+        fig.text(
+            0.5,
+            0.006 if n_rows == 2 else 0.002,
+            footnote,
+            ha="center",
+            va="bottom",
+            fontsize=6.0,
+            color="#4a4a4a",
+        )
 
     png = RESULTS / f"{stem}.png"
     pdf = RESULTS / f"{stem}.pdf"
@@ -1949,7 +1959,7 @@ def build_decomposition_figure() -> list[Path]:
     )
 
 
-def build_dike_frame_figure() -> list[Path]:
+def build_dike_frame_figure(publication: bool = False) -> list[Path]:
     summary, geometry, model, fields, cells = decomposition_inputs()
     strike = float(model[2])
     perp_azimuth = (strike - 90.0) % 360.0
@@ -1988,7 +1998,9 @@ def build_dike_frame_figure() -> list[Path]:
             ("par", "Dike-parallel U∥", "Formal σ U∥", "weak LOS sensitivity"),
             ("u", "Up", "Formal σ up", None),
         ),
-        stem="summary_decomposition_dike_frame",
+        stem=("summary_decomposition_dike_frame_pub" if publication
+              else "summary_decomposition_dike_frame"),
+        publication=publication,
         title="Manda Hararo 2026 — dike-frame decomposition",
         subtitle=(
             "four LOS inputs (top row; positive toward the satellite, "
@@ -3392,6 +3404,7 @@ BUILDERS = {
     "gradient": build_gradient_figure,
     "stress": build_stress_figure,
     "dike_frame": build_dike_frame_figure,
+    "dike_frame_pub": lambda: build_dike_frame_figure(publication=True),
     "wright_los": build_wright_los_figure,
     "wright_uperp": build_wright_uperp_figure,
 }

@@ -132,6 +132,11 @@ Manda Hararo intrusion.
   the east-fault receivers, and the fixed 2005-plane fit — map view
   (`summary_los_model_residual_wright2006`) and U⊥ cross-section
   (`summary_uperp_wright2006`).
+  `summary_decomposition_dike_frame_pub` is the same dike-frame figure
+  in manuscript form (`--only dike_frame_pub`): no in-file title,
+  subtitle, or footnote, and no display-bookkeeping annotations — a
+  manuscript caption carries them, and the counts stay in the result
+  payloads; the weak-mask note and legends stay.
   `results/summary_figures.json` records the input and output hashes.
 - `granules/` records the NISAR (GUNW + GSLC) and LiCSAR source products.
 - `data/` contains archive manifests and instructions for the data files.
