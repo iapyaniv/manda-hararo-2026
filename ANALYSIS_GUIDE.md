@@ -35,9 +35,11 @@ Manda Hararo intrusion.
   strike sensitivity.
 - `results/along_rift_halves.md` and `results/along_rift_halves.png`
   contain the north/south-half U∥ averages on the two flanks (the flank
-  probes sit at the along-strike node of any along-rift pattern), against
-  the uniform-opening model over the same cells, with empirical
-  region-mean errors from far-field placebo boxes and a strike
+  probes are local disks and a full-flank average cancels the
+  antisymmetric along-rift pattern, so neither measures it), against the
+  fitted model passed through the observations' far-field referencing
+  and solve, with a correlated-noise floor from far-field control
+  regions, per-differential single-cell influence, and a strike
   sensitivity.
 - `mh26/gslc.py` rebuilds the co-event interferograms from the 10-m GSLC
   products (crops, interferogram, snaphu unwrapping); see

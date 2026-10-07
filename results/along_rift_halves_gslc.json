@@ -22,74 +22,77 @@
           "mean_cm": 9.52995451494538,
           "median_cm": 10.295936767123393,
           "formal_sigma_mean_cm": 0.7376437914358162,
-          "model_mean_cm": 4.473300811458321,
-          "empirical_sigma_cm": 2.8275411552399348
+          "model_mean_cm": 3.4710549928586287,
+          "model_raw_mean_cm": 4.473300811458321,
+          "control_floor_sigma_cm": 2.6170536264419666
         },
         "WEST south": {
           "n_cells": 29,
           "mean_cm": -4.156218892478024,
           "median_cm": -5.075695721986675,
           "formal_sigma_mean_cm": 0.7762129259220695,
-          "model_mean_cm": -4.321928402829889,
-          "empirical_sigma_cm": 2.8275411552399348
+          "model_mean_cm": -5.140730657942386,
+          "model_raw_mean_cm": -4.321928402829889,
+          "control_floor_sigma_cm": 2.6170536264419666
         },
         "EAST north": {
           "n_cells": 32,
           "mean_cm": 9.198544139212938,
           "median_cm": 9.52780821102585,
           "formal_sigma_mean_cm": 0.7276264358406918,
-          "model_mean_cm": 3.946254764949074,
-          "empirical_sigma_cm": 2.8275411552399348
+          "model_mean_cm": 3.1098223363109607,
+          "model_raw_mean_cm": 3.946254764949074,
+          "control_floor_sigma_cm": 2.6170536264419666
         },
         "EAST south": {
           "n_cells": 17,
           "mean_cm": 5.501355475511011,
           "median_cm": 10.610678641355682,
           "formal_sigma_mean_cm": 0.9995944442762469,
-          "model_mean_cm": -1.986338659277212,
-          "empirical_sigma_cm": 2.8275411552399348
+          "model_mean_cm": -2.6333764484551265,
+          "model_raw_mean_cm": -1.986338659277212,
+          "control_floor_sigma_cm": 2.6170536264419666
         },
         "BOTH north": {
           "n_cells": 63,
           "mean_cm": 9.36161908600192,
           "median_cm": 9.77780051838816,
           "formal_sigma_mean_cm": 0.5180161934290384,
-          "model_mean_cm": 4.205594883072672,
-          "empirical_sigma_cm": 2.8275411552399348
+          "model_mean_cm": 3.287571738739178,
+          "model_raw_mean_cm": 4.205594883072672
         },
         "BOTH south": {
           "n_cells": 46,
           "mean_cm": -0.5871153216994667,
           "median_cm": -0.5925986838525785,
           "formal_sigma_mean_cm": 0.6131335148887718,
-          "model_mean_cm": -3.4587756715169427,
-          "empirical_sigma_cm": 2.8275411552399348
+          "model_mean_cm": -4.214099754436225,
+          "model_raw_mean_cm": -3.4587756715169427
         }
       },
       "north_minus_south_cm": {
         "WEST": {
           "observed_cm": 13.686173407423404,
-          "model_cm": 8.79522921428821,
+          "model_cm": 8.611785650801014,
           "formal_sigma_cm": 1.0708057103939566,
-          "empirical_sigma_cm": 1.9213007039613146,
-          "detection_sigma": 7.123389576241458,
-          "model_departure_sigma": 2.5456422219859207
+          "control_pair_sigma_cm": 1.9254711421098636,
+          "detection_sigma_vs_floor": 7.10796080403811,
+          "model_departure_sigma_vs_floor": 2.635400575810268,
+          "max_single_cell_influence_cm": 0.8489270390111905
         },
         "EAST": {
           "observed_cm": 3.697188663701927,
-          "model_cm": 5.932593424226286,
+          "model_cm": 5.743198784766087,
           "formal_sigma_cm": 1.2363774840889683,
-          "empirical_sigma_cm": 1.9213007039613146,
-          "detection_sigma": 1.9243154682029253,
-          "model_departure_sigma": -1.1634851098089063
+          "control_pair_sigma_cm": 1.9254711421098636,
+          "detection_sigma_vs_floor": 1.9201475331646245,
+          "model_departure_sigma_vs_floor": -1.0626023295380134,
+          "max_single_cell_influence_cm": 3.530018295489458
         },
         "BOTH": {
           "observed_cm": 9.948734407701386,
-          "model_cm": 7.664370554589615,
-          "formal_sigma_cm": 0.8026664835001961,
-          "empirical_sigma_cm": 1.9213007039613146,
-          "detection_sigma": 5.1781245836163,
-          "model_departure_sigma": 1.1889673742386586
+          "model_cm": 7.501671493175403,
+          "formal_sigma_cm": 0.8026664835001961
         }
       }
     },
@@ -103,96 +106,114 @@
           "mean_cm": 10.554805694856931,
           "median_cm": 10.96320480732967,
           "formal_sigma_mean_cm": 0.8252715223522046,
-          "model_mean_cm": 4.866296530261921
+          "model_mean_cm": 3.8220282241061083,
+          "model_raw_mean_cm": 4.866296530261921
         },
         "WEST south": {
           "n_cells": 27,
           "mean_cm": -5.150173996515912,
           "median_cm": -6.022819637059712,
           "formal_sigma_mean_cm": 0.8057900138888152,
-          "model_mean_cm": -4.446774140991751
+          "model_mean_cm": -5.208294649067051,
+          "model_raw_mean_cm": -4.446774140991751
         },
         "EAST north": {
           "n_cells": 32,
           "mean_cm": 10.136910483783197,
           "median_cm": 10.590828185383513,
           "formal_sigma_mean_cm": 0.7272758316230313,
-          "model_mean_cm": 4.077371649163755
+          "model_mean_cm": 3.1830052483133047,
+          "model_raw_mean_cm": 4.077371649163755
         },
         "EAST south": {
           "n_cells": 15,
           "mean_cm": 3.8267125495085974,
           "median_cm": 10.630558251801183,
           "formal_sigma_mean_cm": 1.0642370848675133,
-          "model_mean_cm": -1.9027668858310285
+          "model_mean_cm": -2.524767260080753,
+          "model_raw_mean_cm": -1.9027668858310285
         },
         "BOTH north": {
           "n_cells": 57,
           "mean_cm": 10.320197857061153,
           "median_cm": 10.703656147261064,
           "formal_sigma_mean_cm": 0.5456380479323374,
-          "model_mean_cm": 4.423391333855933
+          "model_mean_cm": 3.463278483310148,
+          "model_raw_mean_cm": 4.423391333855933
         },
         "BOTH south": {
           "n_cells": 42,
           "mean_cm": -1.9441430872214442,
           "median_cm": -2.374858220096164,
           "formal_sigma_mean_cm": 0.6424924187010052,
-          "model_mean_cm": -3.5382001212914935
+          "model_mean_cm": -4.249892010143374,
+          "model_raw_mean_cm": -3.5382001212914935
         }
       },
       "north_minus_south_cm": {
         "WEST": {
           "observed_cm": 15.704979691372843,
-          "model_cm": 9.313070671253673,
-          "formal_sigma_cm": 1.1534169376632468
+          "model_cm": 9.030322873173159,
+          "formal_sigma_cm": 1.1534169376632468,
+          "max_single_cell_influence_cm": 0.9524581613981242
         },
         "EAST": {
           "observed_cm": 6.3101979342745995,
-          "model_cm": 5.980138534994784,
-          "formal_sigma_cm": 1.2890037657316114
+          "model_cm": 5.707772508394058,
+          "formal_sigma_cm": 1.2890037657316114,
+          "max_single_cell_influence_cm": 3.914689271559208
         },
         "BOTH": {
           "observed_cm": 12.264340944282598,
-          "model_cm": 7.961591455147426,
+          "model_cm": 7.713170493453522,
           "formal_sigma_cm": 0.8429219343685864
         }
       }
     }
   },
-  "placebo_noise": {
+  "control_noise": {
     "box_dimensions_km": [
       8.657320325575608,
       6.72
     ],
     "n_boxes": 34,
+    "n_boxes_east_of_dike": 31,
+    "n_boxes_west_of_dike": 3,
+    "mean_sigma_cm": 2.6170536264419666,
+    "pair_differential_sigma_cm": 1.9254711421098636,
     "n_adjacent_pairs": 28,
-    "mean_sigma_cm": 2.8275411552399348,
-    "pair_differential_sigma_cm": 1.9213007039613146,
     "box_mean_extrema_cm": [
-      -5.236538337633947,
-      6.044189665790663
+      -4.442333140664311,
+      6.187483129596044
     ]
+  },
+  "closure_median_sigma_units": {
+    "controls": 0.39358545789823834,
+    "WEST north": 0.3927371806431885,
+    "WEST south": 0.41014397192965485,
+    "EAST north": 1.5006590604344456,
+    "EAST south": 2.4019125531461127
   },
   "strike_sensitivity": {
     "strike_deg": 148.46783,
     "north_minus_south_cm": {
       "WEST": {
         "observed_cm": 13.517152092904183,
-        "model_cm": 8.79522921428821,
+        "model_cm": 8.612603270399244,
         "formal_sigma_cm": 1.0292634864864707
       },
       "EAST": {
         "observed_cm": 5.105269952716227,
-        "model_cm": 5.932593424226286,
+        "model_cm": 6.296785613079397,
         "formal_sigma_cm": 1.189778468623612
       }
     }
   },
   "notes": [
     "regions are anchored to the fitted dike: s along strike (NNW positive, the U\u2225 sign convention), t perpendicular (ENE positive); north half 0 < s < L/2, south half -L/2 < s < 0",
-    "formal sigmas assume independent cells; the quoted errors are the empirical placebo scatters, which carry the correlated noise",
+    "model_mean_cm is the uniform-opening fit processed like the observations (per-geometry LOS, per-dataset far-field reference plane, same solve and rotation) over the same cells; model_raw_mean_cm is the unreferenced elastic displacement, kept for comparison",
+    "formal sigmas assume independent cells; the control-box scatter is a correlated-noise floor, not a complete error model \u2014 the boxes sit almost entirely east of the dike and their closure matches the west-flank regions but not the east-flank regions (closure_median_sigma_units), so east-flank errors exceed the floor by an unquantified amount, and the sigma-unit statements are relative to the floor",
     "a strike error leaks U\u22a5 into U\u2225 with one sign per flank, shifting both halves of a flank together; the north-minus-south differential is the strike-robust statistic (see strike_sensitivity)",
-    "the model column is the uniform-opening fit averaged over the same cells, so masking imbalance between the halves affects both columns alike"
+    "max_single_cell_influence_cm is the largest change of a differential when any single cell is removed; the EAST differential is fragile by this measure, the WEST one is not"
   ]
 }
