@@ -33,6 +33,12 @@ Manda Hararo intrusion.
   vertical) with the cross-sensor closure map, the free three-component
   solve, and that solve rotated into the dike frame (U⊥, U∥, up) with a
   strike sensitivity.
+- `results/along_rift_halves.md` and `results/along_rift_halves.png`
+  contain the north/south-half U∥ averages on the two flanks (the flank
+  probes sit at the along-strike node of any along-rift pattern), against
+  the uniform-opening model over the same cells, with empirical
+  region-mean errors from far-field placebo boxes and a strike
+  sensitivity.
 - `mh26/gslc.py` rebuilds the co-event interferograms from the 10-m GSLC
   products (crops, interferogram, snaphu unwrapping); see
   `PROCESSING_NOTES.md`. The saved SMOOTH-cost sensitivity for the ascending
@@ -223,8 +229,10 @@ python -m mh26.continuation
 python -m mh26.s1_tracks
 python -m mh26.distributed          # primary fit; selects the smoothing weight
 python -m mh26.decompose3d
+python -m mh26.along_rift
 python -m mh26.distributed --gslc   # needs the gslc archive or a rebuild
 python -m mh26.decompose3d --gslc
+python -m mh26.along_rift --gslc
 python -m mh26.faults
 python -m mh26.distributed --mapped
 python -m mh26.distributed --mapped --gslc

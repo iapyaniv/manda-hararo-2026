@@ -1,0 +1,198 @@
+{
+  "nisar_source": "gunw",
+  "parameters": {
+    "par_sigma_max_cm": 5.0,
+    "dike_centre_utm": [
+      683169.8841275336,
+      1350402.253224933
+    ],
+    "strike_deg": 152.9957527591619,
+    "half_length_m": 8657.320325575607,
+    "placebo_t_min_m": 12000.0,
+    "placebo_min_cells": 10
+  },
+  "variants": {
+    "primary": {
+      "s_max_m": 8657.320325575607,
+      "t_min_m": 1280.0,
+      "t_max_m": 8000.0,
+      "regions": {
+        "WEST north": {
+          "n_cells": 31,
+          "mean_cm": 9.260975137205506,
+          "median_cm": 10.202162476436936,
+          "formal_sigma_mean_cm": 0.7301485087884042,
+          "model_mean_cm": 4.473300811458321,
+          "empirical_sigma_cm": 2.746111890892882
+        },
+        "WEST south": {
+          "n_cells": 28,
+          "mean_cm": -5.45816206476881,
+          "median_cm": -5.805702427465636,
+          "formal_sigma_mean_cm": 0.7787431137674449,
+          "model_mean_cm": -4.51422562916539,
+          "empirical_sigma_cm": 2.746111890892882
+        },
+        "EAST north": {
+          "n_cells": 32,
+          "mean_cm": 9.425632643833405,
+          "median_cm": 10.05532756159019,
+          "formal_sigma_mean_cm": 0.7203240881200254,
+          "model_mean_cm": 3.946254764949074,
+          "empirical_sigma_cm": 2.746111890892882
+        },
+        "EAST south": {
+          "n_cells": 17,
+          "mean_cm": 4.133896075700735,
+          "median_cm": 10.818703169763111,
+          "formal_sigma_mean_cm": 0.9896073940980334,
+          "model_mean_cm": -1.986338659277212,
+          "empirical_sigma_cm": 2.746111890892882
+        },
+        "BOTH north": {
+          "n_cells": 63,
+          "mean_cm": 9.344610696127614,
+          "median_cm": 10.202162476436936,
+          "formal_sigma_mean_cm": 0.5127856043770374,
+          "model_mean_cm": 4.205594883072672,
+          "empirical_sigma_cm": 2.746111890892882
+        },
+        "BOTH south": {
+          "n_cells": 45,
+          "mean_cm": -1.834495656146983,
+          "median_cm": -2.339966233657717,
+          "formal_sigma_mean_cm": 0.6120089985594361,
+          "model_mean_cm": -3.559246107207634,
+          "empirical_sigma_cm": 2.746111890892882
+        }
+      },
+      "north_minus_south_cm": {
+        "WEST": {
+          "observed_cm": 14.719137201974316,
+          "model_cm": 8.98752644062371,
+          "formal_sigma_cm": 1.0675006707848693,
+          "empirical_sigma_cm": 1.8990443809850948,
+          "detection_sigma": 7.750812645220556,
+          "model_departure_sigma": 3.0181552462599304
+        },
+        "EAST": {
+          "observed_cm": 5.29173656813267,
+          "model_cm": 5.932593424226286,
+          "formal_sigma_cm": 1.2240055499790214,
+          "empirical_sigma_cm": 1.8990443809850948,
+          "detection_sigma": 2.786526013356085,
+          "model_departure_sigma": -0.33746281156482666
+        },
+        "BOTH": {
+          "observed_cm": 11.179106352274596,
+          "model_cm": 7.764840990280306,
+          "formal_sigma_cm": 0.7984385326210449,
+          "empirical_sigma_cm": 1.8990443809850948,
+          "detection_sigma": 5.886700945069877,
+          "model_departure_sigma": 1.797886029510907
+        }
+      }
+    },
+    "variant": {
+      "s_max_m": 12000.0,
+      "t_min_m": 1280.0,
+      "t_max_m": 6000.0,
+      "regions": {
+        "WEST north": {
+          "n_cells": 25,
+          "mean_cm": 10.352148231263323,
+          "median_cm": 10.76794056326892,
+          "formal_sigma_mean_cm": 0.8167329710006338,
+          "model_mean_cm": 4.866296530261921
+        },
+        "WEST south": {
+          "n_cells": 26,
+          "mean_cm": -6.703451368247682,
+          "median_cm": -6.995517184959373,
+          "formal_sigma_mean_cm": 0.8093129322744126,
+          "model_mean_cm": -4.658665220820823
+        },
+        "EAST north": {
+          "n_cells": 32,
+          "mean_cm": 10.295827167649954,
+          "median_cm": 11.395989311301932,
+          "formal_sigma_mean_cm": 0.7199619801030442,
+          "model_mean_cm": 4.077371649163755
+        },
+        "EAST south": {
+          "n_cells": 15,
+          "mean_cm": 2.1059188862819713,
+          "median_cm": 11.059228822159216,
+          "formal_sigma_mean_cm": 1.053602523685552,
+          "model_mean_cm": -1.9027668858310285
+        },
+        "BOTH north": {
+          "n_cells": 57,
+          "mean_cm": 10.32052938853301,
+          "median_cm": 11.061489414837766,
+          "formal_sigma_mean_cm": 0.5400812454016056,
+          "model_mean_cm": 4.423391333855933
+        },
+        "BOTH south": {
+          "n_cells": 41,
+          "mean_cm": -3.4805110312246383,
+          "median_cm": -3.0635482898912936,
+          "formal_sigma_mean_cm": 0.6418570201280396,
+          "model_mean_cm": -3.650409732409923
+        }
+      },
+      "north_minus_south_cm": {
+        "WEST": {
+          "observed_cm": 17.055599599511005,
+          "model_cm": 9.524961751082744,
+          "formal_sigma_cm": 1.1498000557775818
+        },
+        "EAST": {
+          "observed_cm": 8.189908281367982,
+          "model_cm": 5.980138534994784,
+          "formal_sigma_cm": 1.276096991106264
+        },
+        "BOTH": {
+          "observed_cm": 13.80104041975765,
+          "model_cm": 8.073801066265856,
+          "formal_sigma_cm": 0.8388493225378417
+        }
+      }
+    }
+  },
+  "placebo_noise": {
+    "box_dimensions_km": [
+      8.657320325575608,
+      6.72
+    ],
+    "n_boxes": 34,
+    "n_adjacent_pairs": 28,
+    "mean_sigma_cm": 2.746111890892882,
+    "pair_differential_sigma_cm": 1.8990443809850948,
+    "box_mean_extrema_cm": [
+      -5.005136939459038,
+      5.912681965925671
+    ]
+  },
+  "strike_sensitivity": {
+    "strike_deg": 148.46783,
+    "north_minus_south_cm": {
+      "WEST": {
+        "observed_cm": 14.408852970391852,
+        "model_cm": 8.98752644062371,
+        "formal_sigma_cm": 1.026649500457502
+      },
+      "EAST": {
+        "observed_cm": 6.592787841762613,
+        "model_cm": 5.932593424226286,
+        "formal_sigma_cm": 1.1782345595335912
+      }
+    }
+  },
+  "notes": [
+    "regions are anchored to the fitted dike: s along strike (NNW positive, the U\u2225 sign convention), t perpendicular (ENE positive); north half 0 < s < L/2, south half -L/2 < s < 0",
+    "formal sigmas assume independent cells; the quoted errors are the empirical placebo scatters, which carry the correlated noise",
+    "a strike error leaks U\u22a5 into U\u2225 with one sign per flank, shifting both halves of a flank together; the north-minus-south differential is the strike-robust statistic (see strike_sensitivity)",
+    "the model column is the uniform-opening fit averaged over the same cells, so masking imbalance between the halves affects both columns alike"
+  ]
+}

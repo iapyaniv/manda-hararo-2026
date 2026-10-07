@@ -275,6 +275,37 @@ class GeometryConventionTests(unittest.TestCase):
         finally:
             plt.close(fig)
 
+    def test_half_flank_coordinates_match_the_dike_frame_signs(self) -> None:
+        # A flipped s or t sign in the half-flank regions would silently
+        # swap the north/south (or east/west) labels while every number
+        # still looked plausible, so the coordinates are checked against
+        # the U∥/U⊥ sign of a displacement placed on the known side.
+        from mh26.along_rift import frame_coords
+        from mh26.decompose3d import dike_frame, lattice_axes
+        east_c, north_c, strike = self.MODEL[0], self.MODEL[1], self.MODEL[2]
+        s, t = frame_coords(east_c, north_c, strike)
+        centres_e, centres_n = lattice_axes()
+        CE, CN = np.meshgrid(centres_e, centres_n)
+        shape = CE.shape
+        base = {"u": np.zeros(shape), "sigma_e": np.ones(shape),
+                "sigma_n": np.ones(shape), "sigma_u": np.ones(shape),
+                "cov_en": np.zeros(shape), "closure": np.zeros(shape),
+                "n_geometries": np.full(shape, 4)}
+        for azimuth, component in ((strike + 180.0, "par"),
+                                   (strike - 90.0, "perp")):
+            rad = np.radians(azimuth)
+            frame = dike_frame({**base, "e": np.full(shape, np.sin(rad)),
+                                "n": np.full(shape, np.cos(rad))}, strike)
+            np.testing.assert_allclose(frame[component], 1.0, atol=1e-12)
+            # The cell 5 km toward this azimuth from the centre must sit
+            # on the positive side of the matching coordinate.
+            cell = np.unravel_index(np.argmin(np.hypot(
+                CE - (east_c + 5_000.0 * np.sin(rad)),
+                CN - (north_c + 5_000.0 * np.cos(rad)))), shape)
+            coord, other = (s, t) if component == "par" else (t, s)
+            self.assertGreater(coord[cell], 4_000.0)
+            self.assertLess(abs(other[cell]), 1_500.0)
+
     def test_idealized_geometry_has_stress_receivers(self) -> None:
         geometry = build_geometry(self.MODEL)
         receivers = fault_patch_receivers(geometry, 65.0)
