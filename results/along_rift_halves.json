@@ -196,6 +196,12 @@
   },
   "strike_sensitivity": {
     "strike_deg": 148.46783,
+    "region_mean_cm": {
+      "WEST north": 12.87326551264879,
+      "WEST south": -1.5355874577430633,
+      "EAST north": 6.175057378306924,
+      "EAST south": -0.41773046345568876
+    },
     "north_minus_south_cm": {
       "WEST": {
         "observed_cm": 14.408852970391852,
@@ -211,8 +217,9 @@
   },
   "notes": [
     "regions are anchored to the fitted dike: s along strike (NNW positive, the U\u2225 sign convention), t perpendicular (ENE positive); north half 0 < s < L/2, south half -L/2 < s < 0",
-    "model_mean_cm is the uniform-opening fit processed like the observations (per-geometry LOS, per-dataset far-field reference plane, same solve and rotation) over the same cells; model_raw_mean_cm is the unreferenced elastic displacement, kept for comparison",
-    "formal sigmas assume independent cells; the control-box scatter is a correlated-noise floor, not a complete error model \u2014 the boxes sit almost entirely east of the dike and their closure matches the west-flank regions but not the east-flank regions (closure_median_sigma_units), so east-flank errors exceed the floor by an unquantified amount, and the sigma-unit statements are relative to the floor",
+    "model_mean_cm is the uniform-opening fit referenced like the observations (per-geometry LOS, per-dataset far-field reference plane, same solve and rotation) over the same cells; the plane is fitted at cell resolution, an approximation to the native-pixel referencing worth about 0.2 cm in the contrasts; model_raw_mean_cm is the unreferenced elastic displacement, kept for comparison",
+    "formal sigmas assume independent cells; the control-box scatter is a correlated-noise floor, not a demonstrated error model \u2014 the boxes sit almost entirely east of the dike; closure (closure_median_sigma_units) measures cross-sensor consistency only, so its match to the west-flank regions makes the floor plausible there without certifying it, east-flank errors certainly exceed the floor, and sigma-unit statements are ratios to the floor, not established significances",
+    "individual half means are strike-dependent (the WEST south mean moves from -4.2 to -0.4 cm under the alternative strike); the north-minus-south contrast is the resolved, strike-robust quantity, not the southward motion of a single half",
     "a strike error leaks U\u22a5 into U\u2225 with one sign per flank, shifting both halves of a flank together; the north-minus-south differential is the strike-robust statistic (see strike_sensitivity)",
     "max_single_cell_influence_cm is the largest change of a differential when any single cell is removed; the EAST differential is fragile by this measure, the WEST one is not"
   ]

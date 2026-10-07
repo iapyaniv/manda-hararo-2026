@@ -12,12 +12,15 @@ over the same cells. The elastic dike itself predicts the antisymmetric
 pattern (flank material is dragged toward the tips), so the test is
 observed vs model region means, not observed vs zero.
 
-The model column is processed like the observations: the model is
+The model column is referenced like the observations: the model is
 projected into each geometry's LOS at the cell centres, the same
 far-field reference plane is removed per dataset, and the same free
-three-component solve and rotation are applied. Raw elastic
-displacement differs from the referenced column by up to ~1 cm in a
-region mean and is kept in the JSON for comparison.
+three-component solve and rotation are applied. Fitting the plane at
+cell resolution over the retained cells approximates the observations'
+native-pixel referencing; the approximation moves the predicted
+contrasts by about 0.2 cm. Raw elastic displacement differs from the
+referenced column by up to ~1 cm in a region mean and is kept in the
+JSON for comparison.
 
 Formal per-cell sigmas assume independent cells and understate a region
 mean's error under spatially correlated noise (atmosphere and ionosphere
@@ -27,10 +30,14 @@ dimensions tiled over the far field (|t| ≥ 12 km), evaluated on the
 observed-minus-model residual. The scatter of their means is the floor
 for one region mean, and the scatter of along-strike-adjacent pair
 differences is the floor for a north-minus-south differential. It is a
-floor, not a complete error model: the control boxes sit almost
-entirely east of the dike, and their cross-sensor closure level matches
-the west-flank regions but is well below the east-flank regions, so
-east-flank errors are larger than the floor by an unquantified amount.
+floor, not a demonstrated error model: the control boxes sit almost
+entirely east of the dike; their cross-sensor closure level matches the
+west-flank regions and is well below the east-flank regions, but
+closure measures cross-sensor consistency only — an error consistent
+across the four looks leaves it unchanged — so the match makes the
+floor plausible for the west flank without certifying it, and
+east-flank errors certainly exceed the floor. Sigma-unit statements are
+therefore ratios to this floor, not established significances.
 
 Run after mh26.invert and mh26.s1_tracks:  python -m mh26.along_rift [--gslc]
 Writes results/along_rift_halves{,_gslc}.{json,md,png}.
@@ -299,7 +306,7 @@ def figure(upar_cm: np.ndarray, selectors: dict, model: np.ndarray,
     ax_bar.bar(xpos - 0.17, observed, width=0.34, yerr=errors, capsize=3,
                color="#2166ac", label="observed")
     ax_bar.bar(xpos + 0.17, modeled, width=0.34, color="#b2182b",
-               alpha=0.75, label="model (same processing)")
+               alpha=0.75, label="model (referenced like the data)")
     ax_bar.axhline(0, color="k", lw=0.6)
     ax_bar.set_xticks(xpos)
     ax_bar.set_xticklabels([n.replace(" ", "\n") for n in names])
@@ -420,6 +427,9 @@ def main(nisar_source: str = "gunw") -> None:
             for name, sel in primary_selectors.items()}
         alt_regions = {k: v for k, v in alt_regions.items() if v}
         alt = {"strike_deg": float(alt_strike),
+               "region_mean_cm": {
+                   name: r["mean_cm"] for name, r in alt_regions.items()
+                   if not name.startswith("BOTH")},
                "north_minus_south_cm": {
                    flank: d for flank in ("WEST", "EAST")
                    if (d := differential(alt_regions, flank, None))}}
@@ -443,19 +453,27 @@ def main(nisar_source: str = "gunw") -> None:
             "(NNW positive, the U∥ sign convention), t perpendicular "
             "(ENE positive); north half 0 < s < L/2, south half "
             "-L/2 < s < 0",
-            "model_mean_cm is the uniform-opening fit processed like the "
-            "observations (per-geometry LOS, per-dataset far-field "
+            "model_mean_cm is the uniform-opening fit referenced like "
+            "the observations (per-geometry LOS, per-dataset far-field "
             "reference plane, same solve and rotation) over the same "
-            "cells; model_raw_mean_cm is the unreferenced elastic "
-            "displacement, kept for comparison",
+            "cells; the plane is fitted at cell resolution, an "
+            "approximation to the native-pixel referencing worth about "
+            "0.2 cm in the contrasts; model_raw_mean_cm is the "
+            "unreferenced elastic displacement, kept for comparison",
             "formal sigmas assume independent cells; the control-box "
-            "scatter is a correlated-noise floor, not a complete error "
-            "model — the boxes sit almost entirely east of the dike and "
-            "their closure matches the west-flank regions but not the "
-            "east-flank regions (closure_median_sigma_units), so "
-            "east-flank errors exceed the floor by an unquantified "
-            "amount, and the sigma-unit statements are relative to the "
-            "floor",
+            "scatter is a correlated-noise floor, not a demonstrated "
+            "error model — the boxes sit almost entirely east of the "
+            "dike; closure (closure_median_sigma_units) measures "
+            "cross-sensor consistency only, so its match to the "
+            "west-flank regions makes the floor plausible there without "
+            "certifying it, east-flank errors certainly exceed the "
+            "floor, and sigma-unit statements are ratios to the floor, "
+            "not established significances",
+            "individual half means are strike-dependent (the WEST south "
+            "mean moves from -4.2 to -0.4 cm under the alternative "
+            "strike); the north-minus-south contrast is the resolved, "
+            "strike-robust quantity, not the southward motion of a "
+            "single half",
             "a strike error leaks U⊥ into U∥ with one sign per flank, "
             "shifting both halves of a flank together; the "
             "north-minus-south differential is the strike-robust "
@@ -484,15 +502,17 @@ def main(nisar_source: str = "gunw") -> None:
         "contrast.",
         "These are half-flank averages of the dike-frame U∥ field "
         f"(σ∥ ≤ {PAR_SIGMA_MAX_CM:.0f} cm, the",
-        "summary-figure mask), against the fitted model passed through "
-        "the same",
-        "processing (per-geometry LOS, per-dataset far-field reference "
-        "plane, same",
-        "solve and rotation) over the same cells. The elastic dike "
-        "itself predicts",
-        "the antisymmetric pattern, so the test is observed vs model, "
-        "not observed",
-        "vs zero.", "",
+        "summary-figure mask), against the fitted model referenced like "
+        "the data",
+        "(per-geometry LOS, per-dataset far-field reference plane, same "
+        "solve and",
+        "rotation; the plane is fitted at cell resolution, an "
+        "approximation worth",
+        "about 0.2 cm in the contrasts) over the same cells. The "
+        "elastic dike itself",
+        "predicts the antisymmetric pattern, so the test is observed vs "
+        "model, not",
+        "observed vs zero.", "",
         f"Regions: |s| < L/2 = {half_length / 1e3:.1f} km from the fitted "
         f"centre, {FLANK_T_MIN_M / 1e3:.1f}–{FLANK_T_MAX_M / 1e3:.0f} km "
         "off axis.", "",
@@ -516,9 +536,10 @@ def main(nisar_source: str = "gunw") -> None:
         lines.append(
             f"- **{flank} north − south: {fmt(d['observed_cm'])} ± "
             f"{d['control_pair_sigma_cm']:.1f} cm** (model "
-            f"{fmt(d['model_cm'])}); relative to the control floor: "
-            f"{d['detection_sigma_vs_floor']:.1f} σ from zero, "
-            f"{d['model_departure_sigma_vs_floor']:+.1f} σ from the "
+            f"{fmt(d['model_cm'])}); as ratios to the control floor "
+            f"(not established significances): "
+            f"{d['detection_sigma_vs_floor']:.1f}× from zero, "
+            f"{d['model_departure_sigma_vs_floor']:+.1f}× from the "
             f"model; largest single-cell influence "
             f"{d['max_single_cell_influence_cm']:.1f} cm")
     both = primary_diffs.get("BOTH")
@@ -546,11 +567,14 @@ def main(nisar_source: str = "gunw") -> None:
                   f"{closure['WEST north']:.2f}/"
                   f"{closure['WEST south']:.2f} σ in the west regions "
                   f"and {closure['EAST north']:.2f}/"
-                  f"{closure['EAST south']:.2f} σ in the east regions, "
-                  "so the floor represents the west-flank statistics and "
-                  "understates the east-flank errors; the formal "
-                  "independent-cell errors are several times smaller "
-                  "still and are not quoted"]
+                  f"{closure['EAST south']:.2f} σ in the east regions. "
+                  "Closure measures cross-sensor consistency only (an "
+                  "error consistent across the four looks leaves it "
+                  "unchanged), so the match makes the floor plausible "
+                  "for the west flank without certifying it, and "
+                  "east-flank errors certainly exceed the floor; the "
+                  "formal independent-cell errors are several times "
+                  "smaller still and are not quoted"]
     variant = variants["variant"]
     lines.append(
         "- region sensitivity (|s| < "
@@ -578,13 +602,20 @@ def main(nisar_source: str = "gunw") -> None:
         "- The free three-component solve observes the near-north "
         "direction weakly (median σ∥ ≈ 4 cm per cell), and the cells are "
         "not independent; the control-box scatter is a correlated-noise "
-        "floor, not a complete error model, so the σ statements above "
-        "are relative to that floor. Model-parameter uncertainty and "
-        "cross-sensor systematics are not propagated.",
-        "- The WEST differential is the robust result: the control "
-        "floor's closure level matches the west regions, and no single "
-        "cell changes the differential by more than "
-        f"{primary_diffs['WEST']['max_single_cell_influence_cm']:.1f} cm.",
+        "floor, not a demonstrated error model, so the ratios above are "
+        "to that floor, not established significances. Model-parameter "
+        "uncertainty and cross-sensor systematics are not propagated.",
+        "- The WEST north − south contrast is the stable statistic: no "
+        "single cell changes it by more than "
+        f"{primary_diffs['WEST']['max_single_cell_influence_cm']:.1f} cm "
+        "and the alternative strike moves it by 0.2 cm. The individual "
+        "half means are NOT strike-stable (the south mean is "
+        f"{primary_regions['WEST south']['mean_cm']:+.1f} cm at the "
+        "fitted strike and "
+        f"{alt['region_mean_cm']['WEST south']:+.1f} cm at "
+        f"{alt['strike_deg']:.1f}°), so the contrast — not the "
+        "southward motion of the south half — is the resolved "
+        "quantity.",
         "- The EAST differential is fragile and does not establish the "
         "reversal: both east halves average positive, the south region "
         "is the raggedest (fewest cells, mean and median farthest "
@@ -597,9 +628,11 @@ def main(nisar_source: str = "gunw") -> None:
         "shifting both halves together, so the north-minus-south "
         "differential is the strike-robust statistic.",
         "- The model column shares each region's exact cells and the "
-        "observations' reference treatment; the unreferenced elastic "
-        "means (model_raw_mean_cm in the JSON) differ by up to about "
-        "1 cm per region.",
+        "observations' reference treatment at cell resolution (an "
+        "approximation to the native-pixel referencing worth about "
+        "0.2 cm in the contrasts); the unreferenced elastic means "
+        "(model_raw_mean_cm in the JSON) differ by up to about 1 cm "
+        "per region.",
     ]
     (RESULTS / f"along_rift_halves{suffix}.md").write_text(
         "\n".join(lines) + "\n")
