@@ -22,6 +22,10 @@ Manda Hararo intrusion.
   two-track Sentinel-1 tests: the descending co-event cross-check, six
   post-event projections with nine pre-event nulls, the decay fit, and the
   Sentinel-1-only East/Up decompositions.
+- `results/decay_fit_windows.{png,pdf}` draw the pinned projection report
+  as one panel (pre-event nulls, post-event windows, the fitted
+  window-integrated values, the independent NISAR window); pure layout of
+  `results/s1_tracks.json`, nothing recomputed.
 - `results/distributed_fit.md`, `results/distributed_planes.png`, and
   `results/distributed_fit_panels.png` contain the distributed opening and
   graben-fault model fitted jointly to the two NISAR and two Sentinel-1
@@ -229,6 +233,7 @@ python -m mh26.s1_check
 python -m mh26.history
 python -m mh26.continuation
 python -m mh26.s1_tracks
+python -m mh26.decay_figure
 python -m mh26.distributed          # primary fit; selects the smoothing weight
 python -m mh26.decompose3d
 python -m mh26.along_rift
