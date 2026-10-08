@@ -45,7 +45,10 @@ def draw_window(ax, start, end, value, interval, color, lw=2.6, label=None):
     ax.plot([start, end], [value, value], color=color, lw=lw,
             solid_capstyle="butt", zorder=3, label=label)
     if interval is not None:
-        mid = start + (end - start) / 2
+        # date + timedelta drops sub-day parts, which pushes the line
+        # half a day off centre on odd-length windows; use datetimes.
+        first = dt.datetime.combine(start, dt.time())
+        mid = first + (dt.datetime.combine(end, dt.time()) - first) / 2
         ax.plot([mid, mid], list(interval), color=color, lw=0.9, zorder=2)
 
 
