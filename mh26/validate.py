@@ -534,8 +534,8 @@ def validate_new_products(require_gslc_sources: bool = True) -> None:
         ("distributed_fit_gslc.json", "gslc"),
         ("distributed_fit_mapped.json", "gunw"),
         ("distributed_fit_mapped_gslc.json", "gslc"),
-        ("distributed_fit_geometry_4a7b2386c8b5.json", "gunw"),
-        ("distributed_fit_geometry_4a7b2386c8b5_gslc.json", "gslc"),
+        ("distributed_fit_geometry_f9c903279610.json", "gunw"),
+        ("distributed_fit_geometry_f9c903279610_gslc.json", "gslc"),
     ):
         validate_distributed_result(name, expected_source)
 

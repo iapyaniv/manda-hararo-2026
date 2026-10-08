@@ -292,9 +292,8 @@ def build_contract(dat_path: Path, extend_se: int,
     geometry["wright2006_provenance"] = {
         "dat_path": _display_source_path(dat_path),
         "dat_sha256": hashlib.sha256(dat_path.read_bytes()).hexdigest(),
-        "received": "email from Juliet Biggs, 2026-08-26, subject "
-                    "'dyke geometry' (geometry of Wright et al. 2006 and the "
-                    "Hamling et al. papers)",
+        "received": "provided by Juliet Biggs, 2026-08-26 (geometry of "
+                    "Wright et al. 2006 and the Hamling et al. papers)",
         "column_interpretation": " | ".join(COLUMNS),
         "column_note": "top_km/bottom_km apply to fault and dike rows; for "
                        "point rows column 7 is the source depth and column 8 "

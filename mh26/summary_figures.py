@@ -229,7 +229,7 @@ def require_dem() -> Path:
     return DEM_PATH
 
 
-WRIGHT_FIT_GSLC = "distributed_fit_geometry_4a7b2386c8b5_gslc.json"
+WRIGHT_FIT_GSLC = "distributed_fit_geometry_f9c903279610_gslc.json"
 
 
 def load_gslc_fit(name: str) -> tuple[dict, dict, np.ndarray]:
@@ -3412,7 +3412,7 @@ BUILDERS = {
 RESULT_INPUTS = (
     "distributed_fit_mapped.json",
     "distributed_fit_mapped_gslc.json",
-    "distributed_fit_geometry_4a7b2386c8b5_gslc.json",
+    "distributed_fit_geometry_f9c903279610_gslc.json",
     "decomposition_joint_gslc.json",
     "fault_traces.json",
     "okada_fit.json",

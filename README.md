@@ -106,10 +106,10 @@ Maintainer: Vinay Pai <vinay@yowon.org>.
   its line) and overruns its SE end by ~2.8 km, so the plane is extended 10 km
   SE. The 2026 joint inversion on that fixed plane gives joint RMS 2.20 cm
   (trace-supported free-trace fit: 2.15 cm), maximum opening 2.30 m, and
-  volume 0.182 km³ (`results/distributed_fit_geometry_4a7b2386c8b5.md`);
+  volume 0.182 km³ (`results/distributed_fit_geometry_f9c903279610.md`);
   on the reprocessed 30-m (GSLC) inputs the same comparison is 2.61 cm
   against 2.55 cm, with maximum opening 2.31 m and volume 0.180 km³
-  (`results/distributed_fit_geometry_4a7b2386c8b5_gslc.md`).
+  (`results/distributed_fit_geometry_f9c903279610_gslc.md`).
   `results/uperp_2026_wright2006.png` is one 2026 U⊥ cross-section on
   the Wright plane, from the GUNW-input fit (a `--gslc` fit writes a
   `_gslc` name). It uses the along-strike/depth view of an individual
@@ -165,7 +165,7 @@ python -m mh26.fault_depth --gslc
 python -m mh26.wright2006             # 2005 dike-plane contract from data/*.dat
 python -m mh26.distributed --geometry results/geometry_wright2006.json
 python -m mh26.distributed --geometry results/geometry_wright2006.json --gslc
-python -m mh26.wright2006 --panel results/distributed_fit_geometry_4a7b2386c8b5.json
+python -m mh26.wright2006 --panel results/distributed_fit_geometry_f9c903279610.json
 python -m mh26.stress
 python -m mh26.uncertainty --n 1000
 python -m mh26.figures

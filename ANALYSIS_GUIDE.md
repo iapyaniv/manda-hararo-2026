@@ -70,7 +70,7 @@ Manda Hararo intrusion.
   builds that contract from the 2005 dike-plane source model in
   `data/complex_geom2_revised_test.dat` (provenance and format in
   `data/README.md`); the fixed-plane 2026 fit is
-  `results/distributed_fit_geometry_4a7b2386c8b5.{json,md}` (GUNW inputs;
+  `results/distributed_fit_geometry_f9c903279610.{json,md}` (GUNW inputs;
   `--gslc` writes `..._gslc.{json,md}`, the chain the summary figures
   draw) and
   `results/uperp_2026_wright2006.png` is one 2026 U⊥ cross-section on
@@ -248,7 +248,7 @@ python -m mh26.fault_depth --gslc
 python -m mh26.wright2006
 python -m mh26.distributed --geometry results/geometry_wright2006.json
 python -m mh26.distributed --geometry results/geometry_wright2006.json --gslc
-python -m mh26.wright2006 --panel results/distributed_fit_geometry_4a7b2386c8b5.json
+python -m mh26.wright2006 --panel results/distributed_fit_geometry_f9c903279610.json
 python -m mh26.stress
 python -m mh26.uncertainty --n 1000
 python -m mh26.figures

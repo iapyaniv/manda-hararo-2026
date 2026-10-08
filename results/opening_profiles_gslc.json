@@ -98,11 +98,11 @@
    1.1513128295196525e-38
   ],
   "color": "#a50f15",
-  "geometry_sha256": "23e42105d82ea9cdcadb770cccdbf9d9585b670e132b6c18c6e99d74daf8a01a",
+  "geometry_sha256": "48ee382a4f6e0431229308cf5e896b64b1fe0a31a4eb6ce57c95bad0447c5051",
   "label": "July 2026",
   "max_average_m": 1.2924742462681942,
-  "reference_fit": "results/distributed_fit_geometry_4a7b2386c8b5_gslc.json",
-  "reference_fit_sha256": "993b8c9ce35e9734d801ad90908a9916b46c98d86f54681454b332cd20ce966e",
+  "reference_fit": "results/distributed_fit_geometry_f9c903279610_gslc.json",
+  "reference_fit_sha256": "1c7998862bac7a0b510d03ee901b72c1532b6aba7a6f07632852cdfd7a65db9e",
   "s_at_max_km": 55.997794281818166,
   "s_centres_km": [
    0.9513980833333334,

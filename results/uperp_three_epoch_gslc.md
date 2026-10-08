@@ -1,6 +1,6 @@
 # Three-epoch opening comparison (Hamling dike files)
 
-NISAR chain of the 2026 fit: gslc (results/distributed_fit_geometry_4a7b2386c8b5_gslc.json).
+NISAR chain of the 2026 fit: gslc (results/distributed_fit_geometry_f9c903279610_gslc.json).
 
 Openings of the September 2005 megadike and the fifteen post-2005 opening files are the inversions provided by Ian Hamling (GNS) on the ~74 km Hamling computational grid (75 columns x 20 one-km depth rows, UTM 37N). The 2026 distribution is this repository's fixed-plane fit on the Wright et al. (2006) plane. The Hamling columns project monotonically into that plane's s axis (median off-plane offset 93 m, maximum 1412 m mid-plane), so `uperp_three_epoch_gslc.png` compares the three epochs by along-axis position on one axis.
 

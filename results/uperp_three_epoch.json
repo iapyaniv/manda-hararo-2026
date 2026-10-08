@@ -61,11 +61,11 @@
   "volume_km3": 0.8714237439532752
  },
  "epoch_2026": {
-  "geometry_sha256": "23e42105d82ea9cdcadb770cccdbf9d9585b670e132b6c18c6e99d74daf8a01a",
+  "geometry_sha256": "48ee382a4f6e0431229308cf5e896b64b1fe0a31a4eb6ce57c95bad0447c5051",
   "max_opening_m": 2.3038475955339885,
   "plane_bottom_km": 10.0,
-  "reference_fit": "results/distributed_fit_geometry_4a7b2386c8b5.json",
-  "reference_fit_sha256": "9f707bbb48446a901459a059a0f48d795ba62041af981d4e4275b067740b3399",
+  "reference_fit": "results/distributed_fit_geometry_f9c903279610.json",
+  "reference_fit_sha256": "563594ebb71214ab637593efc0d63a1115f07c7afc28475b53061a66a3e74702",
   "volume_above_10km_km3": 0.18154902019975305,
   "volume_at_0p5m_floor_km3": 0.15607233642583107,
   "volume_km3": 0.18154902019975305
