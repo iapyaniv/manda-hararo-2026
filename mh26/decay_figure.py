@@ -71,9 +71,10 @@ def main() -> None:
                 label="Sentinel-1 post-event window" if k == 0 else None)
         t1, t2 = (start - T0).days, (end - T0).days
         fitted = amplitude * (np.exp(-t1 / tau) - np.exp(-t2 / tau))
-        mid = start + (end - start) / 2
-        ax.plot([mid], [fitted], marker="o", mfc="none", mec="#2166ac",
-                ms=6, zorder=4,
+        # The fitted value spans the same window as its observation, so
+        # the vertical gap between the two bars is the fit residual.
+        ax.plot([start, end], [fitted, fitted], color="#2166ac", lw=1.3,
+                ls=(0, (4, 3)), solid_capstyle="butt", zorder=4,
                 label="decay fit, window-integrated" if k == 0 else None)
 
     n_start = dt.date(2026, 7, 19)
@@ -81,9 +82,9 @@ def main() -> None:
     ax.plot([n_start, n_end], [nisar["observed_nisar_pattern_fraction"]] * 2,
             color="#1b7837", lw=2.6, solid_capstyle="butt", zorder=3,
             label="NISAR window (not used in the fit)")
-    mid = n_start + (n_end - n_start) / 2
-    ax.plot([mid], [nisar["predicted_from_s1_decay"]], marker="o",
-            mfc="none", mec="#1b7837", ms=6, zorder=4)
+    ax.plot([n_start, n_end], [nisar["predicted_from_s1_decay"]] * 2,
+            color="#1b7837", lw=1.3, ls=(0, (4, 3)),
+            solid_capstyle="butt", zorder=4)
 
     ax.set_ylabel("projection on the co-event dike pattern\n"
                   "(fraction of co-event signal)")
