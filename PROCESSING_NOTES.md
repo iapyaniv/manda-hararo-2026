@@ -219,6 +219,49 @@ neighbouring pixels, and the residual phasors have concentration
 1.000 (8.5 million pixels). The strip is not unwrapped, is not shipped in
 the data archives, and no reported quantity reads it.
 
+## The September 2005 Envisat pair (mh26.envisat_2005)
+
+Figure 1 panel (b) shows the descending Envisat track-49 interferogram of
+6 May to 28 October 2005, the pair of Wright et al. (2006) Fig. 2a,
+processed here from the ESA archive products (provenance, orbits, terrain
+and settings in `data/envisat-2005/README.md`). GMTSAR 6.2.0 forms the
+filtered interferogram (`p2p_processing.csh ENVI_SLC`, DORIS precise
+orbits, SRTM 3-arcsecond terrain on the ellipsoid, 200-m filter,
+Goldstein filter, decimation 2) and the cosine and sine of its filtered
+phase are geocoded separately (`proj_ra2ll.csh`); the phase is taken after
+geocoding, because GMTSAR projects grids through a block median, which on
+wrapped radians mixes values across the ±π boundary (GMTSAR's own
+`phasefilt_ll.grd` is wrong by up to half a cycle at such nodes). Nothing
+is unwrapped and nothing from this pair enters the analysis.
+`mh26.envisat_2005` turns the geocoded cosine, sine and coherence into the
+display product
+`data/envisat-2005/t049_20050506_20051028.npz`:
+
+- Nodes with coherence below 0.15 are blanked.
+- The sign is not assumed. The look geometry at the scene centre (heading,
+  ground-to-satellite azimuth, incidence) is computed from the reference
+  orbit, the revised September 2005 opening model of I. Hamling
+  (`mh26.hamling.load_updated_sept05`) is run forward on the geocoded grid
+  in that geometry, and the wrapped phase steps between neighbouring nodes
+  (lags 1, 2 and 4) are compared with the model's steps where the model
+  step lies between 0.4 and 2.6 rad: the mean cosine of the step difference
+  must exceed 0.5 for one sign and stay below 0.3 for the other, or the run
+  fails. The product then stores the range change wrapped at one fringe
+  (2.8118 cm), increasing with motion away from the satellite.
+- The same test applied to the Hamling track-300 grids gives their
+  convention (z increasing with range increase: agreement 0.75–0.86 for
+  that sense against 0.0–0.4 for the opposite on the October 2008 and
+  September 2006 grids) and shows track 300 to be ascending (the lobes of
+  the October 2008 grid match the ascending forward model), so panels (b)
+  and (c) share one colour convention and their look arrows are right.
+- The unit phasors and the coherence are averaged onto a 0.0005-degree
+  grid over the context frame; the figure multilooks that product as it
+  does the track-300 grids.
+
+The step agreement is a check of identity and sign, not a fit: the model
+comes from other data, and the near-axis fringes are unresolved. The numbers
+of the run are in `results/envisat_2005.md`.
+
 ## Loop-closure check of the unwrapping (mh26.closure)
 
 The processing sensitivities above reuse one interferogram; the

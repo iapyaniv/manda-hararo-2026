@@ -19,3 +19,4 @@ __pycache__/
 
 !data/ireland-series/
 !data/sentinel1-cumulative/
+!data/envisat-2005/

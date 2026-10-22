@@ -1,0 +1,101 @@
+{
+  "product": "data/envisat-2005/t049_20050506_20051028.npz",
+  "pair": "20050506_20051028",
+  "scenes": [
+    "ASA_IMS_1PNESA20050506_071515_000000182037_00049_16636_0000",
+    "ASA_IMS_1PNESA20051028_071513_000000182042_00049_19141_0000"
+  ],
+  "catalogue_scenes": [
+    "ASA_IMS_1PNESA20050506_071516_000000152037_00049_16636_0000",
+    "ASA_IMS_1PNESA20051028_071514_000000152042_00049_19141_0000"
+  ],
+  "gmtsar_dir": "/mnt/HC_Volume_107208349/nisar/envisat-2005-gmtsar/work",
+  "intf_dir": "2005126_2005301",
+  "grid": {
+    "rows": 2960,
+    "cols": 2880,
+    "lon": [
+      39.808541666333326,
+      41.00812499966668
+    ],
+    "lat": [
+      11.741875000033328,
+      12.974791666666672
+    ],
+    "spacing_deg": [
+      0.0004166666666947094,
+      0.00041666666665562957
+    ]
+  },
+  "product_grid": {
+    "rows": 2160,
+    "cols": 1880,
+    "step_deg": 0.0005,
+    "lon": [
+      40.2,
+      41.14
+    ],
+    "lat": [
+      11.84,
+      12.92
+    ],
+    "valid_fraction": 0.461427304964539
+  },
+  "valid_fraction": 0.4189057807807808,
+  "coherence_min": 0.15,
+  "coherence_median_valid": 0.4138941317796707,
+  "wavelength_cm": 5.6235599999999994,
+  "fringe_cm": 2.8118,
+  "view": {
+    "heading_deg": 192.01796044532037,
+    "los_azimuth_deg": 101.34596724765993,
+    "incidence_deg": 22.60959488252991,
+    "unit_east_north_up": [
+      0.37693666894785016,
+      -0.07563391250283943,
+      0.9231458491928628
+    ]
+  },
+  "model": {
+    "patches": 455,
+    "max_opening_m": 16.093668,
+    "model_file": "data/ihamling/2026-09-17/model_slip_sept05.txt",
+    "model_sha256": "66259c5b09bee78c4c54d3bc9d6357626d31733aab5a392ebccdd6ae41d7b611"
+  },
+  "model_los_cm_range": [
+    -57.290727649939896,
+    220.34098138826482
+  ],
+  "step_agreement": {
+    "toward": {
+      "lag1": {
+        "score": 0.3628385936766574,
+        "steps": 463780
+      },
+      "lag2": {
+        "score": 0.14657535724714962,
+        "steps": 896348
+      },
+      "lag4": {
+        "score": 0.0863246893672154,
+        "steps": 1331822
+      }
+    },
+    "away": {
+      "lag1": {
+        "score": 0.7439102929628345,
+        "steps": 463780
+      },
+      "lag2": {
+        "score": 0.6554548478481955,
+        "steps": 896348
+      },
+      "lag4": {
+        "score": 0.5873687282629035,
+        "steps": 1331822
+      }
+    }
+  },
+  "processor_phase_increases_with_motion": "away",
+  "sense": "range change increasing with motion away from the satellite"
+}

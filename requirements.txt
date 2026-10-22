@@ -10,4 +10,4 @@ pyrocko>=2025.1
 rasterio>=1.4
 pyproj>=3.6
 cmcrameri>=1.8      # scientific colour maps for mh26.summary_figures
-earthaccess>=0.11   # only needed for mh26.fetch (rebuilding data from ASF)
+earthaccess>=0.15   # only needed for rebuilding data from ASF; 0.15 added the EARTHDATA_TOKEN login

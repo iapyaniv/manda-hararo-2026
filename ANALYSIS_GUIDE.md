@@ -303,6 +303,7 @@ mh26/decay_figure.py    one-panel post-event decay figure from the saved project
 mh26/export_2026_opening.py  2026 opening model exported on the Hamling grid
 mh26/figure1.py         the location figure (Figure 1) from saved products
 mh26/gslc_strip.py      display-only GSLC strip north of the track-165 analysis crop (Figure 1a)
+mh26/envisat_2005.py    the 2005 Envisat track-49 pair (GMTSAR outputs) as the Figure 1b product, with its sense check
 mh26/hamling.py         decoder and three-epoch comparison of the Hamling dyke models
 mh26/opening_history.py three-epoch opening sections and cumulative stack (Figure 4)
 mh26/opening_profiles.py depth-averaged opening profiles per dyke

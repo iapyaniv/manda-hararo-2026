@@ -293,6 +293,20 @@ difference contains a short unmatched interval. The `All_period/` and `Pre/`
 folders hold the re-referenced products, with and without ERA5 correction,
 and their README gives the reference area.
 
+## Envisat track-49 pair of 2005 (processed here)
+
+`data/envisat-2005/t049_20050506_20051028.npz` (tracked) is the wrapped
+interferogram of the September 2005 dyke drawn in Figure 1 panel (b): the
+descending track-49 pair of 6 May and 28 October 2005 of Wright et al.
+(2006) Fig. 2a, processed with GMTSAR from the ESA archive products and
+converted by `mh26.envisat_2005`, which fixes its sign against the forward
+model of the revised 2005 opening. Its README gives the scenes (ESA's
+on-demand slices, with hashes), orbits, terrain, settings and the product
+layout; `results/envisat_2005.md` has the run's numbers. The range change
+is wrapped at one fringe and increases with motion away from the
+satellite, as in the Hamling track-300 grids. The ESA products themselves
+(Envisat ASAR © ESA) are not redistributed.
+
 ## Digitized site series (Ireland)
 
 `data/ireland-series/` holds the six Sentinel-1 site series read off Ben Ireland's time-series figure, a draft stand-in for the series themselves; see its README for how they were digitized and what they are relative to.

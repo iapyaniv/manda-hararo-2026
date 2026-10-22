@@ -30,13 +30,15 @@ establish.
 
 ## Figures
 
-![Figure 1 draft: the segment, the 2026 interferogram, the 2005 dyke plane, the 2008 dyke, and the wrapped 2014–2026 Sentinel-1 displacement and series](results/figure1_draft.png)
+![Figure 1 draft: the segment, the 2026 interferogram, the 2005 and 2008 dykes in Envisat, and the wrapped 2014–2026 Sentinel-1 displacement and series](results/figure1_draft.png)
 
 Figure 1 (draft): the segment and the July 2026 intrusion in the NISAR
-interferogram, the October 2008 dyke in Envisat, and the Sentinel-1
-cumulative displacement of 2014–2026 wrapped at one fringe
+interferogram, the September 2005 dyke in the Envisat track-49 pair
+processed here, the October 2008 dyke in Envisat track 300, and the
+Sentinel-1 cumulative displacement of 2014–2026 wrapped at one fringe
 (`python -m mh26.figure1`; the strip north of the NISAR analysis crop
-comes from `python -m mh26.gslc_strip`). The 2005 interferogram is awaited.
+comes from `python -m mh26.gslc_strip`, the 2005 interferogram from
+`python -m mh26.envisat_2005`).
 
 ![The four-geometry displacement decomposition in the dyke frame](results/summary_decomposition_dike_frame_pub.png)
 
@@ -94,6 +96,8 @@ environment the committed outputs were made with.
   Sentinel-1 cumulative displacement maps of Pedro Espín Bedón and Ben
   Ireland (`data/sentinel1-cumulative/`); and the site series digitized from
   Ben Ireland's figure (`data/ireland-series/`).
+- The wrapped Envisat track-49 interferogram of the September 2005 dyke,
+  processed here from the ESA archive products (`data/envisat-2005/`).
 - Sources: NISAR L2 GSLC and GUNW provisional products, NASA/JPL via ASF DAAC
   (10.5067/NIL2GSLC-P1, 10.5067/NIL1GUNW-P1); Sentinel-1 interferograms from
   COMET LiCSAR under the [portal's conditions](https://comet.nerc.ac.uk/COMET-LiCS-portal/);

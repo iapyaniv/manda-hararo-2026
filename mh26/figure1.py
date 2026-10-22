@@ -15,10 +15,12 @@ Panels
       opened), the one located July 2026 earthquake (two agency locations
       with their stated errors), the volcanic centres at their mapped
       positions and the segment names;
-  (b) the September 2005 dyke: the delivered track-300 set holds no 2005
-      interferogram (its "sept" grid is the September 2006 dyke, which sits on
-      the sept06 model columns), so the panel is a placeholder with the 2005
-      model plane until the Wright et al. (2006) interferogram is supplied;
+  (b) the September 2005 dyke in the descending track-49 pair of 6 May to
+      28 October 2005 (the pair of Wright et al. 2006, Fig. 2a) processed
+      here (mh26.envisat_2005), drawn like (c) when that product exists;
+      the delivered track-300 set holds no 2005 interferogram (its "sept"
+      grid is the September 2006 dyke), so without the product the panel is
+      a placeholder with the 2005 model plane;
   (c) the October 2008 dyke in Ian Hamling's wrapped Envisat track-300
       interferogram (Hamling et al. 2010; acquisition dates to be confirmed),
       multilooked as a complex phasor;
@@ -89,20 +91,29 @@ NISAR_FRINGE_CM = 100 * NISAR_FRINGE_M
 # Sentinel-1 C-band (5.5465 cm): the cumulative map is wrapped at half the
 # wavelength, the interval that reproduces B. Ireland's wrapped panel.
 S1_FRINGE_MM = 1000 * 0.055465 / 2
-# Local phase consistency (mean resultant length over 5 x 5 pixels) below
-# which the wrapped Sentinel-1 map is not drawn: the decorrelated ground west
-# of the rift and the unwrapping-noise cells on the axis.
+# Local phase consistency below which the wrapped Sentinel-1 map is not
+# drawn: the mean resultant length, over 5 x 5 pixels, of the phase steps
+# between neighbouring pixels. A smooth ramp of any slope keeps a constant
+# step and passes; the decorrelated ground west of the rift and the
+# unwrapping-noise cells on the axis do not. (The concentration of the
+# phasors themselves would blank steep but smooth fringes, such as the
+# centre of the Dabbahu bullseye.)
 S1_CONSISTENCY_MIN = 0.6
 # Ian Hamling's wrapped Envisat track-300 interferograms of the earlier dykes
 # (one GMT grid per dyke, wrapped LOS in centimetres over one Envisat fringe).
 ENVISAT_DIR = REPO / "data" / "ihamling" / "opening_files"
 ENVISAT_FRINGE_CM = 2.8118
-# The delivered grids are the 2006 to 2010 dykes ("sept" is September 2006);
-# the 2005 interferogram is awaited.
+# The delivered grids are the 2006 to 2010 dykes ("sept" is September 2006).
 ENVISAT_PANELS = {"c": ("oct", "Oct 2008 dike\nEnvisat track 300")}
 # Envisat ascending, right-looking: heading about 348 deg, so the
-# ground-to-satellite azimuth is about 258 deg.
+# ground-to-satellite azimuth is about 258 deg (the lobes of the October 2008
+# grid match the ascending forward model, not the descending one). The grids
+# count range increase: motion away from the satellite raises z.
 ENVISAT_VIEW = {"heading_deg": 348.0, "los_deg": 258.0}
+# The September 2005 dyke: the track-49 pair of Wright et al. (2006) processed
+# here (mh26.envisat_2005), counted like the track-300 grids. Panel (b) is a
+# placeholder until this product exists.
+ENVISAT_2005 = REPO / "data" / "envisat-2005" / "t049_20050506_20051028.npz"
 # Text S1 screens the GSLC observations at this coherence.
 COHERENCE_MIN = 0.25
 # The thick part of the dyke line: columns whose maximum opening reaches this
@@ -116,7 +127,7 @@ DEM_SOUTH_URL = (
     "Copernicus_DSM_COG_10_N11_00_E040_00_DEM/"
     "Copernicus_DSM_COG_10_N11_00_E040_00_DEM.tif"
 )
-# B. Ireland's six site series as digitized from his figure; see
+# The six site series digitized from B. Ireland's figure; see
 # data/ireland-series/README.md. Draft stand-in for the series themselves.
 SERIES_CSV = REPO / "data" / "ireland-series" / "ireland_079D_sites_digitized.csv"
 
@@ -142,8 +153,8 @@ EARTHQUAKES = {
     "IGSSA": {"lon": 40.853, "lat": 12.042, "err_lat_km": 3.8, "err_lon_km": 3.6},
     "ISC": {"lon": 40.6394, "lat": 11.7869, "err_lat_km": 27.8, "err_lon_km": 15.7},
 }
-# B. Ireland's time-series sites (positions read from his figure and
-# confirmed against the cumulative map). His graben series is the graben
+# B. Ireland's time-series sites (positions read from the figure and
+# confirmed against the cumulative map). The graben series is the graben
 # site minus the flank site 8.5 km to the north-east.
 SITES = {
     "e": {"name": "Ado'Ale", "lon": 40.698, "lat": 12.330, "series": "Ado'Ale"},
@@ -284,25 +295,41 @@ def _rewrapped_cm(path: Path, frame: dict, coherence_min: float) -> np.ndarray:
     return wrapped
 
 
+def phase_step_consistency(unit: np.ndarray, valid: np.ndarray, size: int = 5) -> np.ndarray:
+    """Mean resultant length, over size x size pixels, of the phase steps to
+    the right and downward neighbours (the smaller of the two directions);
+    zero where fewer than half the window's steps exist."""
+    out = np.full(unit.shape, np.inf)
+    for axis in (0, 1):
+        step = np.zeros_like(unit)
+        pair = np.zeros(unit.shape, dtype=bool)
+        lead = (slice(1, None), slice(None)) if axis == 0 else (slice(None), slice(1, None))
+        lag = (slice(None, -1), slice(None)) if axis == 0 else (slice(None), slice(None, -1))
+        pair[lag] = valid[lead] & valid[lag]
+        step[lag] = np.where(pair[lag], unit[lead] * np.conj(unit[lag]), 0.0)
+        count = uniform_filter(pair.astype(np.float64), size)
+        length = np.hypot(uniform_filter(step.real, size), uniform_filter(step.imag, size))
+        length = np.where(count >= 0.5, length / np.maximum(count, 1e-6), 0.0)
+        out = np.minimum(out, length)
+    return out
+
+
 def s1_wrapped_cm(frame: dict) -> np.ndarray:
     """The delivered cumulative map wrapped at one Sentinel-1 fringe, smoothed
     by one pixel and resampled as a complex phasor. The south-western corner
     (west of the rift) holds about -100 mm with 25 to 35 mm pixel scatter,
-    which wraps to noise: pixels whose 5 x 5 neighbourhood is inconsistent
-    (mean resultant length below S1_CONSISTENCY_MIN) are left blank, as are
-    the map's own gaps."""
+    which wraps to noise: pixels whose 5 x 5 neighbourhood has inconsistent
+    phase steps (phase_step_consistency below S1_CONSISTENCY_MIN) are left
+    blank, as are the map's own gaps."""
     transform, shape, _ = frame_grid(frame)
     with rasterio.open(S1_PRE) as dataset:
         source = dataset.read(1, masked=True).filled(np.nan)
         src_transform, src_crs = dataset.transform, dataset.crs
     valid = np.isfinite(source)
     phase = 2 * np.pi * np.where(valid, source, 0.0) / S1_FRINGE_MM
-    unit_real = np.where(valid, np.cos(phase), 0.0)
-    unit_imag = np.where(valid, np.sin(phase), 0.0)
-    count = uniform_filter(valid.astype(np.float64), 5)
-    consistency = np.hypot(uniform_filter(unit_real, 5), uniform_filter(unit_imag, 5))
-    consistency = np.where(count > 0, consistency / np.maximum(count, 1e-6), 0.0)
-    keep = valid & (count >= 0.5) & (consistency >= S1_CONSISTENCY_MIN)
+    unit = np.where(valid, np.exp(1j * phase), 0.0)
+    unit_real, unit_imag = unit.real.copy(), unit.imag.copy()
+    keep = valid & (phase_step_consistency(unit, valid) >= S1_CONSISTENCY_MIN)
     weight = gaussian_filter(keep.astype(np.float64), 1.0)
     real = gaussian_filter(np.where(keep, unit_real, 0.0), 1.0)
     imag = gaussian_filter(np.where(keep, unit_imag, 0.0), 1.0)
@@ -337,15 +364,13 @@ def read_grd(path: Path) -> tuple[np.ndarray, object]:
     return z, transform
 
 
-def envisat_wrapped_cm(frame: dict, name: str, looks: int = 3) -> np.ndarray:
-    """One of the track-300 interferograms, multilooked as a complex phasor
-    over `looks` x `looks` cells and resampled the same way, in centimetres of
-    one fringe."""
-    z, src_transform = read_grd(ENVISAT_DIR / f"t300_{name}_wrp_dyke.grd")
-    ok = np.isfinite(z)
-    if not ok.any() or np.nanmax(z) == np.nanmin(z):
-        raise ValueError(f"track-300 grid {name!r} holds no interferogram")
-    phase = 2 * np.pi * np.where(ok, z, 0.0) / ENVISAT_FRINGE_CM
+def wrapped_cm_on_frame(z_cm: np.ndarray, src_transform, src_crs, frame: dict,
+                        looks: int) -> np.ndarray:
+    """A wrapped field in centimetres of one Envisat fringe, multilooked as a
+    complex phasor over `looks` x `looks` cells and resampled the same way
+    onto the frame."""
+    ok = np.isfinite(z_cm)
+    phase = 2 * np.pi * np.where(ok, z_cm, 0.0) / ENVISAT_FRINGE_CM
     weight = uniform_filter(ok.astype(np.float64), looks)
     real = uniform_filter(np.where(ok, np.cos(phase), 0.0), looks)
     imag = uniform_filter(np.where(ok, np.sin(phase), 0.0), looks)
@@ -353,11 +378,33 @@ def envisat_wrapped_cm(frame: dict, name: str, looks: int = 3) -> np.ndarray:
     real = np.where(keep, real / np.maximum(weight, 1e-6), np.nan)
     imag = np.where(keep, imag / np.maximum(weight, 1e-6), np.nan)
     transform, shape, _ = frame_grid(frame)
-    real_w = warp(real, src_transform, UTM_CRS, transform, shape, Resampling.average)
-    imag_w = warp(imag, src_transform, UTM_CRS, transform, shape, Resampling.average)
+    real_w = warp(real, src_transform, src_crs, transform, shape, Resampling.average)
+    imag_w = warp(imag, src_transform, src_crs, transform, shape, Resampling.average)
     wrapped = np.mod(np.arctan2(imag_w, real_w), 2 * np.pi) / (2 * np.pi) * ENVISAT_FRINGE_CM
     wrapped[~np.isfinite(real_w) | ~np.isfinite(imag_w)] = np.nan
     return wrapped
+
+
+def envisat_wrapped_cm(frame: dict, name: str, looks: int = 3) -> np.ndarray:
+    """One of the track-300 interferograms on the frame, in centimetres of
+    one fringe."""
+    z, src_transform = read_grd(ENVISAT_DIR / f"t300_{name}_wrp_dyke.grd")
+    if not np.isfinite(z).any() or np.nanmax(z) == np.nanmin(z):
+        raise ValueError(f"track-300 grid {name!r} holds no interferogram")
+    return wrapped_cm_on_frame(z, src_transform, UTM_CRS, frame, looks)
+
+
+def envisat_2005_wrapped_cm(frame: dict, looks: int = 3) -> tuple[np.ndarray, dict]:
+    """The track-49 interferogram of the September 2005 dyke on the frame, in
+    centimetres of one fringe, with the look geometry stored in the product."""
+    with np.load(ENVISAT_2005, allow_pickle=False) as product:
+        z = product["range_change_cm"].astype(np.float64)
+        lon, lat = product["lon"], product["lat"]
+        view = {"heading_deg": float(product["heading_deg"]),
+                "los_deg": float(product["los_azimuth_deg"])}
+    dx, dy = abs(lon[1] - lon[0]), abs(lat[1] - lat[0])
+    src_transform = from_origin(lon.min() - dx / 2, lat.max() + dy / 2, dx, dy)
+    return wrapped_cm_on_frame(z, src_transform, "EPSG:4326", frame, looks), view
 
 
 def hamling_profiles() -> dict:
@@ -690,26 +737,41 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
     panel_letter(ax_a, "a")
     panel_title(ax_a, NISAR_LABEL)
 
-    # --- (b) the September 2005 dyke: interferogram awaited -------------------
+    # --- (b) the September 2005 dyke in the track-49 pair --------------------
+    norm_env = Normalize(0, ENVISAT_FRINGE_CM)
     ax_b = mm_axes(fig, col1, top - b_h, b_w, b_h)
-    ax_b.imshow(np.repeat(shade_b[:, :, None], 3, axis=2), extent=extent_b, origin="upper",
-                interpolation="nearest", zorder=1)
+    b_drawn = ENVISAT_2005.is_file()
+    if b_drawn:
+        field_b, view_b = envisat_2005_wrapped_cm(FRAME_B)
+        ax_b.imshow(blend(field_b, shade_b, cyclic, norm_env, alpha=0.90), extent=extent_b,
+                    origin="upper", interpolation="nearest", zorder=1)
+    else:
+        ax_b.imshow(np.repeat(shade_b[:, :, None], 3, axis=2), extent=extent_b, origin="upper",
+                    interpolation="nearest", zorder=1)
     map_axes(ax_b, FRAME_B, lon_labels=True, lat_labels=True)
-    draw_plane_trace(ax_b, profiles, lw=1.2, label=False)
+    draw_plane_trace(ax_b, profiles, lw=0.8 if b_drawn else 1.2, label=False)
     draw_2026_geometry(ax_b, lines_2026, lw_dike=1.0, labels=False)
     draw_volcanoes(ax_b, names=False, size=16)
-    haloed_text(ax_b, 0.96, 0.30, "Envisat interferogram\nof the Sept 2005 dike\n(Wright et al., 2006)\nto be supplied",
-                transform=ax_b.transAxes, ha="right", va="center", fontsize=FS_LABEL,
-                linespacing=1.25, color="#202020")
-    haloed_text(ax_b, profiles["lon"][0] + 0.02, profiles["lat"][0] - 0.01,
-                "2005 dike\n(model plane)", color="#3a3a3a", fontsize=FS_NOTE, ha="left",
-                va="top", linespacing=1.1)
+    if b_drawn:
+        draw_look_arrows(ax_b, view_b, x=0.67, y=0.60, w=0.30, h=0.19,
+                         flight_mm=4.6, los_mm=3.2)
+        inset_colorbar(ax_b, plt.cm.ScalarMappable(norm=norm_env, cmap=cyclic),
+                       "one fringe (cm)", ticks=[0, ENVISAT_FRINGE_CM],
+                       tick_labels=["0", f"{ENVISAT_FRINGE_CM:.1f}"], x=0.44, w=0.50)
+        title_b = "Sept 2005 dike\nEnvisat track 49"
+    else:
+        haloed_text(ax_b, 0.96, 0.30, "Envisat interferogram\nof the Sept 2005 dike\n(Wright et al., 2006)\nto be supplied",
+                    transform=ax_b.transAxes, ha="right", va="center", fontsize=FS_LABEL,
+                    linespacing=1.25, color="#202020")
+        haloed_text(ax_b, profiles["lon"][0] + 0.02, profiles["lat"][0] - 0.01,
+                    "2005 dike\n(model plane)", color="#3a3a3a", fontsize=FS_NOTE, ha="left",
+                    va="top", linespacing=1.1)
+        title_b = "Sept 2005 dike"
     scale_bar(ax_b, FRAME_B, 20)
     panel_letter(ax_b, "b")
-    panel_title(ax_b, "Sept 2005 dike", fontsize=FS_NOTE)
+    panel_title(ax_b, title_b, fontsize=FS_NOTE)
 
     # --- (c) Envisat track-300 interferogram of the October 2008 dyke ---------
-    norm_env = Normalize(0, ENVISAT_FRINGE_CM)
     grid_name, title = ENVISAT_PANELS["c"]
     ax_c = mm_axes(fig, col2, top - b_h, b_w, b_h)
     field = envisat_wrapped_cm(FRAME_B, grid_name)
@@ -773,16 +835,19 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
                   "the same pair (same corrections, not unwrapped)" if north_drawn else
                   f"the analysis crop ends at {NISAR_CROP_NORTH_LAT}°N; the display strip "
                   "north of it is not built")
+    b_note = ("(b) the 6 May – 28 Oct 2005 pair of track 49 (the pair of Wright et al., 2006, Fig. 2a) "
+              "processed here; one colour cycle is 2.8 cm of range change, as in (c)." if b_drawn else
+              "(b) the delivered track-300 grids are the 2006–2010 dikes (the \"sept\" grid is the "
+              "September 2006 dike); the 2005 interferogram is awaited.")
     fig.text(left / 190.0, 0.8 / fig_h,
              f"Draft. (a) samples below coherence {coherence_min:.2f} are omitted; {north_note}.\n"
-             "(b) the delivered track-300 grids are the 2006–2010 dikes (the \"sept\" grid is the "
-             "September 2006 dike); the 2005 interferogram is awaited.\n"
+             f"{b_note}\n"
              "(c) Hamling et al. (2010), acquisition dates to be confirmed; one colour cycle is "
              "2.8 cm of range change.\n"
-             "(d) the cumulative map wrapped at one Sentinel-1 fringe (2.8 cm), as in B. Ireland's "
-             "figure; blank where the neighbourhood phase is inconsistent.\n"
-             "(e), (f): digitized from his figure, pending his series; relative to 23 Oct 2014 in "
-             "the original processing reference.",
+             "(d) the cumulative map wrapped at one Sentinel-1 fringe (2.8 cm), as in B. Ireland "
+             "(2026, unpublished figure); blank where the neighbourhood phase is inconsistent.\n"
+             "(e), (f): digitized from B. Ireland (2026, unpublished figure); relative to 23 Oct 2014 "
+             "in the original processing reference.",
              fontsize=FS_NOTE, ha="left", va="bottom", color="#333333", linespacing=1.25)
 
     outputs = []
