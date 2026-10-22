@@ -6,10 +6,10 @@ commit history by day, then the analysis notes that the README carried until
 
 ## Archives and releases
 
-- 2026-10-22 — Zenodo records, version 1.0.0: software (DOI to be filled in)
+- 2026-10-22: Zenodo records, version 1.0.0, software (DOI to be filled in)
   and data (DOI to be filled in), built from commit `adb6ec1` with
   `scripts/build_release.py`; checksums in `dist/SHA256SUMS.txt`.
-- 2026-09-14 — the closure-data add-on `manda-hararo-2026_data-closure.zip`
+- 2026-09-14: the closure-data add-on `manda-hararo-2026_data-closure.zip`
   prepared locally (SHA-256
   `a13584043d975a616fd4a22593c4aee8c3d0b7ac9319d5f3ad1592cc25923b0a`).
 
