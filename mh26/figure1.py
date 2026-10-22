@@ -675,8 +675,8 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
     draw_look_arrows(ax_d, S1_VIEW, x=0.03, y=0.26, w=0.30, h=0.19, flight_mm=4.6, los_mm=3.2)
     scale_bar(ax_d, FRAME_B, 20)
     inset_colorbar(ax_d, plt.cm.ScalarMappable(norm=norm_d, cmap=cmc.vik),
-                   "LOS toward satellite (mm)", ticks=[-100, 0, 150, 300], x=0.40, y=0.058,
-                   w=0.54, extend="min")
+                   "LOS (mm)", ticks=[-100, 0, 150, 300], x=0.44, y=0.058, w=0.50,
+                   extend="min")
     panel_letter(ax_d, "d")
     panel_title(ax_d, "Sentinel-1 descending\n23 Oct 2014 – 11 Jul 2026", fontsize=FS_NOTE)
 
