@@ -3,7 +3,8 @@
 For each row of `granules/pairs.tsv` (tag <TAB> granule ID), this command
 downloads the L2 GUNW HDF5 through earthaccess, extracts a 90 × 90 km crop,
 writes `data/nisar/<tag>.npz`, and deletes the downloaded HDF5 unless `--keep`
-is specified. Earthdata Login credentials are required in `~/.netrc`.
+is specified. Earthdata Login as for `mh26.gslc`: a user token in
+EARTHDATA_TOKEN or ~/.config/earthdata/token, else ~/.netrc.
 
 Run from the repo root:
     python -m mh26.fetch --list            # check archive availability only
@@ -21,6 +22,7 @@ import earthaccess
 import h5py
 import numpy as np
 
+from .gslc import earthdata_login
 from .params import CENTER_E, CENTER_N, DATA_NISAR, REPO
 
 COLLECTION = "NISAR_L2_GUNW_PROVISIONAL_V1"
@@ -147,7 +149,7 @@ def main() -> None:
             raise SystemExit(f"unknown tags (not in pairs.tsv): {missing_tags}")
         pairs = {t: pairs[t] for t in args.tags}
 
-    earthaccess.login(strategy="netrc")
+    earthdata_login()
     for tag, granule in pairs.items():
         if not args.list and (DATA_NISAR / f"{tag}.npz").exists():
             print(f"{tag}: already extracted")

@@ -18,7 +18,9 @@ Stages (each writes files the next stage reads):
 
 `--crop` streams ranged reads through earthaccess/fsspec by default;
 `--download` falls back to whole-granule download-extract-delete (the GSLC
-granules are 6-12 GB each). Earthdata credentials in ~/.netrc.
+granules are 6-12 GB each). Earthdata Login: a user token in
+EARTHDATA_TOKEN or ~/.config/earthdata/token (one line, mode 600) is used
+when present, otherwise ~/.netrc.
 
 The ionosphere screen cannot be re-derived from single-band GSLC data. The
 GUNW `ionospherePhaseScreen` for the same acquisition pair (data/nisar/) is
@@ -31,6 +33,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -60,6 +63,7 @@ SNAPHU_SENSITIVITY_VARIANTS = {
 
 GRIDS = "/science/LSAR/GSLC/grids/frequencyA"
 IDENT = "/science/LSAR/identification"
+EARTHDATA_TOKEN_FILE = Path.home() / ".config" / "earthdata" / "token"
 
 # tag -> (reference GSLC granule, secondary GSLC granule). The tag names the
 # GUNW crop of the same pair, which supplies the ionosphere screen. The two
@@ -82,13 +86,31 @@ PAIRS = {
 COLLECTION = "NISAR_L2_GSLC_PROVISIONAL_V1"
 
 
+# --- Earthdata Login ----------------------------------------------------------
+
+def earthdata_login():
+    """earthaccess login, with an Earthdata user token (EARTHDATA_TOKEN or
+    ~/.config/earthdata/token) preferred over the ~/.netrc password."""
+    import earthaccess
+
+    token = os.environ.get("EARTHDATA_TOKEN", "").strip()
+    if not token and EARTHDATA_TOKEN_FILE.is_file():
+        if EARTHDATA_TOKEN_FILE.stat().st_mode & 0o077:
+            raise PermissionError(f"{EARTHDATA_TOKEN_FILE} must have mode 600")
+        token = EARTHDATA_TOKEN_FILE.read_text().strip()
+    if token:
+        os.environ["EARTHDATA_TOKEN"] = token
+        return earthaccess.login(strategy="environment")
+    return earthaccess.login(strategy="netrc")
+
+
 # --- stage 0: layout probe ----------------------------------------------------
 
 def _remote_file(granule: str):
     import earthaccess
     import h5py
 
-    earthaccess.login(strategy="netrc")
+    earthdata_login()
     hits = earthaccess.search_data(short_name=COLLECTION, granule_name=granule)
     if not hits:
         raise SystemExit(f"granule not in archive: {granule}")
@@ -185,7 +207,7 @@ def _extract_crop(f, granule: str, out: Path,
 def crop(download: bool = False, tags: list[str] | None = None) -> None:
     import earthaccess
 
-    earthaccess.login(strategy="netrc")
+    earthdata_login()
     for tag, granules in PAIRS.items():
         if tags and tag not in tags:
             continue

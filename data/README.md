@@ -61,7 +61,8 @@ unzip manda-hararo-2026_data-gslc.zip -d data
 
 The 1.6-GB GSLC crops themselves are not shipped; rebuild everything from
 ASF with `python -m mh26.gslc --crop --ifg --unwrap --compare` (Earthdata
-Login in `~/.netrc`, `snaphu` on the PATH). Rebuilt unwrapped fields can
+Login as a user token in `~/.config/earthdata/token` or `EARTHDATA_TOKEN`,
+else `~/.netrc`; `snaphu` on the PATH). Rebuilt unwrapped fields can
 differ at the numerical-noise level from the shipped ones if snaphu or
 library versions differ; `--compare` reports agreement against the GUNW
 fields either way.
@@ -206,7 +207,8 @@ python -m mh26.export_geotiff --all
 
 ## Rebuild NISAR crops from ASF
 
-With an Earthdata Login configured in `~/.netrc`:
+With an Earthdata Login configured (a user token in `~/.config/earthdata/token`
+or `EARTHDATA_TOKEN`, else `~/.netrc`):
 
 ```bash
 python -m mh26.fetch --list

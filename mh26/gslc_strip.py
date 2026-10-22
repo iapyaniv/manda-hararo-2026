@@ -12,7 +12,8 @@ saves the corrected LOS wrapped to one fringe:
     python -m mh26.gslc_strip        # -> data/gslc/165_082_D_north_display.npz
 
 The strip is not unwrapped and no reported quantity reads it; `mh26.figure1`
-draws it north of the analysis crop. Earthdata credentials in ~/.netrc.
+draws it north of the analysis crop. Earthdata Login as for `mh26.gslc` (a
+user token, else ~/.netrc).
 """
 
 from __future__ import annotations
@@ -24,7 +25,7 @@ import numpy as np
 
 from .fetch import COLLECTION as GUNW_COLLECTION, GRIDS as GUNW_GRIDS, detect_pol, read_pairs
 from .gslc import (DATA_GSLC, PAIRS, UNWRAP_COHERENCE_MIN, _extract_crop, _iono_on_grid,
-                   _remote_file, form_interferogram)
+                   _remote_file, earthdata_login, form_interferogram)
 from .params import CENTER_E, CENTER_N, WAVELENGTH_L
 
 TAG = "165_082_D"
@@ -52,7 +53,7 @@ def _remote_gunw(granule: str):
     import earthaccess
     import h5py
 
-    earthaccess.login(strategy="netrc")
+    earthdata_login()
     hits = earthaccess.search_data(short_name=GUNW_COLLECTION, granule_name=granule)
     if not hits:
         raise SystemExit(f"GUNW granule not in archive: {granule}")

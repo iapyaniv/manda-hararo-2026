@@ -54,6 +54,7 @@ from pathlib import Path
 import numpy as np
 
 from .gslc import (
+    earthdata_login,
     COHERENCE_WINDOW,
     DATA_GSLC,
     LOOKS,
@@ -164,9 +165,7 @@ def triangle_dates(tag: str) -> tuple[str, str, str]:
 
 
 def crop(tags: list[str] | None = None) -> None:
-    import earthaccess
-
-    earthaccess.login(strategy="netrc")
+    earthdata_login()
     for tag, granule in PRE_GRANULES.items():
         if tags and tag not in tags:
             continue
