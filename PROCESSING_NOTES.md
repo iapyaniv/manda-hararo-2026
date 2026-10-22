@@ -1,5 +1,24 @@
 # Processing notes
 
+## Conventions used throughout
+
+- NISAR LOS displacement is `−phase × 0.2384 / (4π)` metres, positive toward
+  the satellite. The supplied ionosphere screen is subtracted.
+- Pixels require coherence greater than 0.35, a real connected component, and
+  valid reference and secondary samples in the GUNW valid-sample mask. Model
+  residuals are not used to reject pixels or blocks.
+- A plane is fitted beyond 28 km from 12.18°N, 40.66°E and removed from each
+  pair. NISAR grids are UTM 37N (EPSG:32637), normally at 80 m posting.
+- Local product LOS vectors are interpolated at 500 m ellipsoidal height. The
+  two-geometry decompositions fix north displacement to zero and are reported
+  as quasi-East and quasi-Up displacement; the four-geometry decomposition
+  instead constrains the horizontal direction to rift-perpendicular, and its
+  free three-component variant is also reported in the dike frame
+  (`results/decomposition_joint.md`).
+- The source is a vertical, uniform-opening rectangle in a homogeneous elastic
+  half-space with λ = μ = 30 GPa. `μV` is a geodetic comparison scale, not a
+  measured seismic moment.
+
 This file records processing details that affect the numerical results.
 
 ## GUNW extraction

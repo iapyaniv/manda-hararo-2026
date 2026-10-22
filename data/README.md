@@ -270,3 +270,27 @@ The module verifies the tile's SHA-256 hash at run time:
 
 Copernicus DEM data: © DLR e.V. 2010–2014 and © Airbus Defence and Space
 GmbH 2014–2018, provided under COPERNICUS by the European Union and ESA.
+
+## Sentinel-1 cumulative displacement maps (Espín Bedón and Ireland)
+
+`data/sentinel1-cumulative/` holds four cumulative LOS displacement maps
+from the Sentinel-1 time series of Pedro Espín Bedón (Leeds), supplied with
+Ben Ireland (Bristol) in August 2026 for the pre-dike context panels:
+one pre-dike and one dike-spanning map per LiCSAR frame (014A:
+2014-10-30→2026-07-06 and 2014-10-06→2026-08-11; 079D: 2014-10-23→2026-07-11
+and 2014-10-23→2026-08-16). They are EPSG:4326 GeoTIFFs at ≈0.00054°
+posting, float32 millimetres, NaN where empty, without a nodata tag. They
+are outside the data archives and checksum manifests; `mh26.figure1` draws
+the pre-dike 079D map and no numerical result uses them. One empirical check was made: the dike-spanning minus pre-dike
+difference of each frame correlates with this repository's referenced
+LiCSAR co-event field at r = 0.97 (014A) and 0.99 (079D), with slopes 1.22
+and 1.10 in the positive-toward-satellite sense used here, so the two
+products share a sign convention, and the excess over 1 is consistent with
+the post-event tail inside those longer windows. The 014A pair starts 24 days apart (2014-10-06 and 2014-10-30), so their
+difference contains a short unmatched interval. The `All_period/` and `Pre/`
+folders hold the re-referenced products, with and without ERA5 correction,
+and their README gives the reference area.
+
+## Digitized site series (Ireland)
+
+`data/ireland-series/` holds the six Sentinel-1 site series read off Ben Ireland's time-series figure, a draft stand-in for the series themselves; see its README for how they were digitized and what they are relative to.

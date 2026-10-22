@@ -270,3 +270,40 @@ result, and each pair can take several minutes.
 
 The Markdown reports and JSON files in `results/` contain the same numerical
 outputs in human-readable and machine-readable forms.
+
+## Code map
+
+```text
+mh26/params.py          shared constants and data groups
+mh26/gunw.py            screening, corrections, referencing, and LOS geometry
+mh26/okada.py           tensile-dislocation forward model and sign test
+mh26/invert.py          scaled multistart NISAR inversion
+mh26/sensitivity.py     processing-choice model runs
+mh26/s1_check.py        Sentinel-1/LiCSAR comparison
+mh26/continuation.py    19 July–12 August pattern projection
+mh26/s1_tracks.py       two-track Sentinel-1 post-event and null tests
+mh26/distributed.py     distributed opening + graben-fault inversion (4 geometries)
+mh26/decompose3d.py     joint NISAR+Sentinel-1 co-event decomposition
+mh26/gslc.py            full-resolution GSLC interferograms and unwrapping
+mh26/closure.py         three-epoch phase-consistency check
+mh26/faults.py          graben fault traces from wrapped-phase gradients
+mh26/fault_depth.py     fault depth-extent sensitivity
+mh26/stress.py          dike-induced stress change on the fault surfaces
+mh26/uncertainty.py     correlated-noise Monte Carlo for the distributed model
+mh26/figures.py         rewrapped-fringe data/model comparison figure
+mh26/summary_figures.py publication-style summary figures from saved results
+mh26/fetch.py           ASF GUNW crop extraction
+mh26/validate.py        data, source-manifest, result, and checksum validation
+scripts/build_release.py deterministic code and data archive builder
+granules/               NISAR and LiCSAR source manifests
+results/                numerical reports and figures
+data/                   archive layout and verification guide
+mh26/along_rift.py      north/south-half along-rift (U∥) averages on the flanks
+mh26/decay_figure.py    one-panel post-event decay figure from the saved projections
+mh26/export_2026_opening.py  2026 opening model exported on the Hamling grid
+mh26/figure1.py         the location figure (Figure 1) from saved products
+mh26/hamling.py         decoder and three-epoch comparison of the Hamling dyke models
+mh26/opening_history.py three-epoch opening sections and cumulative stack (Figure 4)
+mh26/opening_profiles.py depth-averaged opening profiles per dyke
+mh26/wright2006.py      the 2005 dyke-plane geometry contract of Wright et al. (2006)
+```
