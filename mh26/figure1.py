@@ -12,12 +12,9 @@ Panels
       opened), the one located July 2026 earthquake (two agency locations
       with their stated errors), the volcanic centres at their mapped
       positions and the segment names;
-  (b) September 2005 dyke: Ian Hamling's updated 10-km opening model drawn
-      along the plane trace as a depth-mean opening. PLACEHOLDER for the
-      observed Wright et al. (2006) interferogram;
-  (c) the 2006 to 2010 sequence: cumulative opening of the thirteen dykes on
-      the Hamling plane, drawn the same way. PLACEHOLDER for a 2006 to 2010
-      interferogram;
+  (b) the September 2005 dyke and (c) the October 2008 dyke in Ian Hamling's
+      wrapped Envisat track-300 interferograms (Hamling et al. 2009, 2010;
+      acquisition dates to be confirmed), multilooked as complex phasors;
   (d) Sentinel-1 descending cumulative LOS displacement 23 October 2014 to
       11 July 2026 (P. Espín Bedón's product, re-referenced; see
       data/sentinel1-cumulative/README), with the time-series sites of (e)
@@ -58,7 +55,8 @@ from matplotlib.patches import FancyBboxPatch, Rectangle  # noqa: E402
 from pyproj import Transformer  # noqa: E402
 from rasterio.transform import from_origin  # noqa: E402
 from rasterio.warp import Resampling, reproject  # noqa: E402
-from scipy.ndimage import gaussian_filter  # noqa: E402
+from scipy.io import netcdf_file  # noqa: E402
+from scipy.ndimage import gaussian_filter, uniform_filter  # noqa: E402
 
 from .hamling import (  # noqa: E402
     EPOCH_TAGS, OPENING_CMAP, PRIMARY_EXCLUDED, load_openings, load_updated_sept05)
@@ -75,6 +73,15 @@ S1_PRE = (REPO / "data" / "sentinel1-cumulative" / "Pre"
           / "pre_079D_07694_131313_20141023_20260711.cum.geo.tif")
 NISAR_FRINGE_M = WAVELENGTH_L / 2
 NISAR_FRINGE_CM = 100 * NISAR_FRINGE_M
+# Ian Hamling's wrapped Envisat track-300 interferograms of the earlier dykes
+# (one GMT grid per dyke, wrapped LOS in centimetres over one Envisat fringe).
+ENVISAT_DIR = REPO / "data" / "ihamling" / "opening_files"
+ENVISAT_FRINGE_CM = 2.8118
+ENVISAT_PANELS = {"b": ("sept", "Sept 2005 dyke\nEnvisat track 300"),
+                  "c": ("oct", "Oct 2008 dyke\nEnvisat track 300")}
+# Envisat ascending, right-looking: heading about 348 deg, so the
+# ground-to-satellite azimuth is about 258 deg.
+ENVISAT_VIEW = {"heading_deg": 348.0, "los_deg": 258.0}
 # Text S1 screens the GSLC observations at this coherence.
 COHERENCE_MIN = 0.25
 # The thick part of the dyke line: columns whose maximum opening reaches this
@@ -249,6 +256,51 @@ def s1_cumulative_mm(frame: dict) -> np.ndarray:
         source = dataset.read(1, masked=True).filled(np.nan)
         return warp(source, dataset.transform, dataset.crs, transform, shape,
                     Resampling.bilinear)
+
+
+def read_grd(path: Path) -> tuple[np.ndarray, object]:
+    """A GMT grid in either classic layout, as (rows north first, transform)."""
+    grid = netcdf_file(str(path), "r", mmap=False)
+    v = grid.variables
+    if "x_range" in v:
+        x0, x1 = (float(a) for a in v["x_range"][:])
+        y0, y1 = (float(a) for a in v["y_range"][:])
+        nx, ny = (int(a) for a in v["dimension"][:])
+        z = np.array(v["z"][:], dtype=np.float64).reshape(ny, nx)
+        transform = from_origin(x0, y1, (x1 - x0) / nx, (y1 - y0) / ny)
+    else:
+        x = np.array(v["x"][:], dtype=np.float64)
+        y = np.array(v["y"][:], dtype=np.float64)
+        z = np.array(v["z"][:], dtype=np.float64)
+        if y[0] < y[-1]:
+            z = z[::-1]
+        dx, dy = abs(x[1] - x[0]), abs(y[1] - y[0])
+        transform = from_origin(x.min() - dx / 2, y.max() + dy / 2, dx, dy)
+    grid.close()
+    return z, transform
+
+
+def envisat_wrapped_cm(frame: dict, name: str, looks: int = 3) -> np.ndarray:
+    """One of the track-300 interferograms, multilooked as a complex phasor
+    over `looks` x `looks` cells and resampled the same way, in centimetres of
+    one fringe."""
+    z, src_transform = read_grd(ENVISAT_DIR / f"t300_{name}_wrp_dyke.grd")
+    ok = np.isfinite(z)
+    if not ok.any() or np.nanmax(z) == np.nanmin(z):
+        raise ValueError(f"track-300 grid {name!r} holds no interferogram")
+    phase = 2 * np.pi * np.where(ok, z, 0.0) / ENVISAT_FRINGE_CM
+    weight = uniform_filter(ok.astype(np.float64), looks)
+    real = uniform_filter(np.where(ok, np.cos(phase), 0.0), looks)
+    imag = uniform_filter(np.where(ok, np.sin(phase), 0.0), looks)
+    keep = ok & (weight > 0.5)
+    real = np.where(keep, real / np.maximum(weight, 1e-6), np.nan)
+    imag = np.where(keep, imag / np.maximum(weight, 1e-6), np.nan)
+    transform, shape, _ = frame_grid(frame)
+    real_w = warp(real, src_transform, UTM_CRS, transform, shape, Resampling.average)
+    imag_w = warp(imag, src_transform, UTM_CRS, transform, shape, Resampling.average)
+    wrapped = np.mod(np.arctan2(imag_w, real_w), 2 * np.pi) / (2 * np.pi) * ENVISAT_FRINGE_CM
+    wrapped[~np.isfinite(real_w) | ~np.isfinite(imag_w)] = np.nan
+    return wrapped
 
 
 def hamling_profiles() -> dict:
@@ -574,40 +626,26 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
     panel_letter(ax_a, "a")
     panel_title(ax_a, NISAR_LABEL)
 
-    # --- (b) September 2005 model opening (placeholder) ---------------------
-    ax_b = mm_axes(fig, col1, top - b_h, b_w, b_h)
-    ax_b.imshow(np.repeat(shade_b[:, :, None], 3, axis=2), extent=extent_b, origin="upper",
-                interpolation="nearest", zorder=1)
-    map_axes(ax_b, FRAME_B, lon_labels=True, lat_labels=True)
-    draw_plane_trace(ax_b, profiles, lw=0.6, label=False)
-    vmax_b = math.ceil(float(profiles["sept05"].max()))
-    norm_b = Normalize(0, vmax_b)
-    ribbon_b = draw_opening_ribbon(ax_b, profiles, profiles["sept05"], norm_b)
-    draw_2026_geometry(ax_b, lines_2026, lw_dike=1.0, labels=False)
-    draw_volcanoes(ax_b, names=False, size=16)
-    scale_bar(ax_b, FRAME_B, 20)
-    inset_colorbar(ax_b, ribbon_b, "opening 2005 (m)",
-                   ticks=[0, vmax_b / 2, vmax_b], x=0.44, y=0.058, w=0.50)
-    panel_letter(ax_b, "b")
-    panel_title(ax_b, "Sept 2005 dyke:\nmodel opening (placeholder)", fontsize=FS_NOTE)
-
-    # --- (c) 2006 to 2010 cumulative opening (placeholder) ------------------
-    ax_c = mm_axes(fig, col2, top - b_h, b_w, b_h)
-    ax_c.imshow(np.repeat(shade_b[:, :, None], 3, axis=2), extent=extent_b, origin="upper",
-                interpolation="nearest", zorder=1)
-    map_axes(ax_c, FRAME_B, lon_labels=True, lat_labels=False)
-    draw_plane_trace(ax_c, profiles, lw=0.6, label=False)
-    vmax_c = math.ceil(float(profiles["cumulative"].max()))
-    norm_c = Normalize(0, vmax_c)
-    ribbon_c = draw_opening_ribbon(ax_c, profiles, profiles["cumulative"], norm_c)
-    draw_2026_geometry(ax_c, lines_2026, lw_dike=1.0, labels=False)
-    draw_volcanoes(ax_c, names=False, size=16)
-    scale_bar(ax_c, FRAME_B, 20)
-    inset_colorbar(ax_c, ribbon_c, "opening 2006–10 (m)",
-                   ticks=[0, vmax_c / 2, vmax_c], x=0.44, y=0.058, w=0.50)
-    panel_letter(ax_c, "c")
-    panel_title(ax_c, f"{profiles['n_cumulative']} dykes, 2006–2010:\n"
-                      "model opening (placeholder)", fontsize=FS_NOTE)
+    # --- (b), (c) Envisat track-300 interferograms of two earlier dykes -------
+    norm_env = Normalize(0, ENVISAT_FRINGE_CM)
+    for letter, ax_x, lat_labels in (("b", col1, True), ("c", col2, False)):
+        grid_name, title = ENVISAT_PANELS[letter]
+        ax = mm_axes(fig, ax_x, top - b_h, b_w, b_h)
+        field = envisat_wrapped_cm(FRAME_B, grid_name)
+        ax.imshow(blend(field, shade_b, cyclic, norm_env, alpha=0.90), extent=extent_b,
+                  origin="upper", interpolation="nearest", zorder=1)
+        map_axes(ax, FRAME_B, lon_labels=True, lat_labels=lat_labels)
+        draw_2026_geometry(ax, lines_2026, lw_dike=1.0, labels=False)
+        draw_volcanoes(ax, names=False, size=16)
+        if letter == "b":
+            draw_look_arrows(ax, ENVISAT_VIEW, x=0.03, y=0.21, w=0.30, h=0.19,
+                             flight_mm=4.6, los_mm=3.2)
+        scale_bar(ax, FRAME_B, 20)
+        inset_colorbar(ax, plt.cm.ScalarMappable(norm=norm_env, cmap=cyclic),
+                       "one fringe (cm)", ticks=[0, ENVISAT_FRINGE_CM],
+                       tick_labels=["0", f"{ENVISAT_FRINGE_CM:.1f}"], x=0.44, y=0.058, w=0.50)
+        panel_letter(ax, letter)
+        panel_title(ax, title, fontsize=FS_NOTE)
 
     # --- (d) Sentinel-1 cumulative 2014 to 2026 -----------------------------
     ax_d = mm_axes(fig, col1, y_base, b_w, b_h)
@@ -659,7 +697,8 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
     fig.text(left / 190.0, 0.8 / fig_h,
              "Draft. (a) shows the 90 km NISAR processing crop, which ends at 12.59°N; "
              f"samples below coherence {coherence_min:.2f} are omitted.\n"
-             "(b), (c): model openings, placeholders for the observed interferograms.\n"
+             "(b), (c): Envisat track-300 interferograms of Hamling et al. (2009, 2010), "
+             "acquisition dates to be confirmed; one colour cycle is 2.8 cm of range change.\n"
              "(e), (f): digitized from B. Ireland's figure, pending his series; relative to "
              "23 Oct 2014 in the original processing reference, not the reference area of (d).",
              fontsize=FS_NOTE, ha="left", va="bottom", color="#333333", linespacing=1.25)
