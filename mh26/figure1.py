@@ -70,7 +70,7 @@ LL_CRS = "EPSG:4326"
 TO_LL = Transformer.from_crs(32637, 4326, always_xy=True)
 
 NISAR_UNW = REPO / "data" / "gslc" / "165_082_D_unw.npz"
-NISAR_LABEL = "NISAR descending, 7 – 19 July 2026"
+NISAR_LABEL = "NISAR, 7 – 19 Jul 2026"
 S1_PRE = (REPO / "data" / "sentinel1-cumulative" / "Pre"
           / "pre_079D_07694_131313_20141023_20260711.cum.geo.tif")
 NISAR_FRINGE_M = WAVELENGTH_L / 2
@@ -367,13 +367,14 @@ def scale_bar(ax, frame: dict, length_km: float, *, x0=0.05, y0=0.045):
 
 
 def inset_colorbar(ax, mappable, label: str, ticks, *, x=0.52, y=0.058, w=0.44, h=0.028,
-                   tick_labels=None):
+                   tick_labels=None, extend="neither"):
     pad_x, pad_y = 0.02, 0.016
     ax.add_patch(FancyBboxPatch((x - pad_x, y - pad_y), w + 2 * pad_x, h + 0.115,
                                 boxstyle="round,pad=0.004", transform=ax.transAxes,
                                 facecolor="white", edgecolor="none", alpha=0.86, zorder=16))
     cax = ax.inset_axes([x, y, w, h])
-    cbar = ax.figure.colorbar(mappable, cax=cax, orientation="horizontal", ticks=ticks)
+    cbar = ax.figure.colorbar(mappable, cax=cax, orientation="horizontal", ticks=ticks,
+                              extend=extend)
     cbar.outline.set_linewidth(0.5)
     cax.tick_params(labelsize=FS_NOTE, length=1.8, width=0.5, pad=1.0)
     if tick_labels is not None:
@@ -471,7 +472,7 @@ def draw_earthquakes(ax, frame: dict):
         ax.scatter([q["lon"]], [q["lat"]], marker="*", s=75, facecolor="#ffd400",
                    edgecolor="black", linewidth=0.7, zorder=14)
         if agency == "ISC":
-            haloed_text(ax, q["lon"] - 0.02, q["lat"] + 0.014, "ISC (same event)",
+            haloed_text(ax, q["lon"] - 0.02, q["lat"] + 0.03, "ISC (same event)",
                         ha="right", va="bottom", zorder=19)
             south = q["lat"] - lat_err
             if south < lat0:
@@ -588,8 +589,7 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
     inset_colorbar(ax_b, ribbon_b, "opening 2005 (m)",
                    ticks=[0, vmax_b / 2, vmax_b], x=0.44, y=0.058, w=0.50)
     panel_letter(ax_b, "b")
-    panel_title(ax_b, "Sept 2005 dyke: model\nopening (placeholder for\nthe interferogram)",
-                fontsize=FS_NOTE)
+    panel_title(ax_b, "Sept 2005 dyke:\nmodel opening (placeholder)", fontsize=FS_NOTE)
 
     # --- (c) 2006 to 2010 cumulative opening (placeholder) ------------------
     ax_c = mm_axes(fig, col2, top - b_h, b_w, b_h)
@@ -606,7 +606,7 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
     inset_colorbar(ax_c, ribbon_c, "opening 2006–10 (m)",
                    ticks=[0, vmax_c / 2, vmax_c], x=0.44, y=0.058, w=0.50)
     panel_letter(ax_c, "c")
-    panel_title(ax_c, f"{profiles['n_cumulative']} dykes, Jun 2006 – May 2010:\n"
+    panel_title(ax_c, f"{profiles['n_cumulative']} dykes, 2006–2010:\n"
                       "model opening (placeholder)", fontsize=FS_NOTE)
 
     # --- (d) Sentinel-1 cumulative 2014 to 2026 -----------------------------
@@ -637,7 +637,8 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
     draw_look_arrows(ax_d, S1_VIEW, x=0.03, y=0.21, w=0.30, h=0.19, flight_mm=4.6, los_mm=3.2)
     scale_bar(ax_d, FRAME_B, 20)
     inset_colorbar(ax_d, plt.cm.ScalarMappable(norm=norm_d, cmap=cmc.vik),
-                   "LOS (mm)", ticks=[-100, 0, 150, 300], x=0.44, y=0.058, w=0.50)
+                   "LOS toward satellite (mm)", ticks=[-100, 0, 150, 300], x=0.44, y=0.058,
+                   w=0.50, extend="min")
     panel_letter(ax_d, "d")
     panel_title(ax_d, "Sentinel-1 descending\n23 Oct 2014 – 11 Jul 2026", fontsize=FS_NOTE)
 
@@ -664,7 +665,7 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
              fontsize=FS_NOTE, ha="left", va="bottom", color="#333333", linespacing=1.25)
 
     outputs = []
-    for suffix, kwargs in ((".png", {"dpi": 400}), (".pdf", {})):
+    for suffix, kwargs in ((".png", {"dpi": 400}), (".pdf", {"dpi": 400})):
         path = out_stem.with_suffix(suffix)
         fig.savefig(path, **kwargs)
         outputs.append(path)
