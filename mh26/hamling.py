@@ -385,7 +385,7 @@ def _fit_opening_stats(fit: dict, geometry: dict) -> dict:
 
 
 def _panel(ax, s_centres, z_edges, opening, vmax, line_levels, title,
-           note):
+           note, title_size=10.5):
     """One filled U_perp cross-section in the mh26.wright2006 panel style."""
     z_centres = 0.5 * (z_edges[:-1] + z_edges[1:])
     s_lo = s_centres[0] - 0.5 * (s_centres[1] - s_centres[0])
@@ -403,23 +403,35 @@ def _panel(ax, s_centres, z_edges, opening, vmax, line_levels, title,
     if levels:
         ax.contour(s_plot, z_plot, padded, levels=levels, colors="0.15",
                    linewidths=0.55)
-    ax.set_title(title, loc="left", fontsize=10.5, fontweight="bold", pad=5)
-    ax.set_title(note, loc="right", fontsize=8, color="0.30", pad=6)
+    ax.set_title(title, loc="left", fontsize=title_size, fontweight="bold",
+                 pad=5 if note else 3)
+    if note:
+        ax.set_title(note, loc="right", fontsize=8, color="0.30", pad=6)
     ax.set_ylabel("Depth (km)")
     return filled
+
+
+# Contour lines of the three sections (metres): September 2005, the
+# 2006-2010 sum, July 2026. The manuscript caption quotes them.
+SECTION_CONTOURS = ((3, 6, 9, 12, 15), (1, 2, 4, 6), (0.5, 1.0, 1.5, 2.0))
 
 
 def draw_epoch_sections(fig, axes, registration: dict, fit: dict,
                         geometry: dict, chain: str, epochs: dict,
                         cumulative: np.ndarray,
                         updated_field: np.ndarray,
-                        common_vmax: float | None = None) -> tuple:
+                        common_vmax: float | None = None,
+                        manuscript: bool = False, cax=None) -> tuple:
     """Draw the three U_perp sections onto ``axes``; returns their xlim.
 
     ``common_vmax`` replaces the per-section colour scales with that
     single scale and one shared colorbar, so the three amplitudes
     compare directly. The caller sets the x label: the July 2026
-    section need not be the figure's bottom row.
+    section need not be the figure's bottom row. ``manuscript`` keeps
+    only what a caption cannot carry: panel letters and titles, the
+    sections, their contours, the plane-edge line and the grey band;
+    the source notes, volume labels and edge labels are left out. The
+    shared colorbar then goes into ``cax``.
     """
     s_ham = registration["s_km"][::-1]  # NW->SE for plotting
     # Displayed depth range is 0-10 km on every panel, per Ian Hamling
@@ -431,11 +443,11 @@ def draw_epoch_sections(fig, axes, registration: dict, fit: dict,
         # delivery-relative — a manuscript reader knows no earlier
         # model. The raw-vs-updated distinction stays in the md/JSON.
         ("September 2005", updated_field[::-1].T,
-         s_ham, np.arange(11.0), 16.5, [3, 6, 9, 12, 15],
+         s_ham, np.arange(11.0), 16.5, list(SECTION_CONTOURS[0]),
          "Hamling et al. (2009, 2010) model",
          epochs["sept05_updated"]),
         ("2006–2010 (cumulative, 13 events)", cumulative[::-1].T[:10],
-         s_ham, np.arange(11.0), 7.0, [1, 2, 4, 6],
+         s_ham, np.arange(11.0), 7.0, list(SECTION_CONTOURS[1]),
          "sum of the 13 dike models of Hamling et al. (2009, 2010)",
          epochs["cumulative_2006_2010"]),
     ]
@@ -449,22 +461,29 @@ def draw_epoch_sections(fig, axes, registration: dict, fit: dict,
     source_note = ("this study, 30-m GSLC chain" if chain == "gslc"
                    else "this study, GUNW chain")
     panels.append(("July 2026", opening_2026, s_2026, z_edges, 2.5,
-                   [0.5, 1.0, 1.5, 2.0], source_note, epochs["epoch_2026"]))
+                   list(SECTION_CONTOURS[2]), source_note, epochs["epoch_2026"]))
 
     xlim = (0.0, max(registration["span_km"][1] + 0.6,
                      registration["plane_span_km"][1]))
     se_2005 = registration["se_limit_2005_km"]
+    if manuscript:
+        letters = ("(a) September 2005", "(b) 2006–2010, thirteen dikes",
+                   "(c) July 2026")
+        panels = [(letter, *rest[1:6], "", rest[7])
+                  for letter, rest in zip(letters, panels)]
     filled = None
     for ax, (title, opening, s_centres, z_ax, vmax, lines, note,
              stats) in zip(axes, panels):
         if common_vmax is not None:
             vmax = common_vmax
         filled = _panel(ax, s_centres, z_ax, opening, vmax, lines, title,
-                        note)
+                        note, title_size=8 if manuscript else 10.5)
         ax.set_xlim(*xlim)
         ax.set_ylim(0.0, 10.0)
         ax.invert_yaxis()
         ax.axvline(se_2005, color="0.25", lw=0.9, ls=(0, (4, 3)), zorder=4)
+        if manuscript:
+            continue
         # The label quotes the displayed (above-10-km) field; the full
         # file integral stays in parentheses where it differs.
         if stats["volume_km3"] - stats["volume_above_10km_km3"] > 5e-3:
@@ -488,22 +507,31 @@ def draw_epoch_sections(fig, axes, registration: dict, fit: dict,
     if common_vmax is not None:
         ticks = np.arange(0.0, common_vmax + 0.01,
                           max(1.0, round(common_vmax / 5)))
-        colorbar = fig.colorbar(filled, ax=list(axes[:3]),
-                                label="U$_\\perp$ (m)", ticks=ticks,
-                                shrink=0.97, pad=0.015)
-        colorbar.ax.tick_params(labelsize=8)
+        if cax is not None:
+            colorbar = fig.colorbar(filled, cax=cax, label="Opening (m)",
+                                    ticks=ticks)
+            colorbar.ax.tick_params(labelsize=7, length=2, width=0.5)
+            colorbar.outline.set_linewidth(0.5)
+        else:
+            colorbar = fig.colorbar(filled, ax=list(axes[:3]),
+                                    label="U$_\\perp$ (m)", ticks=ticks,
+                                    shrink=0.97, pad=0.015)
+            colorbar.ax.tick_params(labelsize=8)
 
     ax_2026 = axes[2]
     if z_edges[-1] < 10.0:
         ax_2026.axhspan(z_edges[-1], 10.0, color="0.88", zorder=1)
-        ax_2026.text(0.5 * sum(xlim), 0.5 * (z_edges[-1] + 10.0),
-                     f"below the 2026 model plane ({z_edges[-1]:g} km)",
-                     ha="center", va="center", fontsize=8, color="0.35",
-                     zorder=2)
+        if not manuscript:
+            ax_2026.text(0.5 * sum(xlim), 0.5 * (z_edges[-1] + 10.0),
+                         f"below the 2026 model plane ({z_edges[-1]:g} km)",
+                         ha="center", va="center", fontsize=8, color="0.35",
+                         zorder=2)
     if xlim[1] > s_edges[-1]:
         # Beyond the plane's SE edge there is no 2026 model; grey it so it
         # does not read as zero opening.
         ax_2026.axvspan(s_edges[-1], xlim[1], color="0.88", zorder=1)
+    if manuscript:
+        return xlim
     # The dashed line is the Wright et al. (2006) model-plane SE edge.
     # The drawn (updated) 2005 model holds no opening southeast of it;
     # the raw regridded field holds ~0.22 km3 there (the payload's

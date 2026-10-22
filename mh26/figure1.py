@@ -99,7 +99,7 @@ ENVISAT_DIR = REPO / "data" / "ihamling" / "opening_files"
 ENVISAT_FRINGE_CM = 2.8118
 # The delivered grids are the 2006 to 2010 dykes ("sept" is September 2006);
 # the 2005 interferogram is awaited.
-ENVISAT_PANELS = {"c": ("oct", "Oct 2008 dyke\nEnvisat track 300")}
+ENVISAT_PANELS = {"c": ("oct", "Oct 2008 dike\nEnvisat track 300")}
 # Envisat ascending, right-looking: heading about 348 deg, so the
 # ground-to-satellite azimuth is about 258 deg.
 ENVISAT_VIEW = {"heading_deg": 348.0, "los_deg": 258.0}
@@ -520,7 +520,7 @@ def draw_2026_geometry(ax, lines: dict, *, lw_dike=1.6, lw_fault=1.0, labels: bo
         fault.set_path_effects(HALO)
     if labels:
         lon, lat = lines["dike"]
-        haloed_text(ax, lon[-1] - 0.012, lat[-1] - 0.004, "2026 dyke (model)",
+        haloed_text(ax, lon[-1] - 0.012, lat[-1] - 0.004, "2026 dike (model)",
                     color="#c81e1e", fontsize=6.8, fontweight="bold", ha="right", va="top")
         if "fault" in lines:
             flon, flat = lines["fault"]
@@ -542,7 +542,7 @@ def draw_plane_trace(ax, profiles: dict, *, lw=0.8, label: bool):
                                      zorder=11, capstyle="round"))
     if label:
         haloed_text(ax, profiles["lon"][-1] + 0.015, profiles["lat"][-1] - 0.03,
-                    "2005 dyke (model)", color="#3a3a3a", fontsize=FS_LABEL, ha="left",
+                    "2005 dike (model)", color="#3a3a3a", fontsize=FS_LABEL, ha="left",
                     va="top")
 
 
@@ -698,15 +698,15 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
     draw_plane_trace(ax_b, profiles, lw=1.2, label=False)
     draw_2026_geometry(ax_b, lines_2026, lw_dike=1.0, labels=False)
     draw_volcanoes(ax_b, names=False, size=16)
-    haloed_text(ax_b, 0.96, 0.30, "Envisat interferogram\nof the Sept 2005 dyke\n(Wright et al., 2006)\nto be supplied",
+    haloed_text(ax_b, 0.96, 0.30, "Envisat interferogram\nof the Sept 2005 dike\n(Wright et al., 2006)\nto be supplied",
                 transform=ax_b.transAxes, ha="right", va="center", fontsize=FS_LABEL,
                 linespacing=1.25, color="#202020")
     haloed_text(ax_b, profiles["lon"][0] + 0.02, profiles["lat"][0] - 0.01,
-                "2005 dyke\n(model plane)", color="#3a3a3a", fontsize=FS_NOTE, ha="left",
+                "2005 dike\n(model plane)", color="#3a3a3a", fontsize=FS_NOTE, ha="left",
                 va="top", linespacing=1.1)
     scale_bar(ax_b, FRAME_B, 20)
     panel_letter(ax_b, "b")
-    panel_title(ax_b, "Sept 2005 dyke", fontsize=FS_NOTE)
+    panel_title(ax_b, "Sept 2005 dike", fontsize=FS_NOTE)
 
     # --- (c) Envisat track-300 interferogram of the October 2008 dyke ---------
     norm_env = Normalize(0, ENVISAT_FRINGE_CM)
@@ -775,8 +775,8 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
                   "north of it is not built")
     fig.text(left / 190.0, 0.8 / fig_h,
              f"Draft. (a) samples below coherence {coherence_min:.2f} are omitted; {north_note}.\n"
-             "(b) the delivered track-300 grids are the 2006–2010 dykes (the \"sept\" grid is the "
-             "September 2006 dyke); the 2005 interferogram is awaited.\n"
+             "(b) the delivered track-300 grids are the 2006–2010 dikes (the \"sept\" grid is the "
+             "September 2006 dike); the 2005 interferogram is awaited.\n"
              "(c) Hamling et al. (2010), acquisition dates to be confirmed; one colour cycle is "
              "2.8 cm of range change.\n"
              "(d) the cumulative map wrapped at one Sentinel-1 fringe (2.8 cm), as in B. Ireland's "

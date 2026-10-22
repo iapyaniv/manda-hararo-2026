@@ -402,8 +402,10 @@ def _threshold_caveat(payload: dict) -> str:
 
 
 def _cumulative_panel(ax, payload, context, xlim, show_caveat=True,
-                      label_xy=(0.24, 0.965)):
-    """Stack the per-event averages into the cumulative profile."""
+                      label_xy=(0.24, 0.965), manuscript=False):
+    """Stack the per-event averages into the cumulative profile.
+    ``manuscript`` leaves out every in-panel note and label (the caption
+    carries them) and letters the title."""
     x = np.arange(xlim[0], xlim[1] + 0.01, DISPLAY_STEP_KM)
     centres_ham = np.asarray(payload["s_axis"]["s_km"])[::-1]  # NW->SE
     extent_ham = payload["display"]["extent_km"]["hamling_grid"]
@@ -432,13 +434,21 @@ def _cumulative_panel(ax, payload, context, xlim, show_caveat=True,
     plane_end = epoch_2026["s_edges_km"][-1]
     if xlim[1] > plane_end:
         ax.axvspan(plane_end, xlim[1], color="0.88", zorder=0)
-        ax.text(plane_end + 0.4, 0.30,
-                f"no 2026 model SE of {plane_end:.0f} km",
-                transform=ax.get_xaxis_transform(), rotation=90,
-                ha="left", va="center", fontsize=7.5, color="0.35",
-                zorder=5)
+        if not manuscript:
+            ax.text(plane_end + 0.4, 0.30,
+                    f"no 2026 model SE of {plane_end:.0f} km",
+                    transform=ax.get_xaxis_transform(), rotation=90,
+                    ha="left", va="center", fontsize=7.5, color="0.35",
+                    zorder=5)
     ax.set_xlim(*xlim)
     ax.set_ylim(0.0, 11.5)
+    se_2005 = payload["s_axis"]["se_limit_2005_km"]
+    if manuscript:
+        ax.set_title("(d) Cumulative opening, 2005–2026", loc="left",
+                     fontsize=8, fontweight="bold", pad=3)
+        ax.axvline(se_2005, color="0.25", lw=0.9, ls=(0, (4, 3)), zorder=4)
+        ax.set_xlabel("Distance along the 2005 dike plane, NW→SE (km)")
+        return
     ax.set_title("Cumulative opening, 2005–2026",
                  loc="left", fontsize=10.5, fontweight="bold", pad=5)
     # A figure-only reader must not integrate the drawn curves: the
@@ -446,7 +456,6 @@ def _cumulative_panel(ax, payload, context, xlim, show_caveat=True,
     ax.set_title("after Fig. 13 of Hamling et al. (2009) · native-grid "
                  "volumes, interpolated curves", loc="right",
                  fontsize=8, color="0.30", pad=6)
-    se_2005 = payload["s_axis"]["se_limit_2005_km"]
     ax.axvline(se_2005, color="0.25", lw=0.9, ls=(0, (4, 3)), zorder=4)
     ax.text(se_2005 + 0.4, 0.30, "Wright 2006 plane edge",
             transform=ax.get_xaxis_transform(), rotation=90, ha="left",

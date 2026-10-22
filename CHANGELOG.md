@@ -166,6 +166,11 @@ a13584043d975a616fd4a22593c4aee8c3d0b7ac9319d5f3ad1592cc25923b0a  manda-hararo-2
 - Reorganize the documentation: a short README with the figures, the history in a changelog
 - README: plain captions and table wording
 - Figure 1: wrapped Sentinel-1 panel, a 2005 placeholder, and a display strip north of the NISAR crop
+- Figure 4: the manuscript layout of the opening history, two columns wide, with the notes moved to the caption; Figure 1 labels spelt "dike"
+- Figure 1: keep smooth steep fringes in the Sentinel-1 panel; closure inventory and earthaccess minimum updated
+- Figure 4: the caption written beside the manuscript layout from the report numbers
+- Figure 4 caption: the revised 2005 model, the projected axis, and the 2005 floor as supplied
+- Figure 4 caption: zero cells of the 2005 model, interpolated curves, and the May 2010 model named
 
 ## Analysis notes kept from the README (as of 22 October 2026)
 

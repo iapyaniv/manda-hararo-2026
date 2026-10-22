@@ -50,11 +50,11 @@ The dyke and fault model: distributed opening on the dyke plane and slip on
 the candidate east graben fault, with the observed, modelled and residual
 fields (`python -m mh26.summary_figures`).
 
-![Opening of the September 2005 dyke, the 2006–2010 sequence and the July 2026 dyke on one section](results/opening_history_common_scale_gslc.png)
+![Opening of the September 2005 dyke, the 2006–2010 sequence and the July 2026 dyke on one section](results/opening_history_manuscript_gslc.png)
 
 Opening in three epochs: September 2005, the cumulative 2006–2010 sequence
 and July 2026 on the same section of the rift, with the depth-averaged
-profiles (`python -m mh26.opening_history`).
+profiles (`python -m mh26.opening_history`). The manuscript layout above (Figure 4 of the letter, two columns wide) carries its notes in its caption, `results/opening_history_manuscript_gslc_caption.txt`, written from the same numbers; `results/opening_history_common_scale_gslc.png` is the annotated version.
 
 More figures, mostly for the supplement: the rewrapped data–model–residual
 panels (`results/summary_los_model_residual.png`), the loop-closure check
