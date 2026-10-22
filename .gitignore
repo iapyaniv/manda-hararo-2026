@@ -16,3 +16,6 @@ dist/
 .venv/
 __pycache__/
 *.pyc
+
+!data/ireland-series/
+!data/sentinel1-cumulative/

@@ -249,15 +249,15 @@ data/                   archive layout and verification guide
 
 ## Collaborator-supplied Sentinel-1 time-series maps
 
-`Sentinel_1_Cumulative_Disp/` holds four cumulative LOS displacement maps
-from the Sentinel-1 time series of Pedro Espin Bedon (Leeds), committed by
-Ben Ireland (Bristol) on 28 August 2026 for the pre-dike context panels:
+`data/sentinel1-cumulative/` holds four cumulative LOS displacement maps
+from the Sentinel-1 time series of Pedro Espín Bedón (Leeds), supplied with
+Ben Ireland (Bristol) in August 2026 for the pre-dike context panels:
 one pre-dike and one dike-spanning map per LiCSAR frame (014A:
 2014-10-30→2026-07-06 and 2014-10-06→2026-08-11; 079D: 2014-10-23→2026-07-11
 and 2014-10-23→2026-08-16). They are EPSG:4326 GeoTIFFs at ≈0.00054°
 posting, float32 millimetres, NaN where empty, without a nodata tag. They
-are outside the data archives and checksum manifests, and no `mh26` result
-uses them. One empirical check was made: the dike-spanning minus pre-dike
+are outside the data archives and checksum manifests; `mh26.figure1` draws
+the pre-dike 079D map and no numerical result uses them. One empirical check was made: the dike-spanning minus pre-dike
 difference of each frame correlates with this repository's referenced
 LiCSAR co-event field at r = 0.97 (014A) and 0.99 (079D), with slopes 1.22
 and 1.10 in the positive-toward-satellite sense used here, so the two
