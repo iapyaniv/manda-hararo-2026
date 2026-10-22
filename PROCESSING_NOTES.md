@@ -203,6 +203,22 @@ which fringe count is correct. No reported model quantity uses the GUNW
 amplitude of this pair; it enters the analysis as a qualitative timing
 bracket. The probe-history row for this window uses the GUNW value.
 
+### Display strip north of the analysis crop (mh26.gslc_strip)
+
+The track-165 analysis crop ends at 12.59°N and the GSLC frame continues
+north. For Figure 1a only, `mh26.gslc_strip` crops a 20-km strip north of
+the window (3 km of overlap) from the same two granules, forms the
+interferogram with the analysis settings, subtracts the GUNW ionosphere
+screen of the same pair over the strip, removes the analysis crop's
+far-field plane, and stores the corrected LOS wrapped to one fringe. The
+plane is recovered from the saved products: the saved LOS is
+−(unwrapped − iono)·λ/4π − plane and the unwrapped phase equals the saved
+filtered phase up to whole cycles, so −(phase − iono) − 4π·LOS/λ is the
+plane wrapped; its slopes come from the mean phase step between
+neighbouring pixels, and the residual phasors have concentration
+1.000 (8.5 million pixels). The strip is not unwrapped, is not shipped in
+the data archives, and no reported quantity reads it.
+
 ## Loop-closure check of the unwrapping (mh26.closure)
 
 The processing sensitivities above reuse one interferogram; the

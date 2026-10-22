@@ -121,13 +121,20 @@ def _detect_pol(f) -> str:
     raise KeyError(f"no co-pol dataset under {GRIDS}: {list(f[GRIDS].keys())}")
 
 
-def _extract_crop(f, granule: str, out: Path) -> None:
+ANALYSIS_WINDOW = (CENTER_E - CROP_HALF, CENTER_E + CROP_HALF,
+                   CENTER_N - CROP_HALF, CENTER_N + CROP_HALF)
+
+
+def _extract_crop(f, granule: str, out: Path,
+                  window: tuple[float, float, float, float] = ANALYSIS_WINDOW) -> None:
+    """Crop the co-pol layer over `window` = (x0, x1, y0, y1) in product UTM metres."""
     pol = _detect_pol(f)
     g = f[GRIDS]
     x = g["xCoordinates"][:]
     y = g["yCoordinates"][:]
-    ix = np.where((x >= CENTER_E - CROP_HALF) & (x <= CENTER_E + CROP_HALF))[0]
-    iy = np.where((y >= CENTER_N - CROP_HALF) & (y <= CENTER_N + CROP_HALF))[0]
+    x0, x1, y0, y1 = window
+    ix = np.where((x >= x0) & (x <= x1))[0]
+    iy = np.where((y >= y0) & (y <= y1))[0]
     if len(ix) == 0 or len(iy) == 0:
         raise SystemExit(f"{granule}: crop window outside the product grid")
     ds = g[pol]
@@ -263,54 +270,59 @@ def _epoch_invalid(npz, shape: tuple[int, int]) -> np.ndarray:
     return invalid
 
 
-def make_ifg(tags: list[str] | None = None, looks: int = LOOKS) -> None:
+def form_interferogram(ref, sec, tag: str, looks: int = LOOKS) -> dict:
+    """Multilooked, Goldstein-filtered interferogram of two crops on one grid:
+    filtered phase, boxcar coherence and the multilooked x, y."""
     from scipy.ndimage import uniform_filter
 
     looks_y, looks_x = 2 * looks, looks
+    if not (np.array_equal(ref["x"], sec["x"]) and np.array_equal(ref["y"], sec["y"])):
+        raise ValueError(f"{tag}: reference and secondary grids differ")
+    z1, z2 = ref["z"], sec["z"]
+    print(f"{tag}: forming {z1.shape} interferogram, "
+          f"{looks_y} x {looks_x} looks")
+    for z, npz in ((z1, ref), (z2, sec)):
+        z[_epoch_invalid(npz, z.shape)] = 0
+    ny, nx = z1.shape
+    by, bx = ny // looks_y, nx // looks_x
+    ifg = np.empty((by, bx), dtype=np.complex64)
+    p1 = np.empty((by, bx), dtype=np.float32)
+    p2 = np.empty((by, bx), dtype=np.float32)
+    # Band-wise accumulation keeps peak memory at the two input rasters
+    # plus one band of products (the machine has 15 GB total).
+    band_rows = 300
+    for b0 in range(0, by, band_rows):
+        b1 = min(b0 + band_rows, by)
+        sl = np.s_[b0 * looks_y:b1 * looks_y, :bx * looks_x]
+        a, b = z1[sl], z2[sl]
+        ifg[b0:b1] = _multilook(a * np.conj(b), looks_y, looks_x)
+        p1[b0:b1] = _multilook((a.real ** 2 + a.imag ** 2), looks_y, looks_x)
+        p2[b0:b1] = _multilook((b.real ** 2 + b.imag ** 2), looks_y, looks_x)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        denominator = np.sqrt(uniform_filter(p1, COHERENCE_WINDOW)
+                              * uniform_filter(p2, COHERENCE_WINDOW))
+        smoothed = (uniform_filter(ifg.real, COHERENCE_WINDOW)
+                    + 1j * uniform_filter(ifg.imag, COHERENCE_WINDOW))
+        coherence = np.abs(smoothed) / denominator
+    coherence = np.clip(np.nan_to_num(coherence), 0.0, 1.0)
+    filtered = _goldstein(ifg / np.maximum(np.abs(ifg), 1e-30))
+    x = ref["x"][:bx * looks_x].reshape(-1, looks_x).mean(axis=1)
+    y = ref["y"][:by * looks_y].reshape(-1, looks_y).mean(axis=1)
+    return {"phase": np.angle(filtered).astype(np.float32),
+            "coherence": coherence.astype(np.float32), "x": x, "y": y,
+            "epsg": ref["epsg"], "looks": np.array([looks_y, looks_x])}
+
+
+def make_ifg(tags: list[str] | None = None, looks: int = LOOKS) -> None:
     for tag in PAIRS:
         if tags and tag not in tags:
             continue
         ref = np.load(DATA_GSLC / f"{tag}_ref.npz")
         sec = np.load(DATA_GSLC / f"{tag}_sec.npz")
-        if not (np.array_equal(ref["x"], sec["x"]) and np.array_equal(ref["y"], sec["y"])):
-            raise ValueError(f"{tag}: reference and secondary grids differ")
-        z1, z2 = ref["z"], sec["z"]
-        print(f"{tag}: forming {z1.shape} interferogram, "
-              f"{looks_y} x {looks_x} looks")
-        for z, npz in ((z1, ref), (z2, sec)):
-            z[_epoch_invalid(npz, z.shape)] = 0
-        ny, nx = z1.shape
-        by, bx = ny // looks_y, nx // looks_x
-        ifg = np.empty((by, bx), dtype=np.complex64)
-        p1 = np.empty((by, bx), dtype=np.float32)
-        p2 = np.empty((by, bx), dtype=np.float32)
-        # Band-wise accumulation keeps peak memory at the two input rasters
-        # plus one band of products (the machine has 15 GB total).
-        band_rows = 300
-        for b0 in range(0, by, band_rows):
-            b1 = min(b0 + band_rows, by)
-            sl = np.s_[b0 * looks_y:b1 * looks_y, :bx * looks_x]
-            a, b = z1[sl], z2[sl]
-            ifg[b0:b1] = _multilook(a * np.conj(b), looks_y, looks_x)
-            p1[b0:b1] = _multilook((a.real ** 2 + a.imag ** 2), looks_y, looks_x)
-            p2[b0:b1] = _multilook((b.real ** 2 + b.imag ** 2), looks_y, looks_x)
-        with np.errstate(invalid="ignore", divide="ignore"):
-            denominator = np.sqrt(uniform_filter(p1, COHERENCE_WINDOW)
-                                  * uniform_filter(p2, COHERENCE_WINDOW))
-            smoothed = (uniform_filter(ifg.real, COHERENCE_WINDOW)
-                        + 1j * uniform_filter(ifg.imag, COHERENCE_WINDOW))
-            coherence = np.abs(smoothed) / denominator
-        coherence = np.clip(np.nan_to_num(coherence), 0.0, 1.0)
-        filtered = _goldstein(ifg / np.maximum(np.abs(ifg), 1e-30))
-        x = ref["x"][:bx * looks_x].reshape(-1, looks_x).mean(axis=1)
-        y = ref["y"][:by * looks_y].reshape(-1, looks_y).mean(axis=1)
+        product = form_interferogram(ref, sec, tag, looks)
         out = DATA_GSLC / f"{tag}_ifg.npz"
-        np.savez_compressed(out, phase=np.angle(filtered).astype(np.float32),
-                            coherence=coherence.astype(np.float32),
-                            x=x, y=y, epsg=ref["epsg"],
-                            looks=np.array([looks_y, looks_x]),
-                            granules=np.array(list(PAIRS[tag])))
-        print(f"  saved {out.name} {filtered.shape}")
+        np.savez_compressed(out, granules=np.array(list(PAIRS[tag])), **product)
+        print(f"  saved {out.name} {product['phase'].shape}")
 
 
 # --- stage 3: unwrap ----------------------------------------------------------

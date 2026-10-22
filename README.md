@@ -30,11 +30,13 @@ establish.
 
 ## Figures
 
-![Figure 1 draft: the segment, the 2026 interferogram, the 2005 and 2008 dykes, and the 2014–2026 Sentinel-1 series](results/figure1_draft.png)
+![Figure 1 draft: the segment, the 2026 interferogram, the 2005 dyke plane, the 2008 dyke, and the wrapped 2014–2026 Sentinel-1 displacement and series](results/figure1_draft.png)
 
-Figure 1 (draft): the segment and the July 2026 intrusion in NISAR and
-Envisat interferograms, with the Sentinel-1 cumulative displacement of
-2014–2026 (`python -m mh26.figure1`).
+Figure 1 (draft): the segment and the July 2026 intrusion in the NISAR
+interferogram, the October 2008 dyke in Envisat, and the Sentinel-1
+cumulative displacement of 2014–2026 wrapped at one fringe
+(`python -m mh26.figure1`; the strip north of the NISAR analysis crop
+comes from `python -m mh26.gslc_strip`). The 2005 interferogram is awaited.
 
 ![The four-geometry displacement decomposition in the dyke frame](results/summary_decomposition_dike_frame_pub.png)
 

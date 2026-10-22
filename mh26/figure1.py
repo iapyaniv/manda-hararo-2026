@@ -2,23 +2,33 @@
 
 Panels
   (a) the July 2026 intrusion in the NISAR descending interferogram of 7 to
-      19 July (165_082_D, 30-m GSLC chain, a 90 km processing crop that ends
-      at 12.59 N): the corrected unwrapped LOS field the paper models
-      (ionosphere screen subtracted, far-field plane removed), screened at the
-      supplement's coherence threshold, smoothed by one pixel in the complex
-      domain and rewrapped at one L-band fringe; with the model dyke plane
+      19 July (165_082_D, 30-m GSLC chain): the corrected unwrapped LOS field
+      the paper models (ionosphere screen subtracted, far-field plane
+      removed), screened at the supplement's coherence threshold, smoothed by
+      one pixel in the complex domain and rewrapped at one L-band fringe. The
+      analysis crop ends at 12.59 N; north of it the panel shows the
+      display-only strip of mh26.gslc_strip (same granules and settings, the
+      same corrections, not unwrapped), when that product exists; with the
+      model dyke plane
       (the part with opening above one third of the peak drawn thick), the
       candidate graben fault, the 2005 dyke (model plane, thick where it
       opened), the one located July 2026 earthquake (two agency locations
       with their stated errors), the volcanic centres at their mapped
       positions and the segment names;
-  (b) the September 2005 dyke and (c) the October 2008 dyke in Ian Hamling's
-      wrapped Envisat track-300 interferograms (Hamling et al. 2009, 2010;
-      acquisition dates to be confirmed), multilooked as complex phasors;
+  (b) the September 2005 dyke: the delivered track-300 set holds no 2005
+      interferogram (its "sept" grid is the September 2006 dyke, which sits on
+      the sept06 model columns), so the panel is a placeholder with the 2005
+      model plane until the Wright et al. (2006) interferogram is supplied;
+  (c) the October 2008 dyke in Ian Hamling's wrapped Envisat track-300
+      interferogram (Hamling et al. 2010; acquisition dates to be confirmed),
+      multilooked as a complex phasor;
   (d) Sentinel-1 descending cumulative LOS displacement 23 October 2014 to
-      11 July 2026 (P. Espín Bedón's product, re-referenced; see
-      data/sentinel1-cumulative/README), with the time-series sites of (e)
-      and (f) and the Sentinel-1 look direction;
+      11 July 2026 (P. Espín Bedón's product; see
+      data/sentinel1-cumulative/README) wrapped at one Sentinel-1 fringe, as
+      in B. Ireland's figure, so that the local Ado'Ale uplift shows against
+      the broad signal; pixels whose neighbourhood phase is inconsistent are
+      omitted; with the time-series sites of (e) and (f) and the Sentinel-1
+      look direction;
   (e, f) the Ado'Ale series and the graben-minus-flank series of B. Ireland's
       Sentinel-1 time-series figure, replotted from values digitized from it
       (data/ireland-series; DRAFT: to be replaced by the series themselves).
@@ -50,8 +60,8 @@ import numpy as np  # noqa: E402
 import rasterio  # noqa: E402
 from cmcrameri import cm as cmc  # noqa: E402
 from matplotlib.collections import LineCollection  # noqa: E402
-from matplotlib.colors import LightSource, Normalize, TwoSlopeNorm  # noqa: E402
-from matplotlib.patches import FancyBboxPatch, Rectangle  # noqa: E402
+from matplotlib.colors import LightSource, Normalize  # noqa: E402
+from matplotlib.patches import FancyBboxPatch  # noqa: E402
 from pyproj import Transformer  # noqa: E402
 from rasterio.transform import from_origin  # noqa: E402
 from rasterio.warp import Resampling, reproject  # noqa: E402
@@ -68,17 +78,28 @@ LL_CRS = "EPSG:4326"
 TO_LL = Transformer.from_crs(32637, 4326, always_xy=True)
 
 NISAR_UNW = REPO / "data" / "gslc" / "165_082_D_unw.npz"
+# Display-only strip north of the analysis crop (python -m mh26.gslc_strip).
+NISAR_NORTH = REPO / "data" / "gslc" / "165_082_D_north_display.npz"
+NISAR_CROP_NORTH_LAT = 12.59
 NISAR_LABEL = "NISAR, 7 – 19 Jul 2026"
 S1_PRE = (REPO / "data" / "sentinel1-cumulative" / "Pre"
           / "pre_079D_07694_131313_20141023_20260711.cum.geo.tif")
 NISAR_FRINGE_M = WAVELENGTH_L / 2
 NISAR_FRINGE_CM = 100 * NISAR_FRINGE_M
+# Sentinel-1 C-band (5.5465 cm): the cumulative map is wrapped at half the
+# wavelength, the interval that reproduces B. Ireland's wrapped panel.
+S1_FRINGE_MM = 1000 * 0.055465 / 2
+# Local phase consistency (mean resultant length over 5 x 5 pixels) below
+# which the wrapped Sentinel-1 map is not drawn: the decorrelated ground west
+# of the rift and the unwrapping-noise cells on the axis.
+S1_CONSISTENCY_MIN = 0.6
 # Ian Hamling's wrapped Envisat track-300 interferograms of the earlier dykes
 # (one GMT grid per dyke, wrapped LOS in centimetres over one Envisat fringe).
 ENVISAT_DIR = REPO / "data" / "ihamling" / "opening_files"
 ENVISAT_FRINGE_CM = 2.8118
-ENVISAT_PANELS = {"b": ("sept", "Sept 2005 dyke\nEnvisat track 300"),
-                  "c": ("oct", "Oct 2008 dyke\nEnvisat track 300")}
+# The delivered grids are the 2006 to 2010 dykes ("sept" is September 2006);
+# the 2005 interferogram is awaited.
+ENVISAT_PANELS = {"c": ("oct", "Oct 2008 dyke\nEnvisat track 300")}
 # Envisat ascending, right-looking: heading about 348 deg, so the
 # ground-to-satellite azimuth is about 258 deg.
 ENVISAT_VIEW = {"heading_deg": 348.0, "los_deg": 258.0}
@@ -129,7 +150,6 @@ SITES = {
     "f": {"name": "graben", "lon": 40.584, "lat": 12.393, "series": "Graben subsidence"},
 }
 FLANK_REFERENCE = (40.649, 12.436)
-S1_REFERENCE_AREA = ((40.93682, 40.94682), (12.63819, 12.64819))
 
 # Viewing geometry for the arrows. NISAR is left-looking: on the descending
 # pass 165 (heading about 195 deg) the saved ground-to-satellite unit vector
@@ -219,13 +239,32 @@ def utm_transform(x: np.ndarray, y: np.ndarray) -> object:
     return from_origin(float(x[0]) - dx / 2, float(y[0]) + dy / 2, dx, dy)
 
 
-def nisar_rewrapped_cm(frame: dict, coherence_min: float) -> np.ndarray:
-    """The corrected unwrapped LOS field (metres, positive toward the
-    satellite), screened by coherence, then wrapped to one fringe and
-    smoothed by one pixel and resampled as a complex phasor, so that
-    integer-cycle steps in the unwrapped field cannot leak into fractional
-    fringes."""
-    data = np.load(NISAR_UNW, allow_pickle=False)
+def nisar_rewrapped_cm(frame: dict, coherence_min: float) -> tuple[np.ndarray, bool]:
+    """The corrected LOS field (metres, positive toward the satellite),
+    screened by coherence, wrapped to one fringe and smoothed by one pixel
+    and resampled as a complex phasor, so that integer-cycle steps in the
+    unwrapped field cannot leak into fractional fringes. The analysis crop is
+    drawn wherever it has a value; the display strip fills the frame north of
+    it. Returns the field and whether the strip was drawn."""
+    wrapped = _rewrapped_cm(NISAR_UNW, frame, coherence_min)
+    if not NISAR_NORTH.exists():
+        print(f"{NISAR_NORTH.name} missing: (a) ends at the analysis crop "
+              f"({NISAR_CROP_NORTH_LAT}°N); run python -m mh26.gslc_strip")
+        return wrapped, False
+    north = _rewrapped_cm(NISAR_NORTH, frame, coherence_min)
+    # Switch to the strip 1 km inside the analysis crop, not at its last row:
+    # the smoothing and resampling thin out at the crop edge and would draw a
+    # hairline there (the two fields agree over the 3-km overlap).
+    crop = np.load(NISAR_UNW, allow_pickle=False)
+    _, lat_top = TO_LL.transform(float(np.mean(crop["x"])), float(crop["y"].max()) - 1000.0)
+    _, (height, _), _ = frame_grid(frame)
+    lat_rows = frame["lat"][1] - (np.arange(height) + 0.5) * frame["step"]
+    use_strip = (lat_rows > lat_top)[:, None] & np.isfinite(north)
+    return np.where(use_strip, north, wrapped), True
+
+
+def _rewrapped_cm(path: Path, frame: dict, coherence_min: float) -> np.ndarray:
+    data = np.load(path, allow_pickle=False)
     transform, shape, _ = frame_grid(frame)
     src_transform = utm_transform(data["x"], data["y"])
     los = np.asarray(data["los"], dtype=np.float64)
@@ -245,17 +284,35 @@ def nisar_rewrapped_cm(frame: dict, coherence_min: float) -> np.ndarray:
     return wrapped
 
 
-def s1_cumulative_mm(frame: dict) -> np.ndarray:
-    """The delivered cumulative map, as delivered: its own gaps stay gaps and
-    nothing else is masked. The south-western corner (west of the rift) holds
-    about -100 mm with 25 to 35 mm pixel scatter in this track and +350 mm in
-    the ascending one; whether that is plate motion relative to the reference
-    area or ground to be masked is the processors' call."""
+def s1_wrapped_cm(frame: dict) -> np.ndarray:
+    """The delivered cumulative map wrapped at one Sentinel-1 fringe, smoothed
+    by one pixel and resampled as a complex phasor. The south-western corner
+    (west of the rift) holds about -100 mm with 25 to 35 mm pixel scatter,
+    which wraps to noise: pixels whose 5 x 5 neighbourhood is inconsistent
+    (mean resultant length below S1_CONSISTENCY_MIN) are left blank, as are
+    the map's own gaps."""
     transform, shape, _ = frame_grid(frame)
     with rasterio.open(S1_PRE) as dataset:
         source = dataset.read(1, masked=True).filled(np.nan)
-        return warp(source, dataset.transform, dataset.crs, transform, shape,
-                    Resampling.bilinear)
+        src_transform, src_crs = dataset.transform, dataset.crs
+    valid = np.isfinite(source)
+    phase = 2 * np.pi * np.where(valid, source, 0.0) / S1_FRINGE_MM
+    unit_real = np.where(valid, np.cos(phase), 0.0)
+    unit_imag = np.where(valid, np.sin(phase), 0.0)
+    count = uniform_filter(valid.astype(np.float64), 5)
+    consistency = np.hypot(uniform_filter(unit_real, 5), uniform_filter(unit_imag, 5))
+    consistency = np.where(count > 0, consistency / np.maximum(count, 1e-6), 0.0)
+    keep = valid & (count >= 0.5) & (consistency >= S1_CONSISTENCY_MIN)
+    weight = gaussian_filter(keep.astype(np.float64), 1.0)
+    real = gaussian_filter(np.where(keep, unit_real, 0.0), 1.0)
+    imag = gaussian_filter(np.where(keep, unit_imag, 0.0), 1.0)
+    real = np.where(keep, real / np.maximum(weight, 1e-6), np.nan)
+    imag = np.where(keep, imag / np.maximum(weight, 1e-6), np.nan)
+    real_w = warp(real, src_transform, src_crs, transform, shape, Resampling.average)
+    imag_w = warp(imag, src_transform, src_crs, transform, shape, Resampling.average)
+    wrapped = np.mod(np.arctan2(imag_w, real_w), 2 * np.pi) / (2 * np.pi) * S1_FRINGE_MM / 10
+    wrapped[~np.isfinite(real_w) | ~np.isfinite(imag_w)] = np.nan
+    return wrapped
 
 
 def read_grd(path: Path) -> tuple[np.ndarray, object]:
@@ -603,7 +660,7 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
     b_w = 36.0
     b_h = b_w * (FRAME_B["lat"][1] - FRAME_B["lat"][0]) / (
         (FRAME_B["lon"][1] - FRAME_B["lon"][0]) * math.cos(math.radians(12.38)))
-    y_base = 13.0
+    y_base = 20.5
     top = y_base + a_h
     col1, col2 = 103.0, 149.0
     fig_h = top + 2.0
@@ -611,7 +668,7 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
 
     # --- (a) NISAR 2026 ---------------------------------------------------
     ax_a = mm_axes(fig, left, y_base, a_w, a_h)
-    wrapped = nisar_rewrapped_cm(FRAME_A, coherence_min)
+    wrapped, north_drawn = nisar_rewrapped_cm(FRAME_A, coherence_min)
     norm_a = Normalize(0, NISAR_FRINGE_CM)
     ax_a.imshow(blend(wrapped, shade_a, cyclic, norm_a, alpha=0.90), extent=extent_a,
                 origin="upper", interpolation="nearest", zorder=1)
@@ -633,43 +690,53 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
     panel_letter(ax_a, "a")
     panel_title(ax_a, NISAR_LABEL)
 
-    # --- (b), (c) Envisat track-300 interferograms of two earlier dykes -------
-    norm_env = Normalize(0, ENVISAT_FRINGE_CM)
-    for letter, ax_x, lat_labels in (("b", col1, True), ("c", col2, False)):
-        grid_name, title = ENVISAT_PANELS[letter]
-        ax = mm_axes(fig, ax_x, top - b_h, b_w, b_h)
-        field = envisat_wrapped_cm(FRAME_B, grid_name)
-        ax.imshow(blend(field, shade_b, cyclic, norm_env, alpha=0.90), extent=extent_b,
-                  origin="upper", interpolation="nearest", zorder=1)
-        map_axes(ax, FRAME_B, lon_labels=True, lat_labels=lat_labels)
-        draw_2026_geometry(ax, lines_2026, lw_dike=1.0, labels=False)
-        draw_volcanoes(ax, names=False, size=16)
-        if letter == "b":
-            draw_look_arrows(ax, ENVISAT_VIEW, x=0.67, y=0.60, w=0.30, h=0.19,
-                             flight_mm=4.6, los_mm=3.2)
-        scale_bar(ax, FRAME_B, 20)
-        inset_colorbar(ax, plt.cm.ScalarMappable(norm=norm_env, cmap=cyclic),
-                       "one fringe (cm)", ticks=[0, ENVISAT_FRINGE_CM],
-                       tick_labels=["0", f"{ENVISAT_FRINGE_CM:.1f}"], x=0.44, w=0.50)
-        panel_letter(ax, letter)
-        panel_title(ax, title, fontsize=FS_NOTE)
+    # --- (b) the September 2005 dyke: interferogram awaited -------------------
+    ax_b = mm_axes(fig, col1, top - b_h, b_w, b_h)
+    ax_b.imshow(np.repeat(shade_b[:, :, None], 3, axis=2), extent=extent_b, origin="upper",
+                interpolation="nearest", zorder=1)
+    map_axes(ax_b, FRAME_B, lon_labels=True, lat_labels=True)
+    draw_plane_trace(ax_b, profiles, lw=1.2, label=False)
+    draw_2026_geometry(ax_b, lines_2026, lw_dike=1.0, labels=False)
+    draw_volcanoes(ax_b, names=False, size=16)
+    haloed_text(ax_b, 0.96, 0.30, "Envisat interferogram\nof the Sept 2005 dyke\n(Wright et al., 2006)\nto be supplied",
+                transform=ax_b.transAxes, ha="right", va="center", fontsize=FS_LABEL,
+                linespacing=1.25, color="#202020")
+    haloed_text(ax_b, profiles["lon"][0] + 0.02, profiles["lat"][0] - 0.01,
+                "2005 dyke\n(model plane)", color="#3a3a3a", fontsize=FS_NOTE, ha="left",
+                va="top", linespacing=1.1)
+    scale_bar(ax_b, FRAME_B, 20)
+    panel_letter(ax_b, "b")
+    panel_title(ax_b, "Sept 2005 dyke", fontsize=FS_NOTE)
 
-    # --- (d) Sentinel-1 cumulative 2014 to 2026 -----------------------------
+    # --- (c) Envisat track-300 interferogram of the October 2008 dyke ---------
+    norm_env = Normalize(0, ENVISAT_FRINGE_CM)
+    grid_name, title = ENVISAT_PANELS["c"]
+    ax_c = mm_axes(fig, col2, top - b_h, b_w, b_h)
+    field = envisat_wrapped_cm(FRAME_B, grid_name)
+    ax_c.imshow(blend(field, shade_b, cyclic, norm_env, alpha=0.90), extent=extent_b,
+                origin="upper", interpolation="nearest", zorder=1)
+    map_axes(ax_c, FRAME_B, lon_labels=True, lat_labels=False)
+    draw_2026_geometry(ax_c, lines_2026, lw_dike=1.0, labels=False)
+    draw_volcanoes(ax_c, names=False, size=16)
+    draw_look_arrows(ax_c, ENVISAT_VIEW, x=0.67, y=0.60, w=0.30, h=0.19,
+                     flight_mm=4.6, los_mm=3.2)
+    scale_bar(ax_c, FRAME_B, 20)
+    inset_colorbar(ax_c, plt.cm.ScalarMappable(norm=norm_env, cmap=cyclic),
+                   "one fringe (cm)", ticks=[0, ENVISAT_FRINGE_CM],
+                   tick_labels=["0", f"{ENVISAT_FRINGE_CM:.1f}"], x=0.44, w=0.50)
+    panel_letter(ax_c, "c")
+    panel_title(ax_c, title, fontsize=FS_NOTE)
+
+    # --- (d) Sentinel-1 cumulative 2014 to 2026, wrapped ---------------------
     ax_d = mm_axes(fig, col1, y_base, b_w, b_h)
-    cum_mm = s1_cumulative_mm(FRAME_B)
-    norm_d = TwoSlopeNorm(vmin=-100, vcenter=0, vmax=300)
-    ax_d.imshow(blend(cum_mm, shade_b, cmc.vik, norm_d, alpha=0.88), extent=extent_b,
+    cum_wrapped = s1_wrapped_cm(FRAME_B)
+    norm_d = Normalize(0, S1_FRINGE_MM / 10)
+    ax_d.imshow(blend(cum_wrapped, shade_b, cyclic, norm_d, alpha=0.90), extent=extent_b,
                 origin="upper", interpolation="nearest", zorder=1)
     map_axes(ax_d, FRAME_B, lon_labels=True, lat_labels=True)
     draw_plane_trace(ax_d, profiles, lw=0.6, label=False)
     draw_2026_geometry(ax_d, lines_2026, lw_dike=1.0, labels=False)
     draw_volcanoes(ax_d, names=False, size=16)
-    (ref_lon, ref_lat) = S1_REFERENCE_AREA
-    ax_d.add_patch(Rectangle((ref_lon[0], ref_lat[0]), ref_lon[1] - ref_lon[0],
-                             ref_lat[1] - ref_lat[0], facecolor="none", edgecolor="black",
-                             lw=0.8, zorder=12))
-    haloed_text(ax_d, ref_lon[0] - 0.012, ref_lat[0] + 0.005, "ref", fontsize=FS_NOTE,
-                ha="right", va="center")
     for letter, site in SITES.items():
         ax_d.scatter([site["lon"]], [site["lat"]], s=22, facecolor="white", edgecolor="black",
                      linewidth=0.8, zorder=13)
@@ -681,11 +748,12 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
                 fontsize=6.8, fontweight="bold", ha="left", va="center")
     draw_look_arrows(ax_d, S1_VIEW, x=0.03, y=0.26, w=0.30, h=0.19, flight_mm=4.6, los_mm=3.2)
     scale_bar(ax_d, FRAME_B, 20)
-    inset_colorbar(ax_d, plt.cm.ScalarMappable(norm=norm_d, cmap=cmc.vik),
-                   "LOS (mm)", ticks=[-100, 0, 150, 300], x=0.44, w=0.50,
-                   extend="min")
+    inset_colorbar(ax_d, plt.cm.ScalarMappable(norm=norm_d, cmap=cyclic),
+                   "one fringe (cm)", ticks=[0, S1_FRINGE_MM / 10],
+                   tick_labels=["0", f"{S1_FRINGE_MM / 10:.1f}"], x=0.44, w=0.50)
     panel_letter(ax_d, "d")
-    panel_title(ax_d, "Sentinel-1 descending\n23 Oct 2014 – 11 Jul 2026", fontsize=FS_NOTE)
+    panel_title(ax_d, "Sentinel-1 descending\n23 Oct 2014 – 11 Jul 2026\ncumulative, wrapped",
+                fontsize=FS_NOTE)
 
     # --- (e), (f) the two series ---------------------------------------------
     gap = 7.0
@@ -701,13 +769,20 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
                 xlabel=True)
     panel_letter(ax_f, "f")
 
+    north_note = (f"north of {NISAR_CROP_NORTH_LAT}°N the panel shows the display strip of "
+                  "the same pair (same corrections, not unwrapped)" if north_drawn else
+                  f"the analysis crop ends at {NISAR_CROP_NORTH_LAT}°N; the display strip "
+                  "north of it is not built")
     fig.text(left / 190.0, 0.8 / fig_h,
-             "Draft. (a) shows the 90 km NISAR processing crop, which ends at 12.59°N; "
-             f"samples below coherence {coherence_min:.2f} are omitted.\n"
-             "(b), (c): Envisat track-300 interferograms of Hamling et al. (2009, 2010), "
-             "acquisition dates to be confirmed; one colour cycle is 2.8 cm of range change.\n"
-             "(e), (f): digitized from B. Ireland's figure, pending his series; relative to "
-             "23 Oct 2014 in the original processing reference, not the reference area of (d).",
+             f"Draft. (a) samples below coherence {coherence_min:.2f} are omitted; {north_note}.\n"
+             "(b) the delivered track-300 grids are the 2006–2010 dykes (the \"sept\" grid is the "
+             "September 2006 dyke); the 2005 interferogram is awaited.\n"
+             "(c) Hamling et al. (2010), acquisition dates to be confirmed; one colour cycle is "
+             "2.8 cm of range change.\n"
+             "(d) the cumulative map wrapped at one Sentinel-1 fringe (2.8 cm), as in B. Ireland's "
+             "figure; blank where the neighbourhood phase is inconsistent.\n"
+             "(e), (f): digitized from his figure, pending his series; relative to 23 Oct 2014 in "
+             "the original processing reference.",
              fontsize=FS_NOTE, ha="left", va="bottom", color="#333333", linespacing=1.25)
 
     outputs = []

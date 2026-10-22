@@ -163,6 +163,9 @@ a13584043d975a616fd4a22593c4aee8c3d0b7ac9319d5f3ad1592cc25923b0a  manda-hararo-2
 - Figure 1: shorter Sentinel-1 colour-bar label
 - Figure 1: colour bars boxed with their tick numbers, Envisat arrows in the empty corner of panel b
 - Add the MIT licence for the code
+- Reorganize the documentation: a short README with the figures, the history in a changelog
+- README: plain captions and table wording
+- Figure 1: wrapped Sentinel-1 panel, a 2005 placeholder, and a display strip north of the NISAR crop
 
 ## Analysis notes kept from the README (as of 22 October 2026)
 
