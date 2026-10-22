@@ -418,13 +418,20 @@ def scale_bar(ax, frame: dict, length_km: float, *, x0=0.05, y0=0.045):
     txt.set_path_effects(THIN_HALO)
 
 
-def inset_colorbar(ax, mappable, label: str, ticks, *, x=0.52, y=0.058, w=0.44, h=0.028,
-                   tick_labels=None, extend="neither"):
-    pad_x, pad_y = 0.02, 0.016
-    ax.add_patch(FancyBboxPatch((x - pad_x, y - pad_y), w + 2 * pad_x, h + 0.115,
+def inset_colorbar(ax, mappable, label: str, ticks, *, x=0.52, w=0.44, tick_labels=None,
+                   extend="neither", bottom_mm=1.2):
+    """A horizontal colour bar inside the panel, on a white box that also holds
+    the tick numbers below it and the label above it (sizes in millimetres)."""
+    _, h_mm = ax._size_mm
+    bar_mm, below_mm, above_mm = 1.3, 3.4, 3.4
+    y_bar = (bottom_mm + below_mm) / h_mm
+    h = bar_mm / h_mm
+    pad_x = 0.02
+    ax.add_patch(FancyBboxPatch((x - pad_x, bottom_mm / h_mm), w + 2 * pad_x,
+                                (below_mm + bar_mm + above_mm) / h_mm,
                                 boxstyle="round,pad=0.004", transform=ax.transAxes,
-                                facecolor="white", edgecolor="none", alpha=0.86, zorder=16))
-    cax = ax.inset_axes([x, y, w, h])
+                                facecolor="white", edgecolor="none", alpha=0.88, zorder=16))
+    cax = ax.inset_axes([x, y_bar, w, h])
     cbar = ax.figure.colorbar(mappable, cax=cax, orientation="horizontal", ticks=ticks,
                               extend=extend)
     cbar.outline.set_linewidth(0.5)
@@ -432,7 +439,7 @@ def inset_colorbar(ax, mappable, label: str, ticks, *, x=0.52, y=0.058, w=0.44, 
     if tick_labels is not None:
         cax.set_xticklabels(tick_labels)
     cax.set_zorder(17)
-    ax.text(x + 0.5 * w, y + h + 0.012, label, transform=ax.transAxes, ha="center",
+    ax.text(x + 0.5 * w, y_bar + h + 0.8 / h_mm, label, transform=ax.transAxes, ha="center",
             va="bottom", fontsize=FS_LABEL, zorder=18)
     return cbar
 
@@ -528,9 +535,9 @@ def draw_earthquakes(ax, frame: dict):
                         ha="right", va="bottom", zorder=19)
             south = q["lat"] - lat_err
             if south < lat0:
-                haloed_text(ax, q["lon"] + 0.02, lat0 + 0.004,
+                haloed_text(ax, q["lon"] - 0.02, lat0 + 0.004,
                             f"error bar continues to {south:.2f}°N", fontsize=FS_NOTE,
-                            ha="left", va="bottom", zorder=19)
+                            ha="right", va="bottom", zorder=19)
         else:
             haloed_text(ax, q["lon"] + 0.02, q["lat"] - 0.028, "17 Jul 2026\nearthquake (IGSSA)",
                         ha="left", va="top", linespacing=1.1)
@@ -622,7 +629,7 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
                    "LOS toward satellite, one fringe (cm)",
                    ticks=[0, NISAR_FRINGE_CM / 2, NISAR_FRINGE_CM],
                    tick_labels=["0", f"{NISAR_FRINGE_CM / 2:.1f}", f"{NISAR_FRINGE_CM:.1f}"],
-                   x=0.50, y=0.058, w=0.46)
+                   x=0.50, w=0.46)
     panel_letter(ax_a, "a")
     panel_title(ax_a, NISAR_LABEL)
 
@@ -638,12 +645,12 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
         draw_2026_geometry(ax, lines_2026, lw_dike=1.0, labels=False)
         draw_volcanoes(ax, names=False, size=16)
         if letter == "b":
-            draw_look_arrows(ax, ENVISAT_VIEW, x=0.03, y=0.21, w=0.30, h=0.19,
+            draw_look_arrows(ax, ENVISAT_VIEW, x=0.67, y=0.60, w=0.30, h=0.19,
                              flight_mm=4.6, los_mm=3.2)
         scale_bar(ax, FRAME_B, 20)
         inset_colorbar(ax, plt.cm.ScalarMappable(norm=norm_env, cmap=cyclic),
                        "one fringe (cm)", ticks=[0, ENVISAT_FRINGE_CM],
-                       tick_labels=["0", f"{ENVISAT_FRINGE_CM:.1f}"], x=0.44, y=0.058, w=0.50)
+                       tick_labels=["0", f"{ENVISAT_FRINGE_CM:.1f}"], x=0.44, w=0.50)
         panel_letter(ax, letter)
         panel_title(ax, title, fontsize=FS_NOTE)
 
@@ -675,7 +682,7 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
     draw_look_arrows(ax_d, S1_VIEW, x=0.03, y=0.26, w=0.30, h=0.19, flight_mm=4.6, los_mm=3.2)
     scale_bar(ax_d, FRAME_B, 20)
     inset_colorbar(ax_d, plt.cm.ScalarMappable(norm=norm_d, cmap=cmc.vik),
-                   "LOS (mm)", ticks=[-100, 0, 150, 300], x=0.44, y=0.058, w=0.50,
+                   "LOS (mm)", ticks=[-100, 0, 150, 300], x=0.44, w=0.50,
                    extend="min")
     panel_letter(ax_d, "d")
     panel_title(ax_d, "Sentinel-1 descending\n23 Oct 2014 – 11 Jul 2026", fontsize=FS_NOTE)
