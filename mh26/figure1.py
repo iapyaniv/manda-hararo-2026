@@ -593,12 +593,12 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
     a_w = 81.0
     a_h = a_w * (FRAME_A["lat"][1] - FRAME_A["lat"][0]) / (
         (FRAME_A["lon"][1] - FRAME_A["lon"][0]) * math.cos(math.radians(12.24)))
-    b_w = 38.0
+    b_w = 36.0
     b_h = b_w * (FRAME_B["lat"][1] - FRAME_B["lat"][0]) / (
         (FRAME_B["lon"][1] - FRAME_B["lon"][0]) * math.cos(math.radians(12.38)))
     y_base = 13.0
     top = y_base + a_h
-    col1, col2 = 103.0, 151.0
+    col1, col2 = 103.0, 149.0
     fig_h = top + 2.0
     fig = plt.figure(figsize=(190 / 25.4, fig_h / 25.4))
 
@@ -672,23 +672,23 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
                  edgecolor="black", linewidth=0.8, zorder=13)
     haloed_text(ax_d, FLANK_REFERENCE[0] + 0.016, FLANK_REFERENCE[1] + 0.004, "f′",
                 fontsize=6.8, fontweight="bold", ha="left", va="center")
-    draw_look_arrows(ax_d, S1_VIEW, x=0.03, y=0.21, w=0.30, h=0.19, flight_mm=4.6, los_mm=3.2)
+    draw_look_arrows(ax_d, S1_VIEW, x=0.03, y=0.26, w=0.30, h=0.19, flight_mm=4.6, los_mm=3.2)
     scale_bar(ax_d, FRAME_B, 20)
     inset_colorbar(ax_d, plt.cm.ScalarMappable(norm=norm_d, cmap=cmc.vik),
-                   "LOS toward satellite (mm)", ticks=[-100, 0, 150, 300], x=0.44, y=0.058,
-                   w=0.50, extend="min")
+                   "LOS toward satellite (mm)", ticks=[-100, 0, 150, 300], x=0.40, y=0.058,
+                   w=0.54, extend="min")
     panel_letter(ax_d, "d")
     panel_title(ax_d, "Sentinel-1 descending\n23 Oct 2014 – 11 Jul 2026", fontsize=FS_NOTE)
 
     # --- (e), (f) the two series ---------------------------------------------
     gap = 7.0
     h_each = (b_h - gap) / 2
-    ax_e = mm_axes(fig, col2 + 8.0, y_base + h_each + gap, b_w - 8.0, h_each)
+    ax_e = mm_axes(fig, col2 + 6.0, y_base + h_each + gap, b_w - 6.0, h_each)
     year, los = series[SITES["e"]["series"]]
     series_axes(ax_e, year, los, title="Ado'Ale", ylabel="LOS (mm)", xlabel=False,
                 title_left=True)
     panel_letter(ax_e, "e")
-    ax_f = mm_axes(fig, col2 + 8.0, y_base, b_w - 8.0, h_each)
+    ax_f = mm_axes(fig, col2 + 6.0, y_base, b_w - 6.0, h_each)
     year, los = series[SITES["f"]["series"]]
     series_axes(ax_f, year, los, title="graben − flank", ylabel="f − f′ (mm)",
                 xlabel=True)
