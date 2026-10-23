@@ -260,7 +260,13 @@ display product
 
 The step agreement is a check of identity and sign, not a fit: the model
 comes from other data, and the near-axis fringes are unresolved. The numbers
-of the run are in `results/envisat_2005.md`.
+of the run are in `results/envisat_2005.md`. Two further checks of the
+processing, made once and not repeated by the build: at the zero-Doppler
+times of one ground point the two DORIS orbits give a baseline of 252 m
+(195 m perpendicular, height of ambiguity 44 m), the figure GMTSAR
+reports; and the geocoded radar amplitude correlates with terrain
+brightness simulated from the DEM with its peak at zero shift in a 90-m
+search, so the geocoding sits on the terrain to within about 50 m.
 
 ## Loop-closure check of the unwrapping (mh26.closure)
 
