@@ -1,4 +1,4 @@
-"""Draft of the GRL location figure (Figure 1), in the panel layout agreed with the coauthors.
+"""The GRL location figure (Figure 1), in the panel layout agreed with the coauthors.
 
 Panels
   (a) the July 2026 intrusion in the NISAR descending interferogram of 7 to
@@ -42,7 +42,9 @@ displays saved products and the delivered models.
 
 Run from the repository root:
 
-  python -m mh26.figure1 [--dem-south <N11 tile>]
+  python -m mh26.figure1 [--dem-south <N11 tile>]          results/figure1.{png,pdf}
+  python -m mh26.figure1 --notes                            results/figure1_draft.{png,pdf},
+                                                            with the notes to the coauthors
 """
 
 from __future__ import annotations
@@ -146,13 +148,12 @@ VOLCANOES = {
     "Ado'Ale": (40.60, 12.37),
     "Manda Hararo": (40.82, 12.17),
 }
-# The one located July 2026 earthquake, as located by two agencies
-# (compiled by D. Keir). Errors in km (latitude, longitude), drawn as plain
-# error bars: no joint confidence level is implied.
-EARTHQUAKES = {
-    "IGSSA": {"lon": 40.853, "lat": 12.042, "err_lat_km": 3.8, "err_lon_km": 3.6},
-    "ISC": {"lon": 40.6394, "lat": 11.7869, "err_lat_km": 27.8, "err_lon_km": 15.7},
-}
+# The one located July 2026 earthquake at its IGSSA location (compiled by
+# D. Keir). Errors in km (latitude, longitude), drawn as plain error bars: no
+# joint confidence level is implied. The ISC location of the same event
+# (11.79 N, 40.64 E, errors 28 and 16 km) lies on the southern edge of the
+# frame and is left out.
+EARTHQUAKE = {"lon": 40.853, "lat": 12.042, "err_lat_km": 3.8, "err_lon_km": 3.6}
 # B. Ireland's time-series sites (positions read from the figure and
 # confirmed against the cumulative map). The graben series is the graben
 # site minus the flank site 8.5 km to the north-east.
@@ -175,6 +176,7 @@ THIN_HALO = [path_effects.Stroke(linewidth=1.6, foreground="white"), path_effect
 
 KM_PER_DEG_LAT = 111.32
 FS_TICK, FS_LABEL, FS_TITLE, FS_NOTE = 6.5, 6.2, 6.4, 6.0
+FS_MODEL = 6.6   # the three model-geometry labels share one size and weight
 
 
 def km_per_deg_lon(lat: float) -> float:
@@ -567,12 +569,12 @@ def draw_2026_geometry(ax, lines: dict, *, lw_dike=1.6, lw_fault=1.0, labels: bo
         fault.set_path_effects(HALO)
     if labels:
         lon, lat = lines["dike"]
-        haloed_text(ax, lon[-1] - 0.012, lat[-1] - 0.004, "2026 dike (model)",
-                    color="#c81e1e", fontsize=6.8, fontweight="bold", ha="right", va="top")
+        haloed_text(ax, lon[-1] - 0.012, lat[-1] - 0.004, "2026 dike model",
+                    color="#c81e1e", fontsize=FS_MODEL, ha="right", va="top")
         if "fault" in lines:
             flon, flat = lines["fault"]
-            haloed_text(ax, flon[0] + 0.03, flat[0] + 0.012, "candidate fault",
-                        color="#111111", fontsize=FS_LABEL, ha="left", va="bottom")
+            haloed_text(ax, flon[0] + 0.03, flat[0] + 0.012, "2026 fault model",
+                        color="#111111", fontsize=FS_MODEL, ha="left", va="bottom")
 
 
 def draw_plane_trace(ax, profiles: dict, *, lw=0.8, label: bool):
@@ -589,7 +591,7 @@ def draw_plane_trace(ax, profiles: dict, *, lw=0.8, label: bool):
                                      zorder=11, capstyle="round"))
     if label:
         haloed_text(ax, profiles["lon"][-1] + 0.015, profiles["lat"][-1] - 0.03,
-                    "2005 dike (model)", color="#3a3a3a", fontsize=FS_LABEL, ha="left",
+                    "2005 dike model", color="#3a3a3a", fontsize=FS_MODEL, ha="left",
                     va="top")
 
 
@@ -622,48 +624,102 @@ def draw_volcanoes(ax, *, names: bool, size=38):
                         ha=ha, va=va)
 
 
-def draw_earthquakes(ax, frame: dict):
-    lat0 = frame["lat"][0]
-    for agency, q in EARTHQUAKES.items():
-        lat_err = q["err_lat_km"] / KM_PER_DEG_LAT
-        lon_err = q["err_lon_km"] / km_per_deg_lon(q["lat"])
-        bars = ax.errorbar([q["lon"]], [q["lat"]], xerr=[[lon_err], [lon_err]],
-                           yerr=[[lat_err], [lat_err]], fmt="none", ecolor="#202020",
-                           elinewidth=0.8, capsize=1.8, capthick=0.8, zorder=13)
-        for part in bars[2]:
-            part.set_path_effects(THIN_HALO)
-        ax.scatter([q["lon"]], [q["lat"]], marker="*", s=75, facecolor="#ffd400",
-                   edgecolor="black", linewidth=0.7, zorder=14)
-        if agency == "ISC":
-            haloed_text(ax, q["lon"] - 0.02, q["lat"] + 0.03, "ISC (same event)",
-                        ha="right", va="bottom", zorder=19)
-            south = q["lat"] - lat_err
-            if south < lat0:
-                haloed_text(ax, q["lon"] - 0.02, lat0 + 0.004,
-                            f"error bar continues to {south:.2f}°N", fontsize=FS_NOTE,
-                            ha="right", va="bottom", zorder=19)
+def draw_earthquake(ax):
+    q = EARTHQUAKE
+    lat_err = q["err_lat_km"] / KM_PER_DEG_LAT
+    lon_err = q["err_lon_km"] / km_per_deg_lon(q["lat"])
+    bars = ax.errorbar([q["lon"]], [q["lat"]], xerr=[[lon_err], [lon_err]],
+                       yerr=[[lat_err], [lat_err]], fmt="none", ecolor="#202020",
+                       elinewidth=0.8, capsize=1.8, capthick=0.8, zorder=13)
+    for part in bars[2]:
+        part.set_path_effects(THIN_HALO)
+    ax.scatter([q["lon"]], [q["lat"]], marker="*", s=75, facecolor="#ffd400",
+               edgecolor="black", linewidth=0.7, zorder=14)
+    haloed_text(ax, q["lon"] + 0.02, q["lat"] - 0.028, "17 Jul 2026\nearthquake (IGSSA)",
+                ha="left", va="top", linespacing=1.1)
+
+
+def tucked_label(quadrant: str, shafts, half_w: float, half_h: float,
+                 clear_mm: float) -> tuple[float, float]:
+    """Centre, in mm from the arrow crossing, of a label box with the half
+    extents ``half_w`` and ``half_h`` in the quadrant named like a compass
+    corner ("NE", "NW", "SE" or "SW"). The box starts at the crossing and
+    each shaft (unit direction and half-length, head included) that it sits
+    beside pushes it out along the shaft's normal until the box clears the
+    shaft axis by ``clear_mm``, so the label stays as near the crossing as
+    the clearance allows."""
+    sx, sy = (1.0 if "E" in quadrant else -1.0), (1.0 if "N" in quadrant else -1.0)
+    lx, ly = sx * half_w, sy * half_h
+    for _ in range(4):                  # the pushes interact only through the shafts' skew
+        for ux, uy, reach in shafts:
+            nx, ny = (-uy, ux) if -uy * sx + ux * sy >= 0.0 else (uy, -ux)
+            corners = [(lx + i * half_w, ly + j * half_h) for i in (-1, 1) for j in (-1, 1)]
+            along = [cx * ux + cy * uy for cx, cy in corners]
+            if max(along) < -reach - clear_mm or min(along) > reach + clear_mm:
+                continue
+            short = clear_mm - min(cx * nx + cy * ny for cx, cy in corners)
+            if short > 0.0:
+                lx, ly = lx + short * nx, ly + short * ny
+    return lx, ly
+
+
+def draw_look_arrows(ax, view: dict, *, corner: str, x: float, y: float,
+                     flight_mm=4.5, los_mm=3.2, pad_mm=0.9, los_label=None):
+    """Flight direction and ground-to-satellite look direction: two arrows
+    through one centre on a white box sized from the measured arrows and
+    labels so that nothing crosses its edge. ``x``, ``y`` (axes fraction)
+    place the box corner named by ``corner`` ("NE", "NW", "SE" or "SW"); the
+    arrow half-lengths are in millimetres. Each label sits beyond its arrow
+    head, unless ``los_label`` names the quadrant between the arrows into
+    which the LOS label is tucked instead: the box is then narrower."""
+    w_mm, h_mm = ax._size_mm
+    px_per_mm = ax.figure.dpi / 25.4
+    renderer = ax.figure.canvas.get_renderer()
+    head_mm = 0.7                       # clearance round the shaft ends and heads
+    items = []
+    for label, colour, angle, half_mm, quadrant in (
+            ("flight", "#222222", view["heading_deg"], flight_mm, None),
+            ("LOS", "#c81e1e", view["los_deg"], los_mm, los_label)):
+        ux, uy = math.sin(math.radians(angle)), math.cos(math.radians(angle))
+        text = ax.text(0.0, 0.0, label, transform=ax.transAxes, ha="center", va="center",
+                       fontsize=FS_NOTE, color=colour, zorder=18)
+        extent = text.get_window_extent(renderer)
+        items.append((text, ux, uy, half_mm, colour, quadrant,
+                      0.5 * extent.width / px_per_mm, 0.5 * extent.height / px_per_mm))
+    shafts = [(ux, uy, half_mm + head_mm) for _, ux, uy, half_mm, *_ in items]
+    arrows, labels, xs, ys = [], [], [], []
+    for text, ux, uy, half_mm, colour, quadrant, half_w, half_h in items:
+        if quadrant is None:
+            # The label centre sits beyond the head by the label's own extent
+            # along the arrow, so its near edge clears the head by 0.6 mm.
+            reach = half_mm + head_mm + 0.6 + abs(ux) * half_w + abs(uy) * half_h
+            lx, ly = reach * ux, reach * uy
         else:
-            haloed_text(ax, q["lon"] + 0.02, q["lat"] - 0.028, "17 Jul 2026\nearthquake (IGSSA)",
-                        ha="left", va="top", linespacing=1.1)
-
-
-def draw_look_arrows(ax, view: dict, *, x, y, w, h, flight_mm=6.0, los_mm=4.2):
-    """Flight direction and ground-to-satellite LOS azimuth in a white box."""
-    ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.004",
+            # 0.9 mm from the shaft axis leaves 0.5 mm beside the head barbs.
+            lx, ly = tucked_label(quadrant, shafts, half_w, half_h, clear_mm=0.9)
+        arrows.append((ux, uy, half_mm, colour))
+        labels.append((text, lx, ly))
+        for s in (half_mm + head_mm, -(half_mm + head_mm)):
+            xs += [s * ux - head_mm, s * ux + head_mm]
+            ys += [s * uy - head_mm, s * uy + head_mm]
+        xs += [lx - half_w, lx + half_w]
+        ys += [ly - half_h, ly + half_h]
+    x0, x1 = min(xs) - pad_mm, max(xs) + pad_mm
+    y0, y1 = min(ys) - pad_mm, max(ys) + pad_mm
+    cx = x - (x1 if "E" in corner else x0) / w_mm
+    cy = y - (y1 if "N" in corner else y0) / h_mm
+    ax.add_patch(FancyBboxPatch((cx + x0 / w_mm, cy + y0 / h_mm), (x1 - x0) / w_mm,
+                                (y1 - y0) / h_mm, boxstyle="round,pad=0.004",
                                 transform=ax.transAxes, facecolor="white", edgecolor="none",
                                 alpha=0.86, zorder=16))
-    w_mm, h_mm = ax._size_mm
-    cx, cy = x + 0.5 * w, y + 0.5 * h
-    for angle, length_mm, label, colour in ((view["heading_deg"], flight_mm, "flight", "#222222"),
-                                            (view["los_deg"], los_mm, "LOS", "#c81e1e")):
-        dx = length_mm * math.sin(math.radians(angle)) / w_mm
-        dy = length_mm * math.cos(math.radians(angle)) / h_mm
+    for ux, uy, half_mm, colour in arrows:
+        dx, dy = half_mm * ux / w_mm, half_mm * uy / h_mm
         ax.annotate("", xy=(cx + dx, cy + dy), xytext=(cx - dx, cy - dy),
                     xycoords="axes fraction", textcoords="axes fraction",
                     arrowprops={"arrowstyle": "-|>", "lw": 1.1, "color": colour,
                                 "shrinkA": 0, "shrinkB": 0}, zorder=18)
-        ax.text(cx + 1.35 * dx, cy + 1.35 * dy, label, transform=ax.transAxes, ha="center",
-                va="center", fontsize=FS_NOTE, color=colour, zorder=18)
+    for text, lx, ly in labels:
+        text.set_position((cx + lx / w_mm, cy + ly / h_mm))
 
 
 def series_axes(ax, year, los, *, title: str, ylabel: str, xlabel: bool, title_left=False):
@@ -686,7 +742,7 @@ def series_axes(ax, year, los, *, title: str, ylabel: str, xlabel: bool, title_l
 # The figure
 
 
-def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
+def build(dem_south: Path, out_stem: Path, coherence_min: float, notes: bool) -> list[Path]:
     plt.rcParams.update({"font.size": 7, "axes.linewidth": 0.7, "pdf.fonttype": 42})
     dem_paths = [DEM_PATH, dem_south]
 
@@ -707,7 +763,7 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
     b_w = 36.0
     b_h = b_w * (FRAME_B["lat"][1] - FRAME_B["lat"][0]) / (
         (FRAME_B["lon"][1] - FRAME_B["lon"][0]) * math.cos(math.radians(12.38)))
-    y_base = 20.5
+    y_base = 20.5 if notes else 9.5          # the notes block needs 11 mm below the panels
     top = y_base + a_h
     col1, col2 = 103.0, 149.0
     fig_h = top + 2.0
@@ -723,11 +779,11 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
     draw_plane_trace(ax_a, profiles, label=True)
     draw_2026_geometry(ax_a, lines_2026, labels=True)
     draw_volcanoes(ax_a, names=True)
-    draw_earthquakes(ax_a, FRAME_A)
+    draw_earthquake(ax_a)
     for name, lon, lat in (("Dabbahu MS", 40.30, 12.46), ("Hararo MS", 40.40, 12.02)):
         haloed_text(ax_a, lon, lat, name, fontsize=7.4, fontstyle="italic", ha="left",
                     va="center", color="#202020")
-    draw_look_arrows(ax_a, NISAR_VIEW, x=0.77, y=0.79, w=0.20, h=0.15)
+    draw_look_arrows(ax_a, NISAR_VIEW, corner="NE", x=0.975, y=0.945)
     scale_bar(ax_a, FRAME_A, 20)
     inset_colorbar(ax_a, plt.cm.ScalarMappable(norm=norm_a, cmap=cyclic),
                    "LOS toward satellite, one fringe (cm)",
@@ -753,8 +809,8 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
     draw_2026_geometry(ax_b, lines_2026, lw_dike=1.0, labels=False)
     draw_volcanoes(ax_b, names=False, size=16)
     if b_drawn:
-        draw_look_arrows(ax_b, view_b, x=0.67, y=0.60, w=0.30, h=0.19,
-                         flight_mm=4.6, los_mm=3.2)
+        draw_look_arrows(ax_b, view_b, corner="NE", x=0.975, y=0.81,
+                         flight_mm=3.4, los_mm=2.4, los_label="NW")
         inset_colorbar(ax_b, plt.cm.ScalarMappable(norm=norm_env, cmap=cyclic),
                        "one fringe (cm)", ticks=[0, ENVISAT_FRINGE_CM],
                        tick_labels=["0", f"{ENVISAT_FRINGE_CM:.1f}"], x=0.44, w=0.50)
@@ -764,8 +820,8 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
                     transform=ax_b.transAxes, ha="right", va="center", fontsize=FS_LABEL,
                     linespacing=1.25, color="#202020")
         haloed_text(ax_b, profiles["lon"][0] + 0.02, profiles["lat"][0] - 0.01,
-                    "2005 dike\n(model plane)", color="#3a3a3a", fontsize=FS_NOTE, ha="left",
-                    va="top", linespacing=1.1)
+                    "2005 dike model", color="#3a3a3a", fontsize=FS_MODEL, ha="left",
+                    va="top")
         title_b = "Sept 2005 dike"
     scale_bar(ax_b, FRAME_B, 20)
     panel_letter(ax_b, "b")
@@ -780,8 +836,8 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
     map_axes(ax_c, FRAME_B, lon_labels=True, lat_labels=False)
     draw_2026_geometry(ax_c, lines_2026, lw_dike=1.0, labels=False)
     draw_volcanoes(ax_c, names=False, size=16)
-    draw_look_arrows(ax_c, ENVISAT_VIEW, x=0.67, y=0.60, w=0.30, h=0.19,
-                     flight_mm=4.6, los_mm=3.2)
+    draw_look_arrows(ax_c, ENVISAT_VIEW, corner="NE", x=0.975, y=0.81,
+                     flight_mm=3.4, los_mm=2.4, los_label="NE")
     scale_bar(ax_c, FRAME_B, 20)
     inset_colorbar(ax_c, plt.cm.ScalarMappable(norm=norm_env, cmap=cyclic),
                    "one fringe (cm)", ticks=[0, ENVISAT_FRINGE_CM],
@@ -808,7 +864,8 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
                  edgecolor="black", linewidth=0.8, zorder=13)
     haloed_text(ax_d, FLANK_REFERENCE[0] + 0.016, FLANK_REFERENCE[1] + 0.004, "f′",
                 fontsize=6.8, fontweight="bold", ha="left", va="center")
-    draw_look_arrows(ax_d, S1_VIEW, x=0.03, y=0.26, w=0.30, h=0.19, flight_mm=4.6, los_mm=3.2)
+    draw_look_arrows(ax_d, S1_VIEW, corner="SW", x=0.025, y=0.25, flight_mm=3.4, los_mm=2.4,
+                     los_label="NW")
     scale_bar(ax_d, FRAME_B, 20)
     inset_colorbar(ax_d, plt.cm.ScalarMappable(norm=norm_d, cmap=cyclic),
                    "one fringe (cm)", ticks=[0, S1_FRINGE_MM / 10],
@@ -831,6 +888,21 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
                 xlabel=True)
     panel_letter(ax_f, "f")
 
+    if notes:
+        draft_notes(fig, fig_h, left, coherence_min, north_drawn, b_drawn)
+
+    outputs = []
+    for suffix, kwargs in ((".png", {"dpi": 400}), (".pdf", {"dpi": 400})):
+        path = out_stem.with_suffix(suffix)
+        fig.savefig(path, **kwargs)
+        outputs.append(path)
+    plt.close(fig)
+    return outputs
+
+
+def draft_notes(fig, fig_h: float, left: float, coherence_min: float, north_drawn: bool,
+                b_drawn: bool) -> None:
+    """The notes to the coauthors under the draft version of the figure."""
     north_note = (f"north of {NISAR_CROP_NORTH_LAT}°N the panel shows the display strip of "
                   "the same pair (same corrections, not unwrapped)" if north_drawn else
                   f"the analysis crop ends at {NISAR_CROP_NORTH_LAT}°N; the display strip "
@@ -850,26 +922,22 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float) -> list[Path]:
              "in the original processing reference.",
              fontsize=FS_NOTE, ha="left", va="bottom", color="#333333", linespacing=1.25)
 
-    outputs = []
-    for suffix, kwargs in ((".png", {"dpi": 400}), (".pdf", {"dpi": 400})):
-        path = out_stem.with_suffix(suffix)
-        fig.savefig(path, **kwargs)
-        outputs.append(path)
-    plt.close(fig)
-    return outputs
-
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--dem-south", type=Path, default=DEM_SOUTH_PATH,
                         help="Copernicus GLO-30 tile N11 E040 (ignored data, fetched from "
                              f"{DEM_SOUTH_URL})")
-    parser.add_argument("--out", type=Path, default=RESULTS / "figure1_draft",
-                        help="output stem (PNG and PDF are written)")
+    parser.add_argument("--notes", action="store_true",
+                        help="add the notes to the coauthors under the panels (the draft version, "
+                             "written to results/figure1_draft by default)")
+    parser.add_argument("--out", type=Path,
+                        help="output stem (PNG and PDF are written); results/figure1 by default")
     parser.add_argument("--coherence-min", type=float, default=COHERENCE_MIN,
                         help="NISAR samples below this coherence are not displayed")
     args = parser.parse_args()
-    for path in build(args.dem_south, args.out, args.coherence_min):
+    out = args.out or RESULTS / ("figure1_draft" if args.notes else "figure1")
+    for path in build(args.dem_south, out, args.coherence_min, args.notes):
         print(path)
 
 

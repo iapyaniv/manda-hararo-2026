@@ -87,6 +87,8 @@ from pathlib import Path
 import matplotlib
 
 matplotlib.use("Agg")
+import matplotlib.path as mpath
+import matplotlib.patheffects as path_effects
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
@@ -384,9 +386,134 @@ def _fit_opening_stats(fit: dict, geometry: dict) -> dict:
     }
 
 
+def _path_pieces(path) -> list:
+    """The connected pieces of a contour path (one open or closed line each)."""
+    vertices, codes = path.vertices, path.codes
+    if codes is None:
+        return [vertices]
+    starts = list(np.flatnonzero(codes == path.MOVETO)) + [len(vertices)]
+    return [vertices[a:b] for a, b in zip(starts[:-1], starts[1:]) if b - a > 1]
+
+
+def _flatness(xy: np.ndarray, half_window: int = 3) -> np.ndarray:
+    """Per vertex, how far the neighbourhood departs from a straight line
+    (smaller is flatter: an inline label breaks the contour least there);
+    the end vertices get infinity."""
+    n = len(xy)
+    scores = np.full(n, np.inf)
+    if n <= 2 * half_window + 1:
+        scores[n // 2] = 0.0
+        return scores
+    for i in range(half_window, n - half_window):
+        a, b = xy[i - half_window], xy[i + half_window]
+        chord = b - a
+        length = float(np.hypot(*chord))
+        if length == 0.0:
+            continue
+        local = xy[i - half_window:i + half_window + 1] - a
+        scores[i] = float(np.abs(chord[0] * local[:, 1] - chord[1] * local[:, 0]).sum()
+                          / length)
+    return scores
+
+
+def _outside_box(xy: np.ndarray, box) -> list:
+    """The parts of the polyline ``xy`` outside the rectangle ``box``
+    (``(x0, y0, x1, y1)``, same coordinates), cut exactly at its edge."""
+    x0, y0, x1, y1 = box
+    p0, d = xy[:-1], np.diff(xy, axis=0)
+    t_in, t_out = np.zeros(len(d)), np.ones(len(d))
+    for k, lo, hi in ((0, x0, x1), (1, y0, y1)):
+        with np.errstate(divide="ignore", invalid="ignore"):
+            ta, tb = (lo - p0[:, k]) / d[:, k], (hi - p0[:, k]) / d[:, k]
+        t_lo, t_hi = np.minimum(ta, tb), np.maximum(ta, tb)
+        parallel = d[:, k] == 0.0
+        within = (p0[:, k] >= lo) & (p0[:, k] <= hi)
+        t_lo = np.where(parallel, np.where(within, -np.inf, np.inf), t_lo)
+        t_hi = np.where(parallel, np.where(within, np.inf, -np.inf), t_hi)
+        t_in, t_out = np.maximum(t_in, t_lo), np.minimum(t_out, t_hi)
+    pieces, piece = [], [xy[0]]
+    for i in range(len(d)):
+        if t_in[i] >= t_out[i]:
+            piece.append(xy[i + 1])
+            continue
+        if t_in[i] > 0.0:
+            piece.append(p0[i] + t_in[i] * d[i])
+        pieces.append(piece)
+        piece = [p0[i] + t_out[i] * d[i]] if t_out[i] < 1.0 else []
+        if piece:
+            piece.append(xy[i + 1])
+    pieces.append(piece)
+    return [np.array(p) for p in pieces if len(p) > 1]
+
+
+def _cut_path(path, transform, box):
+    """``path`` (data coordinates) less its parts inside ``box`` (screen
+    pixels)."""
+    pieces = []
+    for xy in _path_pieces(path):
+        pieces += _outside_box(transform.transform(xy), box)
+    return mpath.Path.make_compound_path(
+        *(mpath.Path(transform.inverted().transform(xy)) for xy in pieces))
+
+
+def _label_contours(ax, lines, *, fontsize=6.0, min_width_mm=4.0,
+                    min_separation_mm=5.0, margin_km=0.6, gap_mm=0.5):
+    """One upright label per contour level, on the widest line of that
+    level, at the flattest stretch that stays clear of the panel edges and
+    at least ``min_separation_mm`` from the labels already placed (lower
+    levels are placed first); the line is cut ``gap_mm`` round the label's
+    box. A line narrower than ``min_width_mm`` in either direction (the
+    innermost ring round a peak) stays unlabelled. Call it once the axis
+    limits are final: the labels follow the drawn lines."""
+    px_per_mm = ax.figure.dpi / 25.4
+    renderer = ax.figure.canvas.get_renderer()
+    (x_lo, x_hi), (y_lo, y_hi) = sorted(ax.get_xlim()), sorted(ax.get_ylim())
+    positions, levels, placed_px = [], [], []
+    for level, path in enumerate(lines.get_paths()):
+        pieces = _path_pieces(path)
+        if not pieces:
+            continue
+        widest = max(pieces, key=lambda xy: np.ptp(xy, axis=0).max())
+        if np.ptp(ax.transData.transform(widest), axis=0).min() < min_width_mm * px_per_mm:
+            continue
+        inside = widest[(widest[:, 0] > x_lo + margin_km) & (widest[:, 0] < x_hi - margin_km)
+                        & (widest[:, 1] > y_lo + margin_km) & (widest[:, 1] < y_hi - margin_km)]
+        if len(inside) < 2:
+            continue
+        inside_px = ax.transData.transform(inside)
+        scores = _flatness(inside)
+        for i in np.argsort(scores):
+            if not np.isfinite(scores[i]):
+                break
+            if all(np.hypot(*(inside_px[i] - p)) >= min_separation_mm * px_per_mm
+                   for p in placed_px):
+                positions.append(tuple(inside[i]))
+                levels.append(level)
+                placed_px.append(inside_px[i])
+                break
+    if not positions:
+        return
+    paths = list(lines.get_paths())
+    for level, text in zip(levels, lines.clabel(manual=positions, inline=False,
+                                                fontsize=fontsize, fmt="%g")):
+        text.set_rotation(0)
+        text.set_path_effects([path_effects.Stroke(linewidth=1.6, foreground="white"),
+                               path_effects.Normal()])
+        # The digits have no descender: the box is trimmed by the font's.
+        extent = text.get_window_extent(renderer)
+        descent = renderer.get_text_width_height_descent(
+            text.get_text(), text.get_fontproperties(), ismath=False)[2]
+        gap = gap_mm * px_per_mm
+        paths[level] = _cut_path(paths[level], ax.transData,
+                                 (extent.x0 - gap, extent.y0 + descent - gap,
+                                  extent.x1 + gap, extent.y1 + gap))
+    lines.set_paths(paths)
+
+
 def _panel(ax, s_centres, z_edges, opening, vmax, line_levels, title,
            note, title_size=10.5):
-    """One filled U_perp cross-section in the mh26.wright2006 panel style."""
+    """One filled U_perp cross-section in the mh26.wright2006 panel style.
+    Returns the filled set and the contour-line set (None without lines)."""
     z_centres = 0.5 * (z_edges[:-1] + z_edges[1:])
     s_lo = s_centres[0] - 0.5 * (s_centres[1] - s_centres[0])
     s_hi = s_centres[-1] + 0.5 * (s_centres[-1] - s_centres[-2])
@@ -400,15 +527,16 @@ def _panel(ax, s_centres, z_edges, opening, vmax, line_levels, title,
                          antialiased=True)
     filled.set_rasterized(True)
     levels = [lv for lv in line_levels if lv < float(opening.max())]
+    lines = None
     if levels:
-        ax.contour(s_plot, z_plot, padded, levels=levels, colors="0.15",
-                   linewidths=0.55)
+        lines = ax.contour(s_plot, z_plot, padded, levels=levels, colors="0.15",
+                           linewidths=0.55)
     ax.set_title(title, loc="left", fontsize=title_size, fontweight="bold",
                  pad=5 if note else 3)
     if note:
         ax.set_title(note, loc="right", fontsize=8, color="0.30", pad=6)
     ax.set_ylabel("Depth (km)")
-    return filled
+    return filled, lines
 
 
 # Contour lines of the three sections (metres): September 2005, the
@@ -476,13 +604,16 @@ def draw_epoch_sections(fig, axes, registration: dict, fit: dict,
              stats) in zip(axes, panels):
         if common_vmax is not None:
             vmax = common_vmax
-        filled = _panel(ax, s_centres, z_ax, opening, vmax, lines, title,
-                        note, title_size=8 if manuscript else 10.5)
+        filled, contour_lines = _panel(ax, s_centres, z_ax, opening, vmax, lines,
+                                       title, note,
+                                       title_size=8 if manuscript else 10.5)
         ax.set_xlim(*xlim)
         ax.set_ylim(0.0, 10.0)
         ax.invert_yaxis()
         ax.axvline(se_2005, color="0.25", lw=0.9, ls=(0, (4, 3)), zorder=4)
         if manuscript:
+            if contour_lines is not None:
+                _label_contours(ax, contour_lines)
             continue
         # The label quotes the displayed (above-10-km) field; the full
         # file integral stays in parentheses where it differs.

@@ -30,15 +30,16 @@ establish.
 
 ## Figures
 
-![Figure 1 draft: the segment, the 2026 interferogram, the 2005 and 2008 dykes in Envisat, and the wrapped 2014–2026 Sentinel-1 displacement and series](results/figure1_draft.png)
+![Figure 1: the segment, the 2026 interferogram, the 2005 and 2008 dykes in Envisat, and the wrapped 2014–2026 Sentinel-1 displacement and series](results/figure1.png)
 
-Figure 1 (draft): the segment and the July 2026 intrusion in the NISAR
+Figure 1: the segment and the July 2026 intrusion in the NISAR
 interferogram, the September 2005 dyke in the Envisat track-49 pair
 processed here, the October 2008 dyke in Envisat track 300, and the
 Sentinel-1 cumulative displacement of 2014–2026 wrapped at one fringe
-(`python -m mh26.figure1`; the strip north of the NISAR analysis crop
-comes from `python -m mh26.gslc_strip`, the 2005 interferogram from
-`python -m mh26.envisat_2005`).
+(`python -m mh26.figure1`; `--notes` writes `results/figure1_draft.png`
+with the notes to the coauthors under the panels; the strip north of the
+NISAR analysis crop comes from `python -m mh26.gslc_strip`, the 2005
+interferogram from `python -m mh26.envisat_2005`).
 
 ![The four-geometry displacement decomposition in the dyke frame](results/summary_decomposition_dike_frame_pub.png)
 

@@ -170,6 +170,13 @@ a13584043d975a616fd4a22593c4aee8c3d0b7ac9319d5f3ad1592cc25923b0a  manda-hararo-2
 - Figure 4: the manuscript layout of the opening history with its caption written from the report numbers; Figure 1 labels spelt "dike"
 - Figure 1: the September 2005 dyke in the Envisat track-49 pair processed here, the phase taken after geocoding; the Sentinel-1 mask keeps smooth steep fringes; panels (d) to (f) cite the Ireland figure by name
 
+### 2026-10-23
+- Processing notes: the baseline and geolocation checks of the 2005 Envisat pair
+
+### 2026-10-25
+- Figure 1: the manuscript version without the draft notes (results/figure1.png and .pdf; `--notes` writes the annotated draft); the IGSSA location only, the ISC location dropped
+- Figure 4: the opening values labelled on the contours of the manuscript sections
+
 ## Analysis notes kept from the README (as of 22 October 2026)
 
 ### Results
