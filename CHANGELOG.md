@@ -7,8 +7,8 @@ README carried until 22 October 2026, kept word for word.
 
 ## Archives and releases
 
-- 2026-10-26: Zenodo records, version 1.0.0, software (DOI to be filled in)
-  and data (DOI to be filled in), built with `scripts/build_release.py` from
+- 2026-10-26: Zenodo records, version 1.0.0, software (10.5281/zenodo.23657585)
+  and data (10.5281/zenodo.23657617), built with `scripts/build_release.py` from
   the commit tagged `v1.0.0`; checksums in `dist/SHA256SUMS.txt`. The data
   record has the four analysis archives, the closure add-on and the new
   figure-input add-on `manda-hararo-2026_data-figures.zip` (the Hamling

@@ -1,0 +1,63 @@
+cff-version: 1.2.0
+message: "If you use this software, cite it with the metadata below, and cite the paper."
+type: software
+title: "manda-hararo-2026: NISAR and Sentinel-1 analysis of the July 2026 Manda Hararo dike intrusion"
+version: 1.0.0
+doi: 10.5281/zenodo.23657585
+date-released: 2026-10-26
+repository-code: "https://github.com/iapyaniv/manda-hararo-2026"
+license: MIT
+keywords:
+  - NISAR
+  - Sentinel-1
+  - InSAR
+  - dike intrusion
+  - Afar
+  - Dabbahu-Manda Hararo
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.23657585
+    description: "The software record (version 1.0.0)."
+  - type: doi
+    value: 10.5281/zenodo.23657617
+    description: "The data record (version 1.0.0): NISAR crops, reprocessed interferograms, loop-closure inputs, Sentinel-1 pairs and figure inputs."
+authors:
+  - family-names: Pai
+    given-names: Vinay
+    affiliation: Yowon Labs
+  - family-names: Biggs
+    given-names: Juliet
+    affiliation: "COMET, School of Earth Sciences, University of Bristol"
+  - family-names: Keir
+    given-names: Derek
+    affiliation: "University of Florence; University of Southampton"
+  - family-names: Lewi
+    given-names: Elias
+    affiliation: "University of Bristol; Institute of Geophysics, Space Science and Astronomy, Addis Ababa University"
+  - family-names: Ireland
+    given-names: Ben
+    affiliation: "COMET, School of Earth Sciences, University of Bristol"
+  - family-names: Pagli
+    given-names: Carolina
+    affiliation: "Department of Earth Sciences, University of Pisa"
+  - family-names: Wright
+    given-names: Tim
+    affiliation: "COMET, School of Earth and Environment, University of Leeds"
+  - family-names: Espín-Bedón
+    given-names: Pedro
+    affiliation: "COMET, School of Earth and Environment, University of Leeds"
+  - family-names: Lazecký
+    given-names: Milan
+    affiliation: "COMET, School of Earth and Environment, University of Leeds"
+  - family-names: Hamling
+    given-names: Ian
+    affiliation: Earth Sciences New Zealand
+  - family-names: Ayele
+    given-names: Atalay
+    affiliation: "Institute of Geophysics, Space Science and Astronomy, Addis Ababa University"
+  - family-names: Alemayehu
+    given-names: Sisay
+    affiliation: "Institute of Geophysics, Space Science and Astronomy, Addis Ababa University"
+  - family-names: Yanimio Abdella
+    given-names: Nora
+    affiliation: Samara University

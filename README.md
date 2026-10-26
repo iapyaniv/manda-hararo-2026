@@ -7,7 +7,7 @@ and fault model, the displacement decomposition, timing and post-intrusion
 checks, and the figures of the paper "Dabbahu–Manda Hararo reawakening"
 (Pai et al., in preparation for *Geophysical Research Letters*).
 
-Zenodo: software DOI [to be added]; data DOI [to be added].
+Zenodo, version 1.0.0: software [10.5281/zenodo.23657585](https://doi.org/10.5281/zenodo.23657585); data [10.5281/zenodo.23657617](https://doi.org/10.5281/zenodo.23657617).
 
 Maintainer: Vinay Pai, Yowon Labs, <vinay@yowon.org>.
 
