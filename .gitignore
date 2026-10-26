@@ -6,6 +6,7 @@ data/*
 !data/SHA256SUMS-s1tracks.txt
 !data/SHA256SUMS-gslc.txt
 !data/SHA256SUMS-closure.txt
+!data/SHA256SUMS-figures.txt
 !data/complex_geom2_revised_test.dat
 !data/ihamling/
 data/ihamling/*

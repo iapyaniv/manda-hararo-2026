@@ -9,12 +9,14 @@ data/
 ├── s1/         40 LiCSAR GeoTIFFs for frames 014A_07688_131313 and
 │               079D_07694_131313
 ├── geotiff/    40 analysis-ready NISAR LOS/coherence GeoTIFFs
-├── gslc/       4 reprocessed 30-m products; the closure add-on adds raw loop inputs
+├── gslc/       4 reprocessed 30-m products; the closure add-on adds raw loop
+│               inputs, the figures add-on the display strip north of the crop
 ├── SHA256SUMS-core.txt
 ├── SHA256SUMS-preevent.txt
 ├── SHA256SUMS-s1tracks.txt
 ├── SHA256SUMS-gslc.txt
 ├── SHA256SUMS-closure.txt      18 exact interferogram/cache files
+├── SHA256SUMS-figures.txt      inputs of Figures 1 and 4 outside the analysis archives
 └── SHA256SUMS.txt              files in the four earlier data archives
 ```
 
@@ -101,9 +103,8 @@ the complete saved set with
 the reports and their source/settings inventory; it still rejects
 changed input hashes. Regeneration requires all three tracks.
 
-The closure archive is prepared locally and has not been uploaded.
-Its hash is listed in the repository README and in
-`dist/SHA256SUMS-closure.txt`. To build this archive alone after a full
+The closure archive is prepared locally; its hash is listed in the
+changelog and in `dist/SHA256SUMS-closure.txt`. To build this archive alone after a full
 closure replay, run `python scripts/build_release.py --closure-only`.
 The builder requires the complete saved baseline to pass validation,
 including all input hashes and raw-array replay, before it writes a ZIP.
@@ -138,6 +139,27 @@ Each archive contains a checksum manifest for its own files. The core archive
 can therefore be verified without the separate pre-event archive. Top-level
 archive checksums are in `dist/SHA256SUMS.txt`.
 
+## Figure-input add-on
+
+`manda-hararo-2026_data-figures.zip` holds the inputs of Figures 1 and 4
+that the analysis archives do not: the Hamling opening models and the 15
+Envisat track-300 interferograms (`ihamling/`), the 2005 dike plane
+(`complex_geom2_revised_test.dat`), the Sentinel-1 cumulative displacement
+maps (`sentinel1-cumulative/`), the digitized site series
+(`ireland-series/`), the Envisat track-49 interferogram of 2005 processed
+here (`envisat-2005/`) and the NISAR display strip north of the analysis
+crop (`gslc/165_082_D_north_display.npz`, written by `mh26.gslc_strip`).
+The tracked files among them are the same as in the code archive; the
+track-300 grids and the display strip are only here.
+
+```bash
+unzip -n manda-hararo-2026_data-figures.zip -d data
+(cd data && sha256sum -c SHA256SUMS-figures.txt)
+```
+
+Its manifest is separate from `SHA256SUMS.txt`, which lists the four
+analysis archives that `mh26.validate` checks.
+
 ## Hamling dike files (2005 and 2006–2010 opening distributions)
 
 `data/ihamling/` holds Ian Hamling's `dyke_files.zip` delivery (provided
@@ -157,8 +179,8 @@ the `plot_3d_dyke_only.dat` patch geometry, ~0.5 MB) are tracked in git, so
 the hashes recorded in `results/uperp_three_epoch*.json`. The zip itself and
 the 15 `t300_*_wrp_dyke.grd` grids (GMT classic netCDF, 1024×1024 at 90 m,
 UTM 37N, wrapped Envisat track-300 LOS in centimetres — the z range spans
-one 2.81-cm fringe) stay out of git; re-download the zip for them. The
-decoded table format is documented in the `mh26/hamling.py` docstring.
+one 2.81-cm fringe) stay out of git; the figure-input add-on ships the
+grids, or re-download the zip for them. The decoded table format is documented in the `mh26/hamling.py` docstring.
 
 `data/ihamling/2026-09-17/` holds the two files of Ian Hamling's
 follow-up delivery of 17 September 2026 (both tracked): `doplot3d.m`,
@@ -282,7 +304,7 @@ one pre-dike and one dike-spanning map per LiCSAR frame (014A:
 2014-10-30→2026-07-06 and 2014-10-06→2026-08-11; 079D: 2014-10-23→2026-07-11
 and 2014-10-23→2026-08-16). They are EPSG:4326 GeoTIFFs at ≈0.00054°
 posting, float32 millimetres, NaN where empty, without a nodata tag. They
-are outside the data archives and checksum manifests; `mh26.figure1` draws
+are in the figure-input add-on and its manifest; `mh26.figure1` draws
 the pre-dike 079D map and no numerical result uses them. One empirical check was made: the dike-spanning minus pre-dike
 difference of each frame correlates with this repository's referenced
 LiCSAR co-event field at r = 0.97 (014A) and 0.99 (079D), with slopes 1.22

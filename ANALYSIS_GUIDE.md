@@ -158,7 +158,10 @@ The gslc archive adds the 30-m co-event inputs, and the separate closure
 archive supplies the raw arrays needed to reproduce loop closure (see
 `data/README.md`). The pre-event archive is needed only
 to regenerate the 16-window history from the NPZ layers. The core archive
-already contains the corresponding GeoTIFFs.
+already contains the corresponding GeoTIFFs. The figures archive holds the
+inputs of Figures 1 and 4 that these archives do not (the contributed models
+and interferograms, the Envisat interferogram of 2005 and the NISAR display
+strip; see `data/README.md`).
 
 ## Current source model
 

@@ -7,9 +7,14 @@ README carried until 22 October 2026, kept word for word.
 
 ## Archives and releases
 
-- 2026-10-22: Zenodo records, version 1.0.0, software (DOI to be filled in)
-  and data (DOI to be filled in), built from commit `adb6ec1` with
-  `scripts/build_release.py`; checksums in `dist/SHA256SUMS.txt`.
+- 2026-10-26: Zenodo records, version 1.0.0, software (DOI to be filled in)
+  and data (DOI to be filled in), built with `scripts/build_release.py` from
+  the commit tagged `v1.0.0`; checksums in `dist/SHA256SUMS.txt`. The data
+  record has the four analysis archives, the closure add-on and the new
+  figure-input add-on `manda-hararo-2026_data-figures.zip` (the Hamling
+  models and track-300 interferograms, the 2005 dike plane, the Sentinel-1
+  cumulative maps and digitized series, the Envisat track-49 interferogram
+  of 2005 and the NISAR display strip north of the analysis crop).
 - 2026-09-14: the closure-data add-on `manda-hararo-2026_data-closure.zip`
   prepared locally (SHA-256
   `a13584043d975a616fd4a22593c4aee8c3d0b7ac9319d5f3ad1592cc25923b0a`).
@@ -148,6 +153,9 @@ a13584043d975a616fd4a22593c4aee8c3d0b7ac9319d5f3ad1592cc25923b0a  manda-hararo-2
 ### 2026-10-25
 - Figure 1: the manuscript version without the draft notes (results/figure1.png and .pdf; `--notes` writes the annotated draft); the IGSSA location only, the ISC location dropped
 - Figure 4: the opening values labelled on the contours of the manuscript sections
+
+### 2026-10-26
+- Release build: the figure-input add-on and its manifest `data/SHA256SUMS-figures.txt`
 
 ## Analysis notes kept from the README (as of 22 October 2026)
 

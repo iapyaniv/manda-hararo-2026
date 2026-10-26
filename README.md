@@ -87,7 +87,9 @@ environment the committed outputs were made with.
 
 - The data record holds the NISAR GUNW crops, the reprocessed 30-m NISAR
   interferograms and unwrapped fields, the loop-closure inputs, the analysis
-  GeoTIFFs and the LiCSAR Sentinel-1 pairs, each archive with a SHA-256
+  GeoTIFFs and the LiCSAR Sentinel-1 pairs, and a figure-input archive with
+  the contributed inputs below, the Envisat track-49 interferogram and the
+  NISAR display strip north of the analysis crop; each archive has a SHA-256
   manifest. Layout, verification and rebuild instructions:
   [`data/README.md`](data/README.md).
 - Contributed inputs, credited to their authors: the

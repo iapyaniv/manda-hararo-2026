@@ -10,6 +10,12 @@ Release workflow:
 The core and pre-event archives have separate checksum manifests, so each
 archive can be verified without the other.
 
+The figures add-on holds the inputs of Figures 1 and 4 that the analysis
+archives do not: the contributed models and interferograms, the Envisat
+interferogram of 2005 processed here and the NISAR display strip north of
+the analysis crop. Its manifest stays out of ``SHA256SUMS.txt``, whose entry
+count ``mh26.validate`` pins.
+
 ``--closure-only`` builds the separate closure-data add-on from its saved
 input inventory. It can package a reviewed working tree without a commit;
 the ZIP comment identifies the base commit, working-tree state, and exact
@@ -44,6 +50,7 @@ from mh26.params import (  # noqa: E402
     S1_TRACK_PAIRS,
 )
 from mh26.gslc import DATA_GSLC  # noqa: E402
+from mh26.gslc_strip import DISPLAY as NORTH_DISPLAY_STRIP  # noqa: E402
 
 
 DATA = ROOT / "data"
@@ -54,6 +61,7 @@ CORE_ARCHIVE = DIST / "manda-hararo-2026_data-core.zip"
 PREEVENT_ARCHIVE = DIST / "manda-hararo-2026_data-preevent.zip"
 S1TRACKS_ARCHIVE = DIST / "manda-hararo-2026_data-s1tracks.zip"
 GSLC_ARCHIVE = DIST / "manda-hararo-2026_data-gslc.zip"
+FIGURES_ARCHIVE = DIST / "manda-hararo-2026_data-figures.zip"
 CLOSURE_ARCHIVE = DIST / "manda-hararo-2026_data-closure.zip"
 
 
@@ -130,6 +138,32 @@ def gslc_files() -> list[Path]:
             for tag in INVERSION_PAIRS for kind in ("ifg", "unw")]
 
 
+def figures_files() -> list[Path]:
+    """Inputs of Figures 1 and 4 that the analysis archives do not hold.
+
+    The tracked files among them (the Hamling opening models, the 2005 dike
+    plane, the Sentinel-1 cumulative maps, the digitized series and the
+    Envisat track-49 interferogram) are the same files as in the code
+    archive. The 15 Envisat track-300 grids and the NISAR display strip are
+    not tracked and travel only here."""
+    output = subprocess.run(
+        ("git", "ls-files", "-z", "--", "data/ihamling",
+         "data/complex_geom2_revised_test.dat", "data/sentinel1-cumulative",
+         "data/ireland-series", "data/envisat-2005"),
+        cwd=ROOT, check=True, stdout=subprocess.PIPE,
+    ).stdout
+    files = [ROOT / item.decode() for item in output.split(b"\0") if item]
+    grids = sorted((DATA / "ihamling" / "opening_files").glob("t300_*_wrp_dyke.grd"))
+    if len(grids) != 15:
+        raise SystemExit(
+            f"expected the 15 Envisat track-300 grids in data/ihamling/opening_files, "
+            f"found {len(grids)}; see data/README.md"
+        )
+    files += grids
+    files.append(NORTH_DISPLAY_STRIP)
+    return sorted(files)
+
+
 def manifest_text(paths: list[Path]) -> str:
     lines = [f"{sha256(path)}  {path.relative_to(DATA).as_posix()}" for path in paths]
     return "\n".join(sorted(lines)) + "\n"
@@ -147,11 +181,15 @@ def write_manifests() -> None:
     preevent = preevent_files()
     s1tracks = s1tracks_files()
     gslc = gslc_files()
-    require_files(core + preevent + s1tracks + gslc)
+    figures = figures_files()
+    require_files(core + preevent + s1tracks + gslc + figures)
     write_if_changed(DATA / "SHA256SUMS-core.txt", manifest_text(core))
     write_if_changed(DATA / "SHA256SUMS-preevent.txt", manifest_text(preevent))
     write_if_changed(DATA / "SHA256SUMS-s1tracks.txt", manifest_text(s1tracks))
     write_if_changed(DATA / "SHA256SUMS-gslc.txt", manifest_text(gslc))
+    write_if_changed(DATA / "SHA256SUMS-figures.txt", manifest_text(figures))
+    # SHA256SUMS.txt stays the four analysis archives: mh26.validate pins its
+    # entry count, and the figure inputs are checked from their own manifest.
     write_if_changed(DATA / "SHA256SUMS.txt",
                      manifest_text(core + preevent + s1tracks + gslc))
 
@@ -250,12 +288,20 @@ def build_archives() -> None:
     ]
     write_archive(GSLC_ARCHIVE, gslc_entries, commit, timestamp)
 
+    figures = figures_files()
+    figures_entries = [(path.relative_to(DATA).as_posix(), path) for path in figures]
+    figures_entries += [
+        ("README.md", DATA / "README.md"),
+        ("SHA256SUMS-figures.txt", DATA / "SHA256SUMS-figures.txt"),
+    ]
+    write_archive(FIGURES_ARCHIVE, figures_entries, commit, timestamp)
+
     write_if_changed(
         DIST / "SHA256SUMS.txt",
         "".join(
             f"{sha256(path)}  {path.name}\n"
             for path in (CODE_ARCHIVE, CORE_ARCHIVE, PREEVENT_ARCHIVE,
-                         S1TRACKS_ARCHIVE, GSLC_ARCHIVE)
+                         S1TRACKS_ARCHIVE, GSLC_ARCHIVE, FIGURES_ARCHIVE)
         ),
     )
 
