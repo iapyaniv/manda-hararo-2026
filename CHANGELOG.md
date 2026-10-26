@@ -1,8 +1,9 @@
 # Changelog
 
 The dated record of this repository: archives and releases first, then the
-commit history by day, then the analysis notes that the README carried until
-22 October 2026, kept word for word.
+changes by day (those that altered data, processing, results, figure content
+or the documents; the git log has the rest), then the analysis notes that the
+README carried until 22 October 2026, kept word for word.
 
 ## Archives and releases
 
@@ -50,7 +51,7 @@ archive SHA-256 is:
 a13584043d975a616fd4a22593c4aee8c3d0b7ac9319d5f3ad1592cc25923b0a  manda-hararo-2026_data-closure.zip
 ```
 
-## Commit history
+## Changes by day
 
 ### 2026-08-18
 - Manda Hararo 2026 analysis
@@ -66,7 +67,6 @@ a13584043d975a616fd4a22593c4aee8c3d0b7ac9319d5f3ad1592cc25923b0a  manda-hararo-2
 - Add rewrapped fringe model comparison
 - Strengthen scientific result validation
 - Add data archives for new analysis products
-- Update analysis documentation and command order
 - Add external geometry and four-look fit products
 - Map stress on saved receiver planes
 - Record GSLC unwrap cost sensitivity
@@ -81,8 +81,7 @@ a13584043d975a616fd4a22593c4aee8c3d0b7ac9319d5f3ad1592cc25923b0a  manda-hararo-2
 - Refine the 2026 Wright-plane opening cross-section
 
 ### 2026-08-28
-- Sentinel-1 cumulative displacement files
-- Add README for Sentinel-1 cumulative displacements
+- Sentinel-1 cumulative displacement files, with their README
 
 ### 2026-08-29
 - Rotate the free three-component decomposition into the dike frame
@@ -91,48 +90,32 @@ a13584043d975a616fd4a22593c4aee8c3d0b7ac9319d5f3ad1592cc25923b0a  manda-hararo-2
 - Render the fixed 2005-plane fit at publication grade
 
 ### 2026-09-01
-- Repair the LOS figure header and retire stale geometry-status notes
-- Apply the observation reference operator to the model in both inversions
-- Regenerate every fit, figure, and report from the corrected estimator
-- Pass the model through the observation reference operator in the diagnostics
+- Apply the observation reference operator to the model in both inversions and in the diagnostics; every fit, figure and report regenerated from the corrected estimator
 - Rebuild the Wright-2006 contract from the current mapped fit
-
-### 2026-09-03
-- Add files via upload
-- Delete All_period directory
-- Add files via upload
-- Add files via upload
-- Update README
 
 ### 2026-09-02
 - Flip the dike-frame U-parallel sign to near-north and add the LOS inputs to its figure
 - Add a three-epoch loop-closure check of the reprocessed NISAR unwrapping
+
+### 2026-09-03
+- Sentinel-1 cumulative displacement maps (LiCSBAS, frames 014A_07688_131313 and 079D_07694_131313, October 2014 to July and to August 2026, with and without the ERA5 correction) and their README, from Pedro Espín Bedón
 
 ### 2026-09-09
 - Accept the loop-closure pre epochs in the GSLC granule manifest check
 - Add a depth-extent sweep of the mapped graben-fault term
 
 ### 2026-09-16
-- Verify closure replay and align experiment reports
 - Add the three-epoch opening comparison from the Hamling dike files
-- De-duplicate the cumulative and harden the three-epoch report
-- Resolve the duplicate files by evidence and qualify the volume comparison
-- Recompute the summed statistics in validation and complete the bounds
-- Validate by full recomputation and correct the plane-edge label
-- Pin validation to the tracked delivery, round once, qualify filtering
+- Resolve the duplicate files in the Hamling delivery by evidence, de-duplicate the cumulative, and qualify the volume comparison
+- Recompute the summed statistics and the bounds in validation by full recomputation
 - Question the 2005 model version and derive fit stats from the vector
 
 ### 2026-09-17
 - Adopt Hamling's canonical event mapping and cut the display at 10 km
-- Cite the source studies in the figure panel notes
 - Decode the updated September 2005 model and draw it on the section
-- Explain the NW shift of the drawn 2005 opening
-- Drop the delivery-relative wording from the 2005 panel note
 - Add the depth-averaged opening profiles in the Hamling 2009 Fig. 13 style
 - Record the drawn areas of the display resampling and mark missing 2026 coverage
-- Draw end columns to their true edges and state the threshold asymmetry
 - Put the floored cumulative on the report's 0-10 km interval; 2005 model as supplied
-- Name the 2005 model version and the interpolation on the figures
 - Export the 2026 opening model on the Hamling computational grid
 
 ### 2026-09-30
@@ -149,26 +132,15 @@ a13584043d975a616fd4a22593c4aee8c3d0b7ac9319d5f3ad1592cc25923b0a  manda-hararo-2
 - Draw the decay fit as a one-panel supplement figure
 
 ### 2026-10-08
-- Draw fitted decay values as dashed bars over their windows
-- Add intervals, track identity, and role-based selection to the decay figure
-- Centre the interval lines on odd-length windows
-- Name the Wright geometry provenance as provider and date
+- Decay figure: fitted values as dashed bars over their windows, with intervals, track identity and role-based selection
 
 ### 2026-10-22
 - Move the Sentinel-1 cumulative displacement maps under data/
-- Add the draft of Figure 1 for the GRL paper
-- Figure 1 draft: 400 dpi PDF export, shorter panel titles, under-range mark on the Sentinel-1 scale
-- Figure 1: Envisat track-300 interferograms of the September 2005 and October 2008 dykes in panels b and c
-- Figure 1: more room between the two rows of context panels
-- Figure 1: shorter Sentinel-1 colour-bar label
-- Figure 1: colour bars boxed with their tick numbers, Envisat arrows in the empty corner of panel b
+- Add the draft of Figure 1 for the GRL paper: the segment and the July 2026 NISAR interferogram, the September 2005 dyke from the Envisat track-49 pair processed here, the October 2008 dyke in Envisat track 300, and the 2014–2026 Sentinel-1 cumulative displacement wrapped at one fringe, with a display strip north of the NISAR analysis crop
+- Figure 4: the manuscript layout of the opening history, its caption written from the report numbers
 - Add the MIT licence for the code
 - Reorganize the documentation: a short README with the figures, the history in a changelog
-- README: plain captions and table wording
-- Figure 1: wrapped Sentinel-1 panel, a 2005 placeholder, and a display strip north of the NISAR crop; panel (a) drawn to 12.72 N
 - Prefer an Earthdata user token for the download paths
-- Figure 4: the manuscript layout of the opening history with its caption written from the report numbers; Figure 1 labels spelt "dike"
-- Figure 1: the September 2005 dyke in the Envisat track-49 pair processed here, the phase taken after geocoding; the Sentinel-1 mask keeps smooth steep fringes; panels (d) to (f) cite the Ireland figure by name
 
 ### 2026-10-23
 - Processing notes: the baseline and geolocation checks of the 2005 Envisat pair
