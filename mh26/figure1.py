@@ -666,16 +666,21 @@ def tucked_label(quadrant: str, shafts, half_w: float, half_h: float,
 def draw_look_arrows(ax, view: dict, *, corner: str, x: float, y: float,
                      flight_mm=4.5, los_mm=3.2, pad_mm=0.6, los_label=None):
     """Flight direction and ground-to-satellite look direction: two arrows
-    through one centre on a white box sized from the measured arrows and
-    labels so that nothing crosses its edge. ``x``, ``y`` (axes fraction)
-    place the box corner named by ``corner`` ("NE", "NW", "SE" or "SW"); the
-    arrow half-lengths are in millimetres. Each label sits beyond its arrow
-    head, unless ``los_label`` names the quadrant between the arrows into
-    which the LOS label is tucked instead: the box is then narrower."""
+    through one centre on a white box sized from the drawn arrows and the
+    measured labels so that nothing crosses its edge. ``x``, ``y`` (axes
+    fraction) place the box corner named by ``corner`` ("NE", "NW", "SE" or
+    "SW"); the arrow half-lengths are in millimetres. Each label sits beyond
+    its arrow head, unless ``los_label`` names the quadrant between the
+    arrows into which the LOS label is tucked instead: the box is then
+    narrower."""
     w_mm, h_mm = ax._size_mm
     px_per_mm = ax.figure.dpi / 25.4
     renderer = ax.figure.canvas.get_renderer()
-    head_mm = 0.7                       # clearance round the shaft ends and heads
+    # The stroked "-|>" arrow at line width 1.1 and mutation scale 7, measured
+    # on a 1200-dpi render: the tail cap reaches 0.2 mm past the tail point,
+    # the tip stops 0.2 mm short of the head point, the shaft is 0.2 mm
+    # either side of its axis and the barbs 0.7 mm, 1.2 mm behind the tip.
+    tail_mm, tip_mm, shaft_mm, barb_mm, barb_back_mm = 0.2, 0.2, 0.2, 0.7, 1.2
     items = []
     for label, colour, angle, half_mm, quadrant in (
             ("flight", "#222222", view["heading_deg"], flight_mm, None),
@@ -686,22 +691,24 @@ def draw_look_arrows(ax, view: dict, *, corner: str, x: float, y: float,
         extent = text.get_window_extent(renderer)
         items.append((text, ux, uy, half_mm, colour, quadrant,
                       0.5 * extent.width / px_per_mm, 0.5 * extent.height / px_per_mm))
-    shafts = [(ux, uy, half_mm + head_mm) for _, ux, uy, half_mm, *_ in items]
+    shafts = [(ux, uy, half_mm) for _, ux, uy, half_mm, *_ in items]
     arrows, labels, xs, ys = [], [], [], []
     for text, ux, uy, half_mm, colour, quadrant, half_w, half_h in items:
         if quadrant is None:
-            # The label centre sits beyond the head by the label's own extent
-            # along the arrow, so its near edge clears the head by 0.6 mm.
-            reach = half_mm + head_mm + 0.6 + abs(ux) * half_w + abs(uy) * half_h
+            # The label centre sits beyond the tip by the label's own extent
+            # along the arrow, so its near edge clears the drawn tip by 0.5 mm.
+            reach = half_mm - tip_mm + 0.5 + abs(ux) * half_w + abs(uy) * half_h
             lx, ly = reach * ux, reach * uy
         else:
-            # 0.9 mm from the shaft axis leaves 0.5 mm beside the head barbs.
+            # 0.9 mm from the shaft axis leaves 0.2 mm beside the barbs.
             lx, ly = tucked_label(quadrant, shafts, half_w, half_h, clear_mm=0.9)
         arrows.append((ux, uy, half_mm, colour))
         labels.append((text, lx, ly))
-        for s in (half_mm + head_mm, -(half_mm + head_mm)):
-            xs += [s * ux - head_mm, s * ux + head_mm]
-            ys += [s * uy - head_mm, s * uy + head_mm]
+        for along, side in ((-(half_mm + tail_mm), shaft_mm),
+                            (half_mm - barb_back_mm, barb_mm), (half_mm - tip_mm, shaft_mm)):
+            for t in (-side, side):
+                xs.append(along * ux - t * uy)
+                ys.append(along * uy + t * ux)
         xs += [lx - half_w, lx + half_w]
         ys += [ly - half_h, ly + half_h]
     x0, x1 = min(xs) - pad_mm, max(xs) + pad_mm
@@ -716,8 +723,8 @@ def draw_look_arrows(ax, view: dict, *, corner: str, x: float, y: float,
         dx, dy = half_mm * ux / w_mm, half_mm * uy / h_mm
         ax.annotate("", xy=(cx + dx, cy + dy), xytext=(cx - dx, cy - dy),
                     xycoords="axes fraction", textcoords="axes fraction",
-                    arrowprops={"arrowstyle": "-|>", "lw": 1.1, "color": colour,
-                                "shrinkA": 0, "shrinkB": 0}, zorder=18)
+                    arrowprops={"arrowstyle": "-|>", "lw": 1.1, "mutation_scale": 7.0,
+                                "color": colour, "shrinkA": 0, "shrinkB": 0}, zorder=18)
     for text, lx, ly in labels:
         text.set_position((cx + lx / w_mm, cy + ly / h_mm))
 
