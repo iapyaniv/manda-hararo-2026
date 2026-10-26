@@ -664,7 +664,7 @@ def tucked_label(quadrant: str, shafts, half_w: float, half_h: float,
 
 
 def draw_look_arrows(ax, view: dict, *, corner: str, x: float, y: float,
-                     flight_mm=4.5, los_mm=3.2, pad_mm=0.9, los_label=None):
+                     flight_mm=4.5, los_mm=3.2, pad_mm=0.6, los_label=None):
     """Flight direction and ground-to-satellite look direction: two arrows
     through one centre on a white box sized from the measured arrows and
     labels so that nothing crosses its edge. ``x``, ``y`` (axes fraction)
@@ -783,7 +783,7 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float, notes: bool) ->
     for name, lon, lat in (("Dabbahu MS", 40.30, 12.46), ("Hararo MS", 40.40, 12.02)):
         haloed_text(ax_a, lon, lat, name, fontsize=7.4, fontstyle="italic", ha="left",
                     va="center", color="#202020")
-    draw_look_arrows(ax_a, NISAR_VIEW, corner="NE", x=0.975, y=0.945)
+    draw_look_arrows(ax_a, NISAR_VIEW, corner="NE", x=0.975, y=0.945, los_label="NE")
     scale_bar(ax_a, FRAME_A, 20)
     inset_colorbar(ax_a, plt.cm.ScalarMappable(norm=norm_a, cmap=cyclic),
                    "LOS toward satellite, one fringe (cm)",
