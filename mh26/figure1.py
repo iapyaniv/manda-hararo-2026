@@ -638,8 +638,8 @@ def draw_earthquake(ax):
         part.set_path_effects(THIN_HALO)
     ax.scatter([q["lon"]], [q["lat"]], marker="*", s=75, facecolor="#ffd400",
                edgecolor="black", linewidth=0.7, zorder=14)
-    haloed_text(ax, q["lon"] + 0.02, q["lat"] - 0.028, "17 Jul 2026\nearthquake (IGSSA)",
-                ha="left", va="top", linespacing=1.1)
+    haloed_text(ax, q["lon"], q["lat"] - 0.028, "17 Jul 2026\nearthquake (IGSSA)",
+                ha="center", va="top", linespacing=1.1)
 
 
 def tucked_label(quadrant: str, shafts, half_w: float, half_h: float,
@@ -732,8 +732,12 @@ def draw_look_arrows(ax, view: dict, *, corner: str, x: float, y: float,
         text.set_position((cx + lx / w_mm, cy + ly / h_mm))
 
 
-def series_axes(ax, year, los, *, title: str, ylabel: str, xlabel: bool, title_left=False):
+def series_axes(ax, year, los, *, title: str, ylabel: str, xlabel: bool, title_left=False,
+                top_pad=0.0):
     ax.scatter(year, los, s=2.2, color="black", linewidths=0, zorder=5)
+    if top_pad:
+        lo, hi = ax.get_ylim()
+        ax.set_ylim(lo, hi + top_pad * (hi - lo))
     ax.set_xlim(2014.7, 2026.7)
     ax.set_xticks([2016, 2020, 2024])
     ax.set_xticklabels(["2016", "2020", "2024"] if xlabel else [])
@@ -884,7 +888,7 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float, notes: bool) ->
                    "one fringe (cm)", ticks=[0, S1_FRINGE_MM / 10],
                    tick_labels=["0", f"{S1_FRINGE_MM / 10:.1f}"], x=0.44, w=0.50)
     panel_letter(ax_d, "d")
-    panel_title(ax_d, "Sentinel-1 descending\n23 Oct 2014 – 11 Jul 2026\ncumulative, wrapped",
+    panel_title(ax_d, "Sentinel-1 descending\nOct 2014 – Jul 2026\ncumulative, wrapped",
                 fontsize=FS_NOTE)
 
     # --- (e), (f) the two series ---------------------------------------------
@@ -898,7 +902,7 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float, notes: bool) ->
     ax_f = mm_axes(fig, col2 + 6.0, y_base, b_w - 6.0, h_each)
     year, los = series[SITES["f"]["series"]]
     series_axes(ax_f, year, los, title="site f − flank f′", ylabel="f − f′ (mm)",
-                xlabel=True)
+                xlabel=True, top_pad=0.3)
     panel_letter(ax_f, "f")
 
     if notes:
