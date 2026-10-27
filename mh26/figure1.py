@@ -896,12 +896,12 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float, notes: bool) ->
     h_each = (b_h - gap) / 2
     ax_e = mm_axes(fig, col2 + 6.0, y_base + h_each + gap, b_w - 6.0, h_each)
     year, los = series[SITES["e"]["series"]]
-    series_axes(ax_e, year, los, title="site e", ylabel="LOS (mm)", xlabel=False,
-                title_left=True)
+    series_axes(ax_e, year, los, title="Ado'Ale (site e)", ylabel="LOS (mm)", xlabel=False,
+                title_left=True, top_pad=0.25)
     panel_letter(ax_e, "e")
     ax_f = mm_axes(fig, col2 + 6.0, y_base, b_w - 6.0, h_each)
     year, los = series[SITES["f"]["series"]]
-    series_axes(ax_f, year, los, title="site f − flank f′", ylabel="f − f′ (mm)",
+    series_axes(ax_f, year, los, title="graben f − flank f′", ylabel="f − f′ (mm)",
                 xlabel=True, top_pad=0.3)
     panel_letter(ax_f, "f")
 
