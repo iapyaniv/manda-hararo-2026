@@ -157,6 +157,9 @@ a13584043d975a616fd4a22593c4aee8c3d0b7ac9319d5f3ad1592cc25923b0a  manda-hararo-2
 ### 2026-10-26
 - Release build: the figure-input add-on and its manifest `data/SHA256SUMS-figures.txt`
 
+### 2026-10-27
+- Figure 1: the Ado'Ale triangle at the summit of that name in Fig. SM3 of Keir et al. (2009) (40.741°E, 12.351°N, east of the rift axis); it stood on the axis at 40.60°E, 12.37°N, 15 km away
+
 ## Analysis notes kept from the README (as of 22 October 2026)
 
 ### Results
@@ -284,6 +287,3 @@ The separate visual review of 24 additional January–June NISAR previews is
 in `results/preevent_preview_review.md`; its input list is
 `granules/preevent_preview_pairs.tsv`. It does not extend the quantitative
 16-window result.
-
-### 2026-10-27
-- Figure 1: the Ado'Ale triangle at the summit of that name in Fig. SM3 of Keir et al. (2009) (40.741°E, 12.351°N, east of the rift axis); it stood on the axis at 40.60°E, 12.37°N, 15 km away
