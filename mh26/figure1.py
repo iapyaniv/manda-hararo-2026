@@ -140,12 +140,14 @@ FRAME_B = {"lon": (40.28, 41.06), "lat": (11.92, 12.84), "step": 0.0005}
 
 # Volcanic centres at their mapped positions, not the model sources: Dabbahu
 # and Manda Hararo from the Global Volcanism Program; Gabho as located by
-# Wright et al. (2006) (quoted by Grandin et al. 2010); the Ado'Ale Volcanic
-# Complex at about 12 deg 22 min N (Ebinger et al. 2008), on the rift axis.
+# Wright et al. (2006) (quoted by Grandin et al. 2010); Ado'Ale at the summit
+# of that name on the east side of the rift axis, read from the topographic
+# map of the Ado'Ale Volcanic Complex in Fig. SM3 of Keir et al. (2009),
+# Geology 37, 59 (GSA Data Repository 2009014), to about 0.005 deg.
 VOLCANOES = {
     "Gabho": (40.53, 12.69),
     "Dabbahu": (40.48, 12.595),
-    "Ado'Ale": (40.60, 12.37),
+    "Ado'Ale": (40.741, 12.351),
     "Manda Hararo": (40.82, 12.17),
 }
 # The one located July 2026 earthquake at its IGSSA location (compiled by
@@ -573,8 +575,9 @@ def draw_2026_geometry(ax, lines: dict, *, lw_dike=1.6, lw_fault=1.0, labels: bo
                     color="#c81e1e", fontsize=FS_MODEL, ha="right", va="top")
         if "fault" in lines:
             flon, flat = lines["fault"]
-            haloed_text(ax, flon[0] + 0.03, flat[0] + 0.012, "2026 fault model",
-                        color="#111111", fontsize=FS_MODEL, ha="left", va="bottom")
+            # Below the Ado'Ale triangle, which sits just north-east of the fault's end.
+            haloed_text(ax, flon[0] + 0.03, flat[0] - 0.012, "2026 fault model",
+                        color="#111111", fontsize=FS_MODEL, ha="left", va="top")
 
 
 def draw_plane_trace(ax, profiles: dict, *, lw=0.8, label: bool):
@@ -613,7 +616,7 @@ def draw_opening_ribbon(ax, profiles: dict, values: np.ndarray, norm, *, lw=4.4)
 def draw_volcanoes(ax, *, names: bool, size=38):
     offsets = {"Gabho": (0.02, 0.0, "left", "center"),
                "Dabbahu": (-0.02, 0.0, "right", "center"),
-               "Ado'Ale": (-0.02, 0.0, "right", "center"),
+               "Ado'Ale": (0.02, 0.0, "left", "center"),
                "Manda Hararo": (0.02, 0.0, "left", "center")}
     for name, (lon, lat) in VOLCANOES.items():
         ax.scatter([lon], [lat], marker="^", s=size, facecolor="white", edgecolor="black",
@@ -862,11 +865,14 @@ def build(dem_south: Path, out_stem: Path, coherence_min: float, notes: bool) ->
     draw_plane_trace(ax_d, profiles, lw=0.6, label=False)
     draw_2026_geometry(ax_d, lines_2026, lw_dike=1.0, labels=False)
     draw_volcanoes(ax_d, names=False, size=16)
+    # Site e's letter goes below its marker, clear of the Ado'Ale triangle to its north-east.
+    site_label = {"e": (0.010, -0.012, "left", "top"), "f": (0.018, 0.004, "left", "center")}
     for letter, site in SITES.items():
         ax_d.scatter([site["lon"]], [site["lat"]], s=22, facecolor="white", edgecolor="black",
                      linewidth=0.8, zorder=13)
-        haloed_text(ax_d, site["lon"] + 0.018, site["lat"] + 0.004, letter, fontsize=6.8,
-                    fontweight="bold", ha="left", va="center")
+        dx, dy, ha, va = site_label[letter]
+        haloed_text(ax_d, site["lon"] + dx, site["lat"] + dy, letter, fontsize=6.8,
+                    fontweight="bold", ha=ha, va=va)
     ax_d.scatter([FLANK_REFERENCE[0]], [FLANK_REFERENCE[1]], s=16, facecolor="none",
                  edgecolor="black", linewidth=0.8, zorder=13)
     haloed_text(ax_d, FLANK_REFERENCE[0] + 0.016, FLANK_REFERENCE[1] + 0.004, "f′",
