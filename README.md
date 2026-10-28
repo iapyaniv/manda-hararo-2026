@@ -30,7 +30,7 @@ establish.
 
 ## Figures
 
-![Figure 1: the segment, the 2026 interferogram, the 2005 and 2008 dykes in Envisat, and the wrapped 2014–2026 Sentinel-1 displacement and series](results/figure1.png)
+![Figure 1: the segment, the 2026 interferogram, the 2005 and 2008 dykes in Envisat, and the wrapped 2014–2026 Sentinel-1 displacement and series](results/figure1.png?v=8ce9939cd5d5)
 
 Figure 1: the segment and the July 2026 intrusion in the NISAR
 interferogram, the September 2005 dyke in the Envisat track-49 pair
